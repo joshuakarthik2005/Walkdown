@@ -44,3 +44,12 @@ Task reports, appended after every task.
 - `compare.py`: runs priority-sort and CP-SAT (warm-started from the baseline) on the same scenario. Reports risk-weighted exposure, criticals unscheduled, unscheduled count, crew utilisation (per crew and mean), solve time and gap.
 - `test_cpsat_never_worse_than_baseline` is parametrised over seeds 0–5 (30 defects, 5 s limit).
 - Found and fixed two solver issues along the way: an incomplete hint was being discarded, and presolve probing was starving the search (see DECISIONS.md).
+
+## 2026-10-27 — Phase 1.5: replanning
+- Status: DONE. Tests: 31 passed (6 new).
+- `replan.py`: `apply_change` handles the three change types with validation, and `replan` returns a `ReplanResult` with moved jobs, newly scheduled/unscheduled jobs, and the objective before and after. Started work is fixed and moves are penalised. Baseline `keep_previous` mode is used as the replan warm start.
+- Demo seed at now=40h, all OPTIMAL with zero violations:
+  - busiest crew out 72h: 6 moved
+  - SD1 cancelled: 9 moved, 1 crowded out
+  - SD1 moved: 8 moved
+  - new critical defect: 0 moved, and it is scheduled

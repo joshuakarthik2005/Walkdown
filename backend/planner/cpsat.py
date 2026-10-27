@@ -53,7 +53,7 @@ def solve(
     """
     config = config or PlannerConfig()
     if hint is None and warm_start:
-        hint = priority_sort(scenario, config, now=now, previous=previous).assignments
+        hint = priority_sort(scenario, config, now=now, previous=previous, keep_previous=True).assignments
     horizon = scenario.horizon_hours
     model = cp_model.CpModel()
 

@@ -40,3 +40,10 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   | 0 | 6.1% | 60.6% | 5.6% | 5.3% OPT | 0.9% | 9.6% |
 
   `PlannerConfig.probing_level` now defaults to 0.
+
+## 2026-10-27 — Replanning semantics
+- A job is "started" when its start is earlier than `now`. Started jobs are fixed: same crew, same times. They are exempt from new constraints, so an in-progress job finishes even if its crew is later marked unavailable or its shutdown window is cancelled. The alternative, abandoning half-done work, isn't modelled.
+- Every other previously planned job may move, at `move_penalty` (default 200) per moved job. A job counts as moved if its crew or start changed, or it was dropped. 200 is about one hour of exposure for a mid-risk defect, so CP-SAT moves a job only for a real risk gain. Setting the penalty to 0 or very high is tested.
+- New defects get `found_at = now`, so their permit lead time counts from discovery and exposure counts from when they were found.
+- The replan warm start is `priority_sort(keep_previous=True)`: keep every still-feasible planned job, then fill the gaps greedily. It's the usual manual "patch the schedule" response, and it gives CP-SAT a stable starting point.
+- Change types: `CrewUnavailable(crew_id, start, end)`; `ShutdownWindowChanged(window_id, new_start, new_end)`, which cancels the window when both are omitted; `NewDefect(defect)`. Changes chain: each replan returns the changed scenario and new plan, ready for the next one.
