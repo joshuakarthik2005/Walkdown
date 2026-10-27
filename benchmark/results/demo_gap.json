@@ -1,0 +1,46 @@
+[
+ {
+  "label": "before: 4 workers, full backlog",
+  "backlog": 25,
+  "walkdown": 27,
+  "defects": 52,
+  "status": "FEASIBLE",
+  "gap": 0.3582275249640008,
+  "wall_s": 33.309066800000004,
+  "objective": 806962.0,
+  "unscheduled": 11
+ },
+ {
+  "label": "12 workers, full backlog",
+  "backlog": 25,
+  "walkdown": 27,
+  "defects": 52,
+  "status": "FEASIBLE",
+  "gap": 0.3896083280212516,
+  "wall_s": 32.5124427,
+  "objective": 806338.0,
+  "unscheduled": 11
+ },
+ {
+  "label": "12 workers, backlog 15",
+  "backlog": 15,
+  "walkdown": 27,
+  "defects": 42,
+  "status": "FEASIBLE",
+  "gap": 0.3399174005695212,
+  "wall_s": 32.1321126,
+  "objective": 530270.0,
+  "unscheduled": 3
+ },
+ {
+  "label": "12 workers, backlog 10",
+  "backlog": 10,
+  "walkdown": 27,
+  "defects": 37,
+  "status": "FEASIBLE",
+  "gap": 0.33322292846290136,
+  "wall_s": 31.2663194,
+  "objective": 380418.0,
+  "unscheduled": 0
+ }
+]
