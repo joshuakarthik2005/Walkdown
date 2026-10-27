@@ -17,7 +17,7 @@ The output is data, not prose: Muse Spark narrates it later.
 
 from __future__ import annotations
 
-from .models import DefectExplanation, Plan, Reason, ReasonCode, Scenario
+from .models import DefectExplanation, Plan, PlannerConfig, Reason, ReasonCode, Scenario
 from .timegrid import feasible_slots, release_hour, shift_hours, window_containing
 
 
@@ -42,9 +42,11 @@ def _capacity_detail(scenario: Scenario, plan: Plan, defect, eligible, release: 
                         f"in gaps too short or too late for this {defect.repair_hours} h job")
 
 
-def explain(scenario: Scenario, plan: Plan, *, fixed_ids: set[str] | None = None) -> list[DefectExplanation]:
+def explain(scenario: Scenario, plan: Plan, *, fixed_ids: set[str] | None = None,
+            config: PlannerConfig | None = None) -> list[DefectExplanation]:
     """Explain why each defect is scheduled where it is, or why it is unscheduled."""
     fixed_ids = fixed_ids or set()
+    config = config or PlannerConfig()
     now = plan.now
     out = []
     for d in scenario.defects:
@@ -127,4 +129,9 @@ def explain(scenario: Scenario, plan: Plan, *, fixed_ids: set[str] | None = None
         out.append(DefectExplanation(defect_id=d.id, status="scheduled", crew_id=a.crew_id, start=a.start,
                                      end=a.end, release_hour=release, earliest_feasible_start=e_full,
                                      reasons=reasons))
+    for e in out:  # why this defect ranks where it does: likelihood x consequence of its line service
+        d = scenario.defect(e.defect_id)
+        e.priority = dict(service=d.service.value if d.service else None, severity=d.severity,
+                          likelihood=round(config.likelihood(d), 3), consequence_factor=config.consequence(d),
+                          risk_weight=config.risk_weight(d), critical=config.is_critical(d), high=config.is_high(d))
     return out

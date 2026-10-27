@@ -209,3 +209,18 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - The earlier entry described a server-side cap of ~16–17 verifier calls/min. Over the rest of the run, the same 8-concurrent setup reached **74 calls/min** in its final clean chunk, with a run-wide median latency of 5.3 s (p90 25.9 s).
 - The early low throughput was a mix of: a temporary period of high API latency; this benchmark's own chunk crashes (an unpicklable `APIConnectionError` broke the process pool; fixed in d1c3a43); and pure-Python mask decoding.
 - Correct statement: Meta API latency and throughput varied by ~4× over a few hours, with no 429s. The decision that the demo path uses cached perception and verification stands, for this reason.
+
+## 2026-10-27 — Line-service consequence weighting (builder decision)
+- Planner risk per hour unrepaired = `risk_scale × likelihood × consequence`.
+  - likelihood = `failure_risk × severity_weight[severity]` (unchanged).
+  - consequence = a per-service factor of the asset's line service. `None` (unknown) means 1.0, so synthetic benchmarks and the demo backlog are unaffected.
+- **Default consequence factors are ASSUMPTIONS chosen by judgement for the demo, not industry figures:**
+  - hydrogen 3.0, LPG 3.0: flammable gases with wide flammability ranges, high escalation potential
+  - hydrocarbon vapour 2.5
+  - crude 2.0, chemical 2.0
+  - steam 1.5: burn hazard to people
+  - fire water 1.5: failure impairs a safety system
+  - cooling water 1.0
+  - air/nitrogen 0.8
+  They are configurable per site in `PlannerConfig.consequence_factor`. A real deployment should take them from the site's own risk-based-inspection consequence ranking.
+- The service is set per asset at upload time (`service` form field). It flows into the register and into every planner defect. Each plan explanation carries `priority` = {service, severity, likelihood, consequence_factor, risk_weight, critical, high}, and the agent is told to use it when explaining why one job outranks another.

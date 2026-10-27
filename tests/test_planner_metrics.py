@@ -68,3 +68,17 @@ def test_moved_jobs_and_utilisation():
     assert moved_jobs(prev, new, now=9) == ["b"]  # "a" already started, not counted
     util = crew_utilisation(_two_defects(), new)
     assert util["c"] == 4 / 16
+
+
+def test_service_consequence_scales_risk_weight():
+    from backend.planner.models import ServiceType
+    cfg = PlannerConfig()
+    base = dict(id="x", asset="A", severity=3, failure_risk=0.5, repair_hours=2, skill="coating")
+    plain = Defect(**base)
+    lpg = Defect(**base, service=ServiceType.LPG)
+    air = Defect(**base, service="air_nitrogen")
+    assert cfg.consequence(plain) == 1.0 and cfg.consequence(lpg) == 3.0 and cfg.consequence(air) == 0.8
+    assert cfg.risk_weight(lpg) == round(cfg.risk_weight(plain) * 3.0)
+    assert cfg.likelihood(lpg) == cfg.likelihood(plain) == 0.5 * 4.0
+    custom = PlannerConfig(consequence_factor={ServiceType.LPG: 5.0})
+    assert custom.consequence(lpg) == 5.0 and custom.consequence(air) == 1.0

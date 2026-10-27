@@ -107,3 +107,9 @@ def test_normalise_change_accepts_flat_and_nested_forms():
     d = {"id": "N1", "asset": "A", "severity": 5, "failure_risk": 0.9, "repair_hours": 6, "skill": "coating"}
     assert normalise_change({"new_defect": d}) == {"type": "new_defect", "defect": d}
     assert normalise_change({"type": "new_defect", "defect": d}) == {"type": "new_defect", "defect": d}
+
+
+def test_register_carries_service_to_planner():
+    asset = AssetInfo("LPG-LINE-3", service="lpg")
+    entry = build_register([Detection("x", 0, (0, 0, 10, 10), _grade())], asset)[0]
+    assert to_planner_defect(entry, found_at=0).service.value == "lpg"

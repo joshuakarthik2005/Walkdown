@@ -144,7 +144,8 @@ def build_register_tool(s: AgentSession) -> dict:
                 needs_review=[e.defect_id for e in s.register if e.needs_review],
                 entries=[dict(defect_id=e.defect_id, frames=e.frames, defect_type=e.grade.defect_type.value,
                               severity=e.grade.severity, confidence=e.grade.confidence,
-                              recommended_action=e.grade.recommended_action.value) for e in s.register])
+                              recommended_action=e.grade.recommended_action.value,
+                              service=e.asset.service) for e in s.register])
 
 
 def _plan_summary(s: AgentSession, plan: Plan, new_ids: set[str]) -> dict:

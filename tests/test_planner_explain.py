@@ -97,3 +97,14 @@ def test_every_defect_explained_and_json_serialisable_after_replan():
     assert in_progress and all(_codes(e) == [ReasonCode.WORK_IN_PROGRESS] for e in in_progress)
     data = json.loads(result.plan.model_dump_json())
     assert all(isinstance(r["code"], str) for e in data["explanations"] for r in e["reasons"])
+
+
+def test_priority_terms_in_explanations_and_service_changes_order():
+    from backend.planner.models import ServiceType
+    sc = Scenario(name="s", horizon_days=1, crews=[Crew(id="c", skills=["coating"])],
+                  defects=[_d("water", service=ServiceType.COOLING_WATER, failure_risk=0.6),
+                           _d("lpg", service=ServiceType.LPG, failure_risk=0.4)])
+    plan, ex = _explain(sc)
+    assert plan.assignment("lpg").start < plan.assignment("water").start  # consequence outranks likelihood
+    p = ex["lpg"].priority
+    assert p["service"] == "lpg" and p["consequence_factor"] == 3.0 and p["risk_weight"] > ex["water"].priority["risk_weight"]

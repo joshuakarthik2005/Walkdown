@@ -33,6 +33,35 @@ class TimeRange(BaseModel):
         return start < self.end and self.start < end
 
 
+class ServiceType(str, Enum):
+    """What the line or vessel carries; drives the consequence of a failure."""
+
+    LPG = "lpg"
+    CRUDE = "crude"
+    HYDROGEN = "hydrogen"
+    HYDROCARBON_VAPOUR = "hydrocarbon_vapour"
+    CHEMICAL = "chemical"
+    STEAM = "steam"
+    COOLING_WATER = "cooling_water"
+    FIRE_WATER = "fire_water"
+    AIR_NITROGEN = "air_nitrogen"
+
+
+# Default consequence factors. These are ASSUMPTIONS for the demo (relative severity of a loss of
+# containment by service, chosen by judgement), not industry figures; see docs/DECISIONS.md.
+DEFAULT_CONSEQUENCE = {
+    ServiceType.HYDROGEN: 3.0,
+    ServiceType.LPG: 3.0,
+    ServiceType.HYDROCARBON_VAPOUR: 2.5,
+    ServiceType.CRUDE: 2.0,
+    ServiceType.CHEMICAL: 2.0,
+    ServiceType.STEAM: 1.5,
+    ServiceType.FIRE_WATER: 1.5,
+    ServiceType.COOLING_WATER: 1.0,
+    ServiceType.AIR_NITROGEN: 0.8,
+}
+
+
 class Defect(BaseModel):
     """A verified defect that needs a repair job."""
 
@@ -46,6 +75,7 @@ class Defect(BaseModel):
     needs_shutdown: bool = False
     permit: str | None = None
     found_at: int = Field(default=0, ge=0, description="Hour the defect was found; exposure is counted from here.")
+    service: ServiceType | None = Field(default=None, description="Line service; None means consequence factor 1.")
 
 
 class Crew(BaseModel):
@@ -136,6 +166,8 @@ class PlannerConfig(BaseModel):
 
     severity_weight: dict[int, float] = Field(default_factory=lambda: {1: 1.0, 2: 2.0, 3: 4.0, 4: 8.0, 5: 16.0})
     risk_scale: int = Field(default=100, ge=1, description="Scales failure_risk x severity_weight to an integer weight.")
+    consequence_factor: dict[ServiceType, float] = Field(default_factory=lambda: dict(DEFAULT_CONSEQUENCE),
+                                                          description="Per-service consequence multiplier (assumptions).")
     critical_severity: int = Field(default=5, ge=1, le=5)
     critical_penalty: int = Field(default=1_000_000, ge=0, description="Added per unscheduled critical defect.")
     high_severity: int = Field(default=4, ge=1, le=5, description="Severity from which a non-critical defect is 'high'.")
@@ -150,9 +182,17 @@ class PlannerConfig(BaseModel):
     random_seed: int = 0
     probing_level: int = Field(default=0, ge=0, le=2, description="CP-SAT presolve probing; 0 measured best here.")
 
+    def likelihood(self, defect: Defect) -> float:
+        """Severity-based likelihood term: failure_risk x severity weight."""
+        return defect.failure_risk * self.severity_weight[defect.severity]
+
+    def consequence(self, defect: Defect) -> float:
+        """Consequence factor of the line's service (1.0 when unknown)."""
+        return self.consequence_factor.get(defect.service, 1.0) if defect.service else 1.0
+
     def risk_weight(self, defect: Defect) -> int:
-        """Integer exposure weight per hour a defect stays unrepaired."""
-        return round(self.risk_scale * defect.failure_risk * self.severity_weight[defect.severity])
+        """Integer exposure weight per hour unrepaired: risk_scale x likelihood x consequence."""
+        return round(self.risk_scale * self.likelihood(defect) * self.consequence(defect))
 
     def is_critical(self, defect: Defect) -> bool:
         """True if the defect is at or above the critical severity."""
@@ -254,6 +294,7 @@ class DefectExplanation(BaseModel):
     release_hour: int
     earliest_feasible_start: int | None = None
     reasons: list[Reason]
+    priority: dict = Field(default_factory=dict, description="Risk terms: service, likelihood, consequence, weight.")
 
 
 class Plan(BaseModel):

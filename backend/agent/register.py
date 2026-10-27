@@ -31,6 +31,7 @@ class AssetInfo:
     asset_type: str = "pipe"  # pipe, tank, valve, support, railing
     pressurised: bool = True
     location: str = ""
+    service: str | None = None  # a planner ServiceType value, e.g. "lpg"; None = unknown (consequence 1.0)
 
 
 @dataclass
@@ -109,4 +110,4 @@ def to_planner_defect(entry: RegisterEntry, *, found_at: int) -> Defect:
     risk = round(min(0.95, BASE_RISK[sev] * (0.5 + 0.5 * g.confidence)), 2)
     return Defect(id=entry.defect_id, asset=entry.asset.asset_id, defect_type=g.defect_type.value, severity=sev,
                   failure_risk=risk, repair_hours=REPAIR_HOURS[sev], skill=skill, needs_shutdown=needs_shutdown,
-                  permit=permit, found_at=found_at)
+                  permit=permit, found_at=found_at, service=entry.asset.service)

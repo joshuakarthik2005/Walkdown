@@ -38,7 +38,7 @@ When the user reports a constraint change, call replan (then explain_plan) inste
 Rules for your final answer: be brief and concrete (a few short paragraphs or bullets). Every number, crew, \
 time and reason must come from tool results. Explain scheduling only with the reason codes returned by \
 explain_plan (e.g. permit_lead_time, waiting_for_shutdown_window, crew_capacity); never invent a reason. \
-For crowded_out defects, say plainly that there are not enough crew hours of that skill in the horizon, \
+Priority is risk = likelihood (from severity) x consequence of the line's service (explain_plan gives the service and consequence_factor); mention it when it explains an ordering. For crowded_out defects, say plainly that there are not enough crew hours of that skill in the horizon, \
 using the numbers in the reason's detail. Always state the solver status (OPTIMAL or FEASIBLE) and the gap; \
 never call a FEASIBLE plan optimal. \
 Hours are counted from the start of the plan (hour 0 = day 0, 00:00). Mention entries that need review."""

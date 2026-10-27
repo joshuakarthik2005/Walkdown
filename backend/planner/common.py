@@ -39,5 +39,5 @@ def build_plan(
         high_unscheduled=high_unscheduled(scenario, config, assignments),
         moved_jobs=moved_jobs(prev_assignments, assignments, now),
     )
-    plan.explanations = explain(scenario, plan, fixed_ids=fixed_ids)
+    plan.explanations = explain(scenario, plan, fixed_ids=fixed_ids, config=config)
     return plan

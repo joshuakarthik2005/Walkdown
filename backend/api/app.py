@@ -35,6 +35,7 @@ from backend.agent.clip import CLIPS_DIR, Clip, create_clip
 from backend.agent.loop import TraceEvent, WalkdownAgent
 from backend.agent.tools import AgentSession
 from backend.clients.cost import CostLedger
+from backend.planner.models import ServiceType
 
 app = FastAPI(title="Walkdown API", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3000"], allow_methods=["*"],
@@ -76,7 +77,8 @@ def _run(run_id: str) -> RunState:
 
 @app.post("/clips")
 async def upload_clip(files: list[UploadFile] = File(...), asset_id: str = Form(...), asset_type: str = Form("pipe"),
-                      pressurised: bool = Form(True), location: str = Form("")) -> dict:
+                      pressurised: bool = Form(True), location: str = Form(""),
+                      service: str = Form("")) -> dict:
     """Store one video, or several photos, as a new clip."""
     if not re.fullmatch(r"[A-Za-z0-9._-]{1,64}", asset_id):
         raise HTTPException(400, "asset_id: letters, digits, . _ - only")
@@ -96,7 +98,10 @@ async def upload_clip(files: list[UploadFile] = File(...), asset_id: str = Form(
         videos = [p for p in saved if p.suffix in {".mp4", ".mov"}]
         if len(videos) > 1 or (videos and len(saved) > 1):
             raise HTTPException(400, "upload one video, or photos only")
-        asset = dict(asset_id=asset_id, asset_type=asset_type, pressurised=pressurised, location=location)
+        if service and service not in {s.value for s in ServiceType}:
+            raise HTTPException(400, f"unknown service {service!r}")
+        asset = dict(asset_id=asset_id, asset_type=asset_type, pressurised=pressurised, location=location,
+                     service=service or None)
         clip = create_clip(clip_id, video=videos[0] if videos else None, photos=None if videos else saved, asset=asset)
     return dict(clip_id=clip_id, duration_s=clip.duration_s, asset=asset)
 
