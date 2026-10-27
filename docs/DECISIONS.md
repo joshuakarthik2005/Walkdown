@@ -194,3 +194,13 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 ## 2026-10-27 — Demo solver limit and capacity explanations (builder decision)
 - The demo path (`AgentSession`) gives each solve 30 s instead of 10 s. The first dry-run plan, with 52 defects, was FEASIBLE rather than OPTIMAL at 10 s. Status and gap are always reported, and the agent prompt forbids calling a FEASIBLE plan optimal.
 - Crowded-out defects now carry the crew-hour arithmetic in `Reason.detail`: skill, eligible crews, skilled hours from release to horizon, hours booked, hours free, and the job's repair hours. There is also a one-line summary ("not enough coating crew hours in the horizon: …"). The agent is told to say this plainly, using those numbers.
+
+## 2026-10-27 — Measured server-side throughput cap for the verifier; the demo path stays cached
+- Measured on the full test-split verifier run (hosted `muse-spark-1.3`, reasoning low, 2 images per call):
+  - Throughput plateaus at **~16–17 verifier calls per minute** for this account, whatever the concurrency. 8 and 32 concurrent calls gave the same throughput; at 32 the median latency rose to 48 s (p90 136 s), at 8 it was 18.5 s.
+  - An isolated call takes 8–10 s.
+  - Rate-limit headers show no pressure (2,998 of 3,000 RPM left, tokens untouched), and no 429s were seen. This is undocumented queueing on the server side, not our rate limit.
+- Consequences:
+  - The full run uses 8 concurrent calls (4 processes × 2 threads). More concurrency only adds latency.
+  - It is supervised and restarts from cache automatically (`benchmark/verify_supervisor.py`).
+  - **The live demo must use cached perception and verification results.** At this cap, a 30-frame clip with ~100 candidates would take 6+ minutes of verifier time live. Live mode stays available behind the `live` flag, and the trace shows its real timing.
