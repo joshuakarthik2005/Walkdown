@@ -9,6 +9,17 @@
    "5": 16.0
   },
   "risk_scale": 100,
+  "consequence_factor": {
+   "hydrogen": 3.0,
+   "lpg": 3.0,
+   "hydrocarbon_vapour": 2.5,
+   "crude": 2.0,
+   "chemical": 2.0,
+   "steam": 1.5,
+   "fire_water": 1.5,
+   "cooling_water": 1.0,
+   "air_nitrogen": 0.8
+  },
   "critical_severity": 5,
   "critical_penalty": 1000000,
   "high_severity": 4,
@@ -31,8 +42,8 @@
    "cpsat": {
     "solver": "cp-sat",
     "status": "FEASIBLE",
-    "objective": 4307200,
-    "exposure": 2307200,
+    "objective": 4304611,
+    "exposure": 2304611,
     "critical_unscheduled": 2,
     "high_unscheduled": 0,
     "unscheduled": 13,
@@ -42,8 +53,8 @@
      "C2": 0.3392857142857143,
      "C3": 0.25
     },
-    "solve_time_s": 10.070240700000001,
-    "gap": 0.10690053863298662
+    "solve_time_s": 10.0706285,
+    "gap": 0.10636338568107548
    },
    "baseline": {
     "solver": "priority-sort",
@@ -59,7 +70,7 @@
      "C2": 0.3392857142857143,
      "C3": 0.25
     },
-    "solve_time_s": 0.003323400014778599,
+    "solve_time_s": 0.003414400009205565,
     "gap": null
    }
   },
@@ -69,19 +80,19 @@
    "cpsat": {
     "solver": "cp-sat",
     "status": "FEASIBLE",
-    "objective": 5629573,
-    "exposure": 2529573,
+    "objective": 5634146,
+    "exposure": 2534146,
     "critical_unscheduled": 3,
     "high_unscheduled": 1,
-    "unscheduled": 12,
-    "mean_crew_utilisation": 0.6785714285714285,
+    "unscheduled": 13,
+    "mean_crew_utilisation": 0.6428571428571429,
     "crew_utilisation": {
      "C1": 0.5357142857142857,
-     "C2": 0.6875,
+     "C2": 0.5803571428571429,
      "C3": 0.8125
     },
-    "solve_time_s": 10.6477368,
-    "gap": 0.0401121008644883
+    "solve_time_s": 10.669156800000001,
+    "gap": 0.04093166914737389
    },
    "baseline": {
     "solver": "priority-sort",
@@ -97,7 +108,7 @@
      "C2": 0.5803571428571429,
      "C3": 0.7410714285714286
     },
-    "solve_time_s": 0.015004699991550297,
+    "solve_time_s": 0.018903500022133812,
     "gap": null
    }
   },
@@ -107,8 +118,8 @@
    "cpsat": {
     "solver": "cp-sat",
     "status": "FEASIBLE",
-    "objective": 3097665,
-    "exposure": 1897665,
+    "objective": 3094633,
+    "exposure": 1894633,
     "critical_unscheduled": 1,
     "high_unscheduled": 2,
     "unscheduled": 12,
@@ -118,8 +129,8 @@
      "C2": 0.6160714285714286,
      "C3": 0.26785714285714285
     },
-    "solve_time_s": 10.997610700000001,
-    "gap": 0.10748386284507846
+    "solve_time_s": 10.9525336,
+    "gap": 0.10668567161275666
    },
    "baseline": {
     "solver": "priority-sort",
@@ -135,7 +146,7 @@
      "C2": 0.6160714285714286,
      "C3": 0.26785714285714285
     },
-    "solve_time_s": 0.010340299981180578,
+    "solve_time_s": 0.013449600024614483,
     "gap": null
    }
   },
@@ -156,7 +167,7 @@
      "C2": 0.5357142857142857,
      "C3": 0.5
     },
-    "solve_time_s": 10.827746600000001,
+    "solve_time_s": 10.8893999,
     "gap": 0.06932708818125821
    },
    "baseline": {
@@ -173,7 +184,7 @@
      "C2": 0.5357142857142857,
      "C3": 0.5
     },
-    "solve_time_s": 0.010829700011527166,
+    "solve_time_s": 0.012198499985970557,
     "gap": null
    }
   },
@@ -183,19 +194,19 @@
    "cpsat": {
     "solver": "cp-sat",
     "status": "FEASIBLE",
-    "objective": 3557903,
-    "exposure": 1557903,
+    "objective": 3557615,
+    "exposure": 1557615,
     "critical_unscheduled": 2,
     "high_unscheduled": 0,
-    "unscheduled": 9,
-    "mean_crew_utilisation": 0.7023809523809524,
+    "unscheduled": 8,
+    "mean_crew_utilisation": 0.7261904761904763,
     "crew_utilisation": {
-     "C1": 0.9196428571428571,
+     "C1": 0.9910714285714286,
      "C2": 0.7142857142857143,
      "C3": 0.4732142857142857
     },
-    "solve_time_s": 10.044601100000001,
-    "gap": 0.05540932397538662
+    "solve_time_s": 10.0414632,
+    "gap": 0.05533285642206928
    },
    "baseline": {
     "solver": "priority-sort",
@@ -211,7 +222,7 @@
      "C2": 0.6785714285714286,
      "C3": 0.5089285714285714
     },
-    "solve_time_s": 0.014202899998053908,
+    "solve_time_s": 0.01338319998467341,
     "gap": null
    }
   },
@@ -232,8 +243,8 @@
      "C2": 0.4107142857142857,
      "C3": 0.6071428571428571
     },
-    "solve_time_s": 10.790884100000001,
-    "gap": 0.03908176031717104
+    "solve_time_s": 10.7467629,
+    "gap": 0.03924633863554288
    },
    "baseline": {
     "solver": "priority-sort",
@@ -249,7 +260,7 @@
      "C2": 0.4107142857142857,
      "C3": 0.6071428571428571
     },
-    "solve_time_s": 0.013822700013406575,
+    "solve_time_s": 0.0146635000128299,
     "gap": null
    }
   },
@@ -259,8 +270,8 @@
    "cpsat": {
     "solver": "cp-sat",
     "status": "FEASIBLE",
-    "objective": 1058123,
-    "exposure": 958123,
+    "objective": 1057867,
+    "exposure": 957867,
     "critical_unscheduled": 0,
     "high_unscheduled": 1,
     "unscheduled": 11,
@@ -270,8 +281,8 @@
      "C2": 0.29464285714285715,
      "C3": 0.4642857142857143
     },
-    "solve_time_s": 10.4976804,
-    "gap": 0.2753914242484097
+    "solve_time_s": 10.540935300000001,
+    "gap": 0.2752160715855585
    },
    "baseline": {
     "solver": "priority-sort",
@@ -287,7 +298,7 @@
      "C2": 0.29464285714285715,
      "C3": 0.39285714285714285
     },
-    "solve_time_s": 0.01714069998706691,
+    "solve_time_s": 0.01674960000673309,
     "gap": null
    }
   },
@@ -297,19 +308,19 @@
    "cpsat": {
     "solver": "cp-sat",
     "status": "FEASIBLE",
-    "objective": 2662685,
-    "exposure": 1662685,
+    "objective": 2676366,
+    "exposure": 1676366,
     "critical_unscheduled": 1,
     "high_unscheduled": 0,
-    "unscheduled": 3,
-    "mean_crew_utilisation": 0.6666666666666666,
+    "unscheduled": 5,
+    "mean_crew_utilisation": 0.6309523809523809,
     "crew_utilisation": {
-     "C1": 0.6785714285714286,
-     "C2": 0.6964285714285714,
-     "C3": 0.625
+     "C1": 0.6607142857142857,
+     "C2": 0.625,
+     "C3": 0.6071428571428571
     },
-    "solve_time_s": 10.083309,
-    "gap": 0.1723437056955667
+    "solve_time_s": 10.058094,
+    "gap": 0.17674787379603538
    },
    "baseline": {
     "solver": "priority-sort",
@@ -325,7 +336,7 @@
      "C2": 0.625,
      "C3": 0.5803571428571429
     },
-    "solve_time_s": 0.01766079998924397,
+    "solve_time_s": 0.01682220000657253,
     "gap": null
    }
   },
@@ -346,8 +357,8 @@
      "C2": 0.8125,
      "C3": 0.6339285714285714
     },
-    "solve_time_s": 10.061347300000001,
-    "gap": 0.18141795800116486
+    "solve_time_s": 10.0636943,
+    "gap": 0.17921085705825535
    },
    "baseline": {
     "solver": "priority-sort",
@@ -363,7 +374,7 @@
      "C2": 0.7767857142857143,
      "C3": 0.6339285714285714
     },
-    "solve_time_s": 0.01168249998590909,
+    "solve_time_s": 0.014477999997325242,
     "gap": null
    }
   },
@@ -384,7 +395,7 @@
      "C2": 0.6071428571428571,
      "C3": 0.4017857142857143
     },
-    "solve_time_s": 10.0510411,
+    "solve_time_s": 10.061618000000001,
     "gap": 0.09115374923903181
    },
    "baseline": {
@@ -401,7 +412,7 @@
      "C2": 0.6071428571428571,
      "C3": 0.375
     },
-    "solve_time_s": 0.014821000018855557,
+    "solve_time_s": 0.017353300005197525,
     "gap": null
    }
   }
@@ -416,13 +427,13 @@
      "FEASIBLE",
      "FEASIBLE"
     ],
-    "moved": 8,
-    "displaced_hours": 555,
-    "risk": 4528642,
-    "exposure": 2528642,
-    "unscheduled": 15,
+    "moved": 7,
+    "displaced_hours": 543,
+    "risk": 4521160,
+    "exposure": 2521160,
+    "unscheduled": 16,
     "critical_unscheduled": 2,
-    "solve_time_s": 10.0248339
+    "solve_time_s": 10.0927553
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -433,7 +444,7 @@
     "exposure": 2774840,
     "unscheduled": 16,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.009040100005222484
+    "solve_time_s": 0.010674399993149564
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -444,7 +455,7 @@
     "exposure": 2849102,
     "unscheduled": 15,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.008911099983379245
+    "solve_time_s": 0.008636899990960956
    }
   },
   {
@@ -458,11 +469,11 @@
     ],
     "moved": 2,
     "displaced_hours": 281,
-    "risk": 4694538,
-    "exposure": 2594538,
+    "risk": 4686584,
+    "exposure": 2586584,
     "unscheduled": 14,
     "critical_unscheduled": 2,
-    "solve_time_s": 7.152475
+    "solve_time_s": 7.2666798
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -473,7 +484,7 @@
     "exposure": 2689684,
     "unscheduled": 14,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.008707800006959587
+    "solve_time_s": 0.009952699998393655
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -484,7 +495,7 @@
     "exposure": 2820836,
     "unscheduled": 14,
     "critical_unscheduled": 3,
-    "solve_time_s": 0.006901399989146739
+    "solve_time_s": 0.010713199997553602
    }
   },
   {
@@ -494,15 +505,15 @@
     "status": "FEASIBLE",
     "stages": [
      "FEASIBLE",
-     "FEASIBLE"
+     "OPTIMAL"
     ],
-    "moved": 3,
-    "displaced_hours": 198,
-    "risk": 4493478,
-    "exposure": 2493478,
-    "unscheduled": 13,
+    "moved": 2,
+    "displaced_hours": 122,
+    "risk": 4472780,
+    "exposure": 2472780,
+    "unscheduled": 14,
     "critical_unscheduled": 2,
-    "solve_time_s": 10.028296000000001
+    "solve_time_s": 8.777385
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -513,7 +524,7 @@
     "exposure": 2565272,
     "unscheduled": 14,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.008417899982305244
+    "solve_time_s": 0.00979190002544783
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -524,47 +535,47 @@
     "exposure": 2859908,
     "unscheduled": 14,
     "critical_unscheduled": 3,
-    "solve_time_s": 0.0054706999799236655
+    "solve_time_s": 0.009576699987519532
    }
   },
   {
    "seed": 1,
    "change": "crew_unavailable",
    "cpsat": {
-    "status": "FEASIBLE",
+    "status": "OPTIMAL",
     "stages": [
-     "FEASIBLE",
+     "OPTIMAL",
      "OPTIMAL"
     ],
-    "moved": 5,
-    "displaced_hours": 469,
-    "risk": 5739253,
-    "exposure": 2639253,
-    "unscheduled": 14,
+    "moved": 7,
+    "displaced_hours": 409,
+    "risk": 5753893,
+    "exposure": 2653893,
+    "unscheduled": 12,
     "critical_unscheduled": 3,
-    "solve_time_s": 7.7768124
+    "solve_time_s": 7.408935400000001
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
     "stages": [],
-    "moved": 16,
-    "displaced_hours": 508,
-    "risk": 5795455,
-    "exposure": 2695455,
+    "moved": 9,
+    "displaced_hours": 648,
+    "risk": 5889926,
+    "exposure": 2789926,
     "unscheduled": 14,
     "critical_unscheduled": 3,
-    "solve_time_s": 0.009564099978888407
+    "solve_time_s": 0.0113829999754671
    },
    "baseline_patch": {
     "status": "HEURISTIC",
     "stages": [],
-    "moved": 3,
-    "displaced_hours": 487,
-    "risk": 5819322,
-    "exposure": 2719322,
+    "moved": 5,
+    "displaced_hours": 587,
+    "risk": 5916598,
+    "exposure": 2816598,
     "unscheduled": 15,
     "critical_unscheduled": 3,
-    "solve_time_s": 0.007522400002926588
+    "solve_time_s": 0.008042000001296401
    }
   },
   {
@@ -576,13 +587,13 @@
      "FEASIBLE",
      "OPTIMAL"
     ],
-    "moved": 6,
-    "displaced_hours": 571,
-    "risk": 5894629,
-    "exposure": 2794629,
+    "moved": 7,
+    "displaced_hours": 873,
+    "risk": 5921783,
+    "exposure": 2821783,
     "unscheduled": 14,
     "critical_unscheduled": 3,
-    "solve_time_s": 8.048551900000001
+    "solve_time_s": 8.5580905
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -593,7 +604,7 @@
     "exposure": 2797510,
     "unscheduled": 14,
     "critical_unscheduled": 3,
-    "solve_time_s": 0.010420499980682507
+    "solve_time_s": 0.011809199990238994
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -604,7 +615,7 @@
     "exposure": 2870598,
     "unscheduled": 15,
     "critical_unscheduled": 3,
-    "solve_time_s": 0.006604299996979535
+    "solve_time_s": 0.010106400004588068
    }
   },
   {
@@ -616,13 +627,13 @@
      "FEASIBLE",
      "OPTIMAL"
     ],
-    "moved": 2,
-    "displaced_hours": 28,
-    "risk": 5777047,
-    "exposure": 2677047,
-    "unscheduled": 13,
+    "moved": 1,
+    "displaced_hours": 52,
+    "risk": 5766295,
+    "exposure": 2666295,
+    "unscheduled": 12,
     "critical_unscheduled": 3,
-    "solve_time_s": 9.985676600000001
+    "solve_time_s": 9.3495708
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -633,7 +644,7 @@
     "exposure": 2689609,
     "unscheduled": 14,
     "critical_unscheduled": 3,
-    "solve_time_s": 0.010863799980143085
+    "solve_time_s": 0.012398799997754395
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -644,7 +655,7 @@
     "exposure": 2823118,
     "unscheduled": 14,
     "critical_unscheduled": 3,
-    "solve_time_s": 0.005745200003730133
+    "solve_time_s": 0.007908500003395602
    }
   },
   {
@@ -656,13 +667,13 @@
      "FEASIBLE",
      "FEASIBLE"
     ],
-    "moved": 10,
-    "displaced_hours": 725,
-    "risk": 3363894,
-    "exposure": 2163894,
+    "moved": 9,
+    "displaced_hours": 767,
+    "risk": 3357411,
+    "exposure": 2157411,
     "unscheduled": 15,
     "critical_unscheduled": 1,
-    "solve_time_s": 10.0303568
+    "solve_time_s": 10.0234907
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -673,7 +684,7 @@
     "exposure": 2141977,
     "unscheduled": 14,
     "critical_unscheduled": 1,
-    "solve_time_s": 0.008694800024386495
+    "solve_time_s": 0.009010199981275946
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -684,7 +695,7 @@
     "exposure": 2178570,
     "unscheduled": 14,
     "critical_unscheduled": 1,
-    "solve_time_s": 0.006287600001087412
+    "solve_time_s": 0.006930000003194436
    }
   },
   {
@@ -698,11 +709,11 @@
     ],
     "moved": 4,
     "displaced_hours": 376,
-    "risk": 3233440,
-    "exposure": 2033440,
+    "risk": 3233421,
+    "exposure": 2033421,
     "unscheduled": 13,
     "critical_unscheduled": 1,
-    "solve_time_s": 7.574153600000001
+    "solve_time_s": 7.840837100000001
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -713,7 +724,7 @@
     "exposure": 2055714,
     "unscheduled": 13,
     "critical_unscheduled": 1,
-    "solve_time_s": 0.009789599978830665
+    "solve_time_s": 0.008657500002300367
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -724,7 +735,7 @@
     "exposure": 2131850,
     "unscheduled": 14,
     "critical_unscheduled": 1,
-    "solve_time_s": 0.008047600014833733
+    "solve_time_s": 0.007225899986224249
    }
   },
   {
@@ -736,13 +747,13 @@
      "FEASIBLE",
      "FEASIBLE"
     ],
-    "moved": 3,
+    "moved": 4,
     "displaced_hours": 303,
-    "risk": 3204452,
-    "exposure": 2004452,
+    "risk": 3189873,
+    "exposure": 1989873,
     "unscheduled": 13,
     "critical_unscheduled": 1,
-    "solve_time_s": 10.026841700000002
+    "solve_time_s": 10.0291541
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -753,7 +764,7 @@
     "exposure": 2085106,
     "unscheduled": 13,
     "critical_unscheduled": 1,
-    "solve_time_s": 0.009726099990075454
+    "solve_time_s": 0.00856669998029247
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -764,7 +775,7 @@
     "exposure": 2351658,
     "unscheduled": 13,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.006306799972662702
+    "solve_time_s": 0.006185100006405264
    }
   },
   {
@@ -778,11 +789,11 @@
     ],
     "moved": 4,
     "displaced_hours": 545,
-    "risk": 2924310,
-    "exposure": 1824310,
+    "risk": 2924273,
+    "exposure": 1824273,
     "unscheduled": 14,
     "critical_unscheduled": 1,
-    "solve_time_s": 5.9188008000000005
+    "solve_time_s": 5.9910455
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -793,7 +804,7 @@
     "exposure": 1928651,
     "unscheduled": 14,
     "critical_unscheduled": 1,
-    "solve_time_s": 0.007889200001955032
+    "solve_time_s": 0.007748700008960441
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -804,7 +815,7 @@
     "exposure": 2068940,
     "unscheduled": 15,
     "critical_unscheduled": 1,
-    "solve_time_s": 0.008191300003090873
+    "solve_time_s": 0.00847459997748956
    }
   },
   {
@@ -818,11 +829,11 @@
     ],
     "moved": 4,
     "displaced_hours": 500,
-    "risk": 3122556,
-    "exposure": 2022556,
+    "risk": 3122519,
+    "exposure": 2022519,
     "unscheduled": 13,
     "critical_unscheduled": 1,
-    "solve_time_s": 2.546882
+    "solve_time_s": 2.4506066000000004
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -833,7 +844,7 @@
     "exposure": 2073430,
     "unscheduled": 13,
     "critical_unscheduled": 1,
-    "solve_time_s": 0.0074908999959006906
+    "solve_time_s": 0.008084300003247336
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -844,25 +855,25 @@
     "exposure": 2119836,
     "unscheduled": 13,
     "critical_unscheduled": 1,
-    "solve_time_s": 0.00948370000696741
+    "solve_time_s": 0.009192099998472258
    }
   },
   {
    "seed": 3,
    "change": "new_critical",
    "cpsat": {
-    "status": "OPTIMAL",
+    "status": "FEASIBLE",
     "stages": [
-     "OPTIMAL",
+     "FEASIBLE",
      "OPTIMAL"
     ],
     "moved": 2,
     "displaced_hours": 226,
-    "risk": 2946946,
-    "exposure": 1846946,
+    "risk": 2946909,
+    "exposure": 1846909,
     "unscheduled": 13,
     "critical_unscheduled": 1,
-    "solve_time_s": 4.2565324
+    "solve_time_s": 8.9070046
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -873,7 +884,7 @@
     "exposure": 1852013,
     "unscheduled": 13,
     "critical_unscheduled": 1,
-    "solve_time_s": 0.008072500000707805
+    "solve_time_s": 0.008404199994402006
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -884,7 +895,7 @@
     "exposure": 2202644,
     "unscheduled": 13,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.007129400008125231
+    "solve_time_s": 0.008425500011071563
    }
   },
   {
@@ -898,11 +909,11 @@
     ],
     "moved": 8,
     "displaced_hours": 844,
-    "risk": 3724913,
-    "exposure": 1724913,
+    "risk": 3720305,
+    "exposure": 1720305,
     "unscheduled": 10,
     "critical_unscheduled": 2,
-    "solve_time_s": 10.0329415
+    "solve_time_s": 10.0205014
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -913,7 +924,7 @@
     "exposure": 1726648,
     "unscheduled": 13,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.009898500022245571
+    "solve_time_s": 0.009224099980201572
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -924,7 +935,7 @@
     "exposure": 1815844,
     "unscheduled": 11,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.010432200011564419
+    "solve_time_s": 0.008867699973052368
    }
   },
   {
@@ -942,7 +953,7 @@
     "exposure": 1619047,
     "unscheduled": 8,
     "critical_unscheduled": 2,
-    "solve_time_s": 7.6899856
+    "solve_time_s": 8.1179295
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -953,7 +964,7 @@
     "exposure": 1624740,
     "unscheduled": 9,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.008536000008461997
+    "solve_time_s": 0.010154099989449605
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -964,7 +975,7 @@
     "exposure": 1755564,
     "unscheduled": 11,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.006396899989340454
+    "solve_time_s": 0.0069472999894060194
    }
   },
   {
@@ -982,7 +993,7 @@
     "exposure": 1689725,
     "unscheduled": 9,
     "critical_unscheduled": 2,
-    "solve_time_s": 8.8473228
+    "solve_time_s": 8.693714700000001
    },
    "baseline_scratch": {
     "status": "HEURISTIC",
@@ -993,7 +1004,7 @@
     "exposure": 1638894,
     "unscheduled": 10,
     "critical_unscheduled": 2,
-    "solve_time_s": 0.008220699994126335
+    "solve_time_s": 0.011905499995918944
    },
    "baseline_patch": {
     "status": "HEURISTIC",
@@ -1004,9 +1015,9 @@
     "exposure": 1996548,
     "unscheduled": 10,
     "critical_unscheduled": 3,
-    "solve_time_s": 0.005901099997572601
+    "solve_time_s": 0.005709699995350093
    }
   }
  ],
- "elapsed_s": 281.41875979999895
+ "elapsed_s": 285.5379721999925
 }

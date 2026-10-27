@@ -11,11 +11,11 @@ Risk objective = risk-weighted exposure + penalties for unscheduled critical (se
 
 | Regime | Seeds | Defects | Risk improvement % | Exposure reduction % | Unscheduled CP-SAT | Unscheduled baseline | Crit+high unscheduled CP-SAT / baseline | CP-SAT status | Gap % | CP-SAT time s |
 |---|---|---|---|---|---|---|---|---|---|---|
-| default | 20 | 25 | 5.8 (0.3 – 19.2) | 5.8 (0.3 – 19.2) | 0 (0 – 2) | 1 (0 – 3) | 1 / 1 | FEASIBLE 9, OPTIMAL 11 | 0.0 (0.0 – 14.6) | 9.5 (1.1 – 10.7) |
-| loose | 10 | 15 | 3.5 (0.2 – 18.8) | 3.5 (0.2 – 18.8) | 0 (0 – 0) | 0 (0 – 0) | 0 / 0 | OPTIMAL 10 | 0.0 (0.0 – 0.0) | 1.6 (0.4 – 1.8) |
-| tight_capacity | 10 | 45 | 2.8 (0.2 – 7.9) | 4.0 (0.4 – 8.7) | 12 (3 – 15) | 12 (6 – 15) | 21 / 22 | FEASIBLE 10 | 9.9 (3.9 – 27.5) | 10.3 (10.0 – 11.0) |
-| tight_shutdown | 10 | 25 | 1.0 (0.2 – 10.3) | 2.2 (0.4 – 10.3) | 5 (2 – 8) | 6 (2 – 8) | 8 / 8 | OPTIMAL 10 | 0.0 (0.0 – 0.0) | 2.4 (0.7 – 9.2) |
-| tight_permits | 10 | 25 | 7.5 (1.5 – 24.9) | 7.5 (1.5 – 24.9) | 0 (0 – 3) | 1 (0 – 3) | 0 / 0 | FEASIBLE 5, OPTIMAL 5 | 0.5 (0.0 – 15.1) | 9.4 (1.3 – 10.5) |
+| default | 20 | 25 | 5.8 (0.3 – 19.2) | 5.8 (0.3 – 19.2) | 0 (0 – 2) | 1 (0 – 3) | 1 / 1 | FEASIBLE 10, OPTIMAL 10 | 1.1 (0.0 – 14.4) | 9.3 (1.2 – 10.6) |
+| loose | 10 | 15 | 3.5 (0.2 – 18.8) | 3.5 (0.2 – 18.8) | 0 (0 – 0) | 0 (0 – 0) | 0 / 0 | OPTIMAL 10 | 0.0 (0.0 – 0.0) | 1.4 (0.2 – 1.8) |
+| tight_capacity | 10 | 45 | 2.9 (0.2 – 7.9) | 4.0 (0.4 – 8.7) | 12 (5 – 15) | 12 (6 – 15) | 21 / 22 | FEASIBLE 10 | 9.9 (3.9 – 27.5) | 10.3 (10.0 – 11.0) |
+| tight_shutdown | 10 | 25 | 1.0 (0.2 – 10.3) | 2.2 (0.4 – 10.3) | 5 (2 – 8) | 6 (2 – 8) | 8 / 8 | OPTIMAL 10 | 0.0 (0.0 – 0.0) | 2.4 (0.6 – 9.3) |
+| tight_permits | 10 | 25 | 7.5 (1.5 – 24.9) | 7.5 (1.5 – 24.9) | 0 (0 – 3) | 1 (0 – 3) | 0 / 0 | FEASIBLE 5, OPTIMAL 5 | 0.5 (0.0 – 14.4) | 8.9 (1.2 – 10.6) |
 
 CP-SAT risk objective ≤ baseline on every static run: **True** (60 runs).
 
@@ -27,10 +27,10 @@ Change applied at hour 48; work started before then is fixed for every method, a
 |---|---|---|---|---|---|---|---|---|---|---|
 | loose | crew_unavailable | 5 | 2 (1 – 4) | 3 (2 – 5) | 3 (1 – 4) | 144 (47 – 216) | 216 (65 – 272) | 6.3 (0.8 – 17.0) | 7.4 (0.8 – 17.3) | OPTIMAL 5 |
 | loose | window_cancelled | 5 | 2 (1 – 7) | 3 (2 – 7) | 2 (1 – 4) | 192 (70 – 623) | 192 (70 – 547) | 2.4 (0.7 – 7.6) | 3.1 (0.7 – 8.9) | OPTIMAL 5 |
-| loose | new_critical | 5 | 0 (0 – 2) | 0 (0 – 4) | 0 (0 – 0) | 0 (0 – 44) | 0 (0 – 0) | 4.4 (-3.0 – 7.9) | 4.8 (-6.4 – 25.5) | OPTIMAL 5 |
-| tight_capacity | crew_unavailable | 5 | 8 (4 – 10) | 15 (12 – 18) | 4 (3 – 5) | 555 (469 – 844) | 829 (487 – 969) | 1.0 (-0.7 – 5.2) | 6.0 (1.4 – 12.0) | FEASIBLE 4, OPTIMAL 1 |
-| tight_capacity | window_cancelled | 5 | 4 (2 – 9) | 11 (4 – 19) | 2 (1 – 4) | 376 (281 – 571) | 436 (281 – 544) | 0.7 (0.0 – 2.0) | 6.1 (1.3 – 19.3) | FEASIBLE 4, OPTIMAL 1 |
-| tight_capacity | new_critical | 5 | 2 (1 – 3) | 13 (9 – 18) | 0 (0 – 0) | 226 (28 – 303) | 0 (0 – 0) | 0.2 (-1.4 – 2.5) | 26.2 (2.5 – 31.5) | FEASIBLE 4, OPTIMAL 1 |
+| loose | new_critical | 5 | 0 (0 – 2) | 0 (0 – 4) | 0 (0 – 0) | 0 (0 – 44) | 0 (0 – 0) | 4.4 (-3.0 – 8.8) | 4.8 (-6.4 – 25.5) | OPTIMAL 5 |
+| tight_capacity | crew_unavailable | 5 | 7 (4 – 9) | 13 (9 – 18) | 4 (3 – 5) | 545 (409 – 844) | 829 (524 – 969) | 2.3 (-0.5 – 5.3) | 6.2 (2.7 – 12.2) | FEASIBLE 3, OPTIMAL 2 |
+| tight_capacity | window_cancelled | 5 | 4 (2 – 9) | 11 (4 – 19) | 2 (1 – 4) | 376 (281 – 873) | 436 (281 – 544) | 0.7 (-0.4 – 2.2) | 6.1 (0.8 – 19.5) | FEASIBLE 4, OPTIMAL 1 |
+| tight_capacity | new_critical | 5 | 2 (1 – 4) | 13 (9 – 18) | 0 (0 – 0) | 226 (52 – 303) | 0 (0 – 0) | 0.4 (-1.4 – 2.9) | 26.2 (2.6 – 31.5) | FEASIBLE 5 |
 | tight_shutdown | crew_unavailable | 5 | 2 (0 – 3) | 3 (2 – 5) | 2 (1 – 3) | 180 (0 – 368) | 180 (8 – 368) | 0.7 (-0.5 – 9.2) | 1.0 (0.2 – 60.6) | OPTIMAL 5 |
 | tight_shutdown | window_cancelled | 5 | 6 (6 – 10) | 10 (5 – 15) | 5 (3 – 7) | 777 (702 – 1223) | 778 (754 – 1633) | 1.0 (-1.2 – 4.8) | 41.1 (6.2 – 56.2) | OPTIMAL 5 |
 | tight_shutdown | new_critical | 5 | 1 (0 – 2) | 4 (2 – 7) | 0 (0 – 0) | 2 (0 – 144) | 0 (0 – 0) | -0.6 (-1.1 – 6.2) | 4.6 (0.4 – 20.6) | OPTIMAL 5 |
