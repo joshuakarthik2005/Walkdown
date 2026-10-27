@@ -28,6 +28,7 @@ from typing import Literal
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from backend.agent.clip import CLIPS_DIR, Clip, create_clip
@@ -180,6 +181,47 @@ def post_change(run_id: str, req: ChangeRequest) -> dict:
                f"{req.epsilon} and explain what changed.")
     threading.Thread(target=st.turn, args=(message,), daemon=True).start()
     return dict(run_id=run_id, status="running")
+
+
+SEVERITY_BGR = {1: (120, 200, 120), 2: (60, 200, 230), 3: (40, 160, 255), 4: (40, 90, 255), 5: (60, 40, 230)}
+
+
+@app.get("/runs/{run_id}/frames")
+def run_frames(run_id: str) -> dict:
+    """Frames that have register detections, with the detections on each."""
+    s = _run(run_id).agent.s
+    frames: dict[int, list[dict]] = {}
+    for e in s.register:
+        for d in e.detections:
+            frames.setdefault(d.frame, []).append(dict(defect_id=e.defect_id, candidate_id=d.candidate_id,
+                                                       box=list(d.box), severity=d.grade.severity))
+    return dict(frames=[dict(frame=f, detections=v) for f, v in sorted(frames.items())])
+
+
+@app.get("/runs/{run_id}/frames/{frame}.jpg")
+def run_frame_image(run_id: str, frame: int) -> Response:
+    """One frame with every register detection outlined, coloured by severity, and labelled."""
+    import cv2
+
+    s = _run(run_id).agent.s
+    if frame not in s.frame_paths:
+        raise HTTPException(404, "unknown frame")
+    img = cv2.imread(str(s.frame_paths[frame]), cv2.IMREAD_COLOR)
+    for e in s.register:
+        for d in e.detections:
+            if d.frame != frame:
+                continue
+            _, inst = s.candidates[d.candidate_id]
+            colour = SEVERITY_BGR[d.grade.severity]
+            contours, _ = cv2.findContours(inst.mask.astype("uint8"), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            overlay = img.copy()
+            cv2.drawContours(overlay, contours, -1, colour, -1)
+            img = cv2.addWeighted(overlay, 0.25, img, 0.75, 0)
+            cv2.drawContours(img, contours, -1, colour, 2)
+            l, t = d.box[0], max(14, d.box[1] - 4)
+            cv2.putText(img, f"{e.defect_id} S{d.grade.severity}", (l, t), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colour, 2)
+    ok, buf = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 88])
+    return Response(buf.tobytes(), media_type="image/jpeg")
 
 
 @app.get("/health")
