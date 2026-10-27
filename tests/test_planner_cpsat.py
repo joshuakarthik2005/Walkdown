@@ -40,6 +40,21 @@ def test_critical_penalty_forces_critical_job_into_scarce_slot():
     assert solve(sc, PlannerConfig(critical_penalty=0)).unscheduled == ["crit"]
     plan = solve(sc, FAST)
     assert plan.unscheduled == ["big"] and plan.critical_unscheduled == []
+    assert plan.high_unscheduled == ["big"]  # severity 4 is the "high" tier
+    assert plan.breakdown.high_penalty == FAST.high_penalty and plan.breakdown.critical_penalty == 0
+
+
+def test_high_penalty_tier_prefers_severity_4_over_riskier_severity_3():
+    defects = [
+        Defect(id="sev4", asset="A", severity=4, failure_risk=0.1, repair_hours=8, skill="coating"),
+        Defect(id="sev3", asset="B", severity=3, failure_risk=1.0, repair_hours=8, skill="coating"),
+    ]
+    sc = _one_crew(defects, horizon_days=1)
+    # Exposure alone favours the riskier severity-3 job (weight 400 vs 80).
+    assert solve(sc, PlannerConfig(high_penalty=0, time_limit_s=5)).unscheduled == ["sev4"]
+    plan = solve(sc, FAST)
+    assert plan.unscheduled == ["sev3"] and plan.high_unscheduled == []
+    assert plan.stats.objective == plan.breakdown.total
 
 
 def test_permit_cap_and_lead_time_respected():

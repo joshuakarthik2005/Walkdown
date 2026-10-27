@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .explain import explain
-from .metrics import critical_unscheduled, evaluate, moved_jobs
+from .metrics import critical_unscheduled, evaluate, high_unscheduled, moved_jobs
 from .models import Assignment, Plan, PlannerConfig, Scenario, SolveStats
 
 
@@ -36,6 +36,7 @@ def build_plan(
         stats=stats,
         breakdown=evaluate(scenario, config, assignments, now=now, previous=prev_assignments),
         critical_unscheduled=critical_unscheduled(scenario, config, assignments),
+        high_unscheduled=high_unscheduled(scenario, config, assignments),
         moved_jobs=moved_jobs(prev_assignments, assignments, now),
     )
     plan.explanations = explain(scenario, plan, fixed_ids=fixed_ids)

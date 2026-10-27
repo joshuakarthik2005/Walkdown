@@ -45,19 +45,28 @@ def evaluate(
     done = {a.defect_id: a.end for a in assignments}
     exposure = 0
     critical = 0
+    high = 0
     for d in scenario.defects:
         completion = done.get(d.id, horizon)
         exposure += config.risk_weight(d) * (completion - d.found_at)
         if d.id not in done and config.is_critical(d):
             critical += config.critical_penalty
+        elif d.id not in done and config.is_high(d):
+            high += config.high_penalty
     moves = len(moved_jobs(previous, assignments, now)) * config.move_penalty
-    return ObjectiveBreakdown(exposure=exposure, critical_penalty=critical, move_penalty=moves)
+    return ObjectiveBreakdown(exposure=exposure, critical_penalty=critical, high_penalty=high, move_penalty=moves)
 
 
 def critical_unscheduled(scenario: Scenario, config: PlannerConfig, assignments: list[Assignment]) -> list[str]:
     """Ids of critical defects with no assignment."""
     done = {a.defect_id for a in assignments}
     return sorted(d.id for d in scenario.defects if config.is_critical(d) and d.id not in done)
+
+
+def high_unscheduled(scenario: Scenario, config: PlannerConfig, assignments: list[Assignment]) -> list[str]:
+    """Ids of high-priority (below critical) defects with no assignment."""
+    done = {a.defect_id for a in assignments}
+    return sorted(d.id for d in scenario.defects if config.is_high(d) and d.id not in done)
 
 
 def crew_utilisation(scenario: Scenario, assignments: list[Assignment], *, now: int = 0) -> dict[str, float]:

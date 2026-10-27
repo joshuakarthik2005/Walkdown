@@ -18,6 +18,7 @@ class PlanSummary(BaseModel):
     objective: int
     exposure: int
     critical_unscheduled: int
+    high_unscheduled: int
     unscheduled: int
     mean_crew_utilisation: float
     crew_utilisation: dict[str, float]
@@ -47,6 +48,7 @@ def summarise(scenario: Scenario, plan: Plan) -> PlanSummary:
         objective=plan.breakdown.total,
         exposure=plan.breakdown.exposure,
         critical_unscheduled=len(plan.critical_unscheduled),
+        high_unscheduled=len(plan.high_unscheduled),
         unscheduled=len(plan.unscheduled),
         mean_crew_utilisation=sum(util.values()) / len(util) if util else 0.0,
         crew_utilisation=util,
@@ -70,6 +72,6 @@ if __name__ == "__main__":
     result = compare(demo)
     for s in (result.baseline, result.cpsat):
         print(f"{s.solver:14} status={s.status:9} objective={s.objective:>9} exposure={s.exposure:>9} "
-              f"unscheduled={s.unscheduled} critical_unscheduled={s.critical_unscheduled} "
+              f"unscheduled={s.unscheduled} critical_unscheduled={s.critical_unscheduled} high_unscheduled={s.high_unscheduled} "
               f"utilisation={s.mean_crew_utilisation:.2f} time={s.solve_time_s:.2f}s")
     print(f"exposure reduction vs baseline: {100 * result.exposure_reduction:.1f}%")

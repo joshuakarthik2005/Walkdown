@@ -35,6 +35,17 @@ def test_evaluate_counts_unscheduled_to_horizon_and_critical_penalty():
     assert evaluate(sc, cfg, plan).exposure == wa * 10 + wb * 48
 
 
+def test_two_tier_penalties():
+    cfg = PlannerConfig()
+    mk = lambda s: Defect(id=f"s{s}", asset="X", severity=s, failure_risk=0.5, repair_hours=2, skill="coating")
+    assert [cfg.unscheduled_penalty(mk(s)) for s in (1, 2, 3, 4, 5)] == [0, 0, 0, cfg.high_penalty, cfg.critical_penalty]
+    assert cfg.is_high(mk(4)) and not cfg.is_high(mk(5)) and cfg.is_critical(mk(5))
+    sc = Scenario(name="t", horizon_days=1, defects=[mk(4), mk(5)], crews=[Crew(id="c", skills=["coating"])])
+    b = evaluate(sc, cfg, [])
+    assert (b.critical_penalty, b.high_penalty) == (cfg.critical_penalty, cfg.high_penalty)
+    assert b.total == b.exposure + cfg.critical_penalty + cfg.high_penalty
+
+
 def test_validate_catches_violations():
     sc = _two_defects()
     bad = [

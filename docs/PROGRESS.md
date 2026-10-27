@@ -61,3 +61,6 @@ Task reports, appended after every task.
 ## 2026-10-27 — Phase 1.7: fixed demo scenario
 - Status: DONE. Tests: 39 passed (2 new).
 - Demo JSON saved. `python -m backend.planner.compare` prints the demo comparison: baseline 516,650 with 2 unscheduled; CP-SAT OPTIMAL 417,562 with 0 unscheduled, in 0.86 s, a 19.2% exposure reduction. Mean crew utilisation is 0.33 for the baseline and 0.36 for CP-SAT.
+
+## 2026-10-27 — Phase 1 follow-up A: two-tier priority
+- Status: DONE. Tests: 41 passed (2 new). Severity 5 is critical, severity 4 is high; both configurable.

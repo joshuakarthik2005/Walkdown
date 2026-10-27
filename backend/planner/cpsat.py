@@ -12,7 +12,8 @@ Each defect takes exactly one option or the "unscheduled" literal.
 
 Objective (all weights in ``PlannerConfig``):
   sum risk_weight x (completion - found_at)   unscheduled => completion = horizon
-+ critical_penalty x unscheduled critical defects
++ critical_penalty x unscheduled critical defects (severity 5)
++ high_penalty x unscheduled high-priority defects (severity 4)
 + move_penalty x previously planned jobs that move (replanning only).
 
 Replanning: jobs from ``previous`` that started before ``now`` are fixed.
@@ -118,8 +119,8 @@ def solve(
             model.add(completion == e).only_enforce_if(x)
         model.add(completion == horizon).only_enforce_if(u)
         objective.append(weight * (completion - d.found_at))
-        if config.is_critical(d):
-            objective.append(config.critical_penalty * u)
+        if config.unscheduled_penalty(d):
+            objective.append(config.unscheduled_penalty(d) * u)
 
         prev = planned_before.get(d.id)
         if prev is not None:

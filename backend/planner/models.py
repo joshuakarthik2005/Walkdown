@@ -138,6 +138,8 @@ class PlannerConfig(BaseModel):
     risk_scale: int = Field(default=100, ge=1, description="Scales failure_risk x severity_weight to an integer weight.")
     critical_severity: int = Field(default=5, ge=1, le=5)
     critical_penalty: int = Field(default=1_000_000, ge=0, description="Added per unscheduled critical defect.")
+    high_severity: int = Field(default=4, ge=1, le=5, description="Severity from which a non-critical defect is 'high'.")
+    high_penalty: int = Field(default=100_000, ge=0, description="Added per unscheduled high-priority defect.")
     move_penalty: int = Field(default=200, ge=0, description="Replanning: cost per already-planned job that moves.")
     time_limit_s: float = Field(default=10.0, gt=0)
     num_workers: int = Field(default=8, ge=1)
@@ -151,6 +153,18 @@ class PlannerConfig(BaseModel):
     def is_critical(self, defect: Defect) -> bool:
         """True if the defect is at or above the critical severity."""
         return defect.severity >= self.critical_severity
+
+    def is_high(self, defect: Defect) -> bool:
+        """True if the defect is high priority but below critical."""
+        return self.high_severity <= defect.severity < self.critical_severity
+
+    def unscheduled_penalty(self, defect: Defect) -> int:
+        """Penalty added if the defect is left unscheduled (two-tier: critical, high)."""
+        if self.is_critical(defect):
+            return self.critical_penalty
+        if self.is_high(defect):
+            return self.high_penalty
+        return 0
 
 
 # ---- Plan output -----------------------------------------------------------
@@ -186,12 +200,13 @@ class ObjectiveBreakdown(BaseModel):
 
     exposure: int
     critical_penalty: int
+    high_penalty: int = 0
     move_penalty: int
 
     @property
     def total(self) -> int:
         """Sum of all terms; equals the CP-SAT objective."""
-        return self.exposure + self.critical_penalty + self.move_penalty
+        return self.exposure + self.critical_penalty + self.high_penalty + self.move_penalty
 
 
 class ReasonCode(str, Enum):
@@ -245,6 +260,7 @@ class Plan(BaseModel):
     stats: SolveStats
     breakdown: ObjectiveBreakdown
     critical_unscheduled: list[str] = Field(default_factory=list)
+    high_unscheduled: list[str] = Field(default_factory=list)
     moved_jobs: list[str] = Field(default_factory=list)
     explanations: list[DefectExplanation] = Field(default_factory=list)
 
