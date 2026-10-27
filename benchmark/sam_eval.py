@@ -40,6 +40,54 @@ def score_levels(outputs: dict[str, str], gt: dict[str, list[np.ndarray]] | None
     return score_instances(list(outputs), lambda rel: parse_output(outputs[rel], size, size), gt, size)
 
 
+def image_stats(truth_masks: list[np.ndarray], preds: list, size: int = 640) -> dict:
+    """Per-image counts for every metric level; summed by ``aggregate`` (lets callers score in parallel)."""
+    from benchmark.seg_metrics import match
+
+    image = ImageResult("", truth_masks, [Prediction(i.mask, i.confidence or 0.0) for i in preds])
+    inst = {}
+    for thr in (0.5, 0.3):
+        tp, fp, fn, ious = match(image, thr)
+        inst[thr] = (tp, fp, fn, ious)
+    pred = np.zeros((size, size), bool)
+    for i in preds:
+        pred |= i.mask
+    truth = np.logical_or.reduce(truth_masks) if truth_masks else np.zeros((size, size), bool)
+    tp, fp, fn = int((pred & truth).sum()), int((pred & ~truth).sum()), int((~pred & truth).sum())
+    return dict(inst=inst, px=(tp, fp, fn), img_iou=tp / (tp + fp + fn) if tp + fp + fn else 1.0,
+                has_pred=bool(preds), has_gt=bool(truth_masks), n_pred=len(preds), n_gt=len(truth_masks))
+
+
+def aggregate(stats: list[dict]) -> dict:
+    """Combine per-image stats into instance (IoU 0.5 and 0.3), pixel and image-level metrics."""
+    instance = {}
+    for thr in (0.5, 0.3):
+        tp = sum(s["inst"][thr][0] for s in stats)
+        fp = sum(s["inst"][thr][1] for s in stats)
+        fn = sum(s["inst"][thr][2] for s in stats)
+        ious = [v for s in stats for v in s["inst"][thr][3]]
+        p = tp / (tp + fp) if tp + fp else 0.0
+        r = tp / (tp + fn) if tp + fn else 0.0
+        instance[f"iou>={thr}"] = dict(precision=p, recall=r, f1=2 * p * r / (p + r) if p + r else 0.0, tp=tp, fp=fp,
+                                       fn=fn, mean_matched_iou=float(np.mean(ious)) if ious else 0.0)
+    tp_px, fp_px, fn_px = (sum(s["px"][k] for s in stats) for k in range(3))
+    pixel = dict(precision=tp_px / (tp_px + fp_px) if tp_px + fp_px else 0.0,
+                 recall=tp_px / (tp_px + fn_px) if tp_px + fn_px else 0.0,
+                 iou=tp_px / (tp_px + fp_px + fn_px) if tp_px + fp_px + fn_px else 0.0,
+                 mean_image_iou=float(np.mean([s["img_iou"] for s in stats])))
+    n = len(stats)
+    annotated = sum(s["has_gt"] for s in stats)
+    found = sum(s["has_pred"] for s in stats)
+    both = sum(s["has_pred"] and s["has_gt"] for s in stats)
+    image = dict(images=n, annotated=annotated, negatives=n - annotated, with_any_prediction=found,
+                 detection_rate_on_positives=both / annotated if annotated else 0.0,
+                 false_alarm_rate_on_negatives=((found - both) / (n - annotated)) if n - annotated else None)
+    return dict(instance=instance, pixel=pixel, image=image,
+                predictions_per_image=float(np.mean([s["n_pred"] for s in stats])),
+                gt_instances_per_image=float(np.mean([s["n_gt"] for s in stats])),
+                gt_instances=int(sum(s["n_gt"] for s in stats)))
+
+
 def score_instances(images: list[str], predict, gt: dict[str, list[np.ndarray]] | None = None,
                     size: int = 640) -> dict:
     """Instance (IoU 0.5 and 0.3), pixel and image-level metrics, streamed one image at a time.
@@ -48,52 +96,8 @@ def score_instances(images: list[str], predict, gt: dict[str, list[np.ndarray]] 
     be omitted; ground truth is then decoded per image, so memory stays
     bounded (masks for one image at a time).
     """
-    from benchmark.seg_metrics import match
-
-    inst = {0.5: [0, 0, 0, []], 0.3: [0, 0, 0, []]}
-    tp_px = fp_px = fn_px = 0
-    per_image_iou, counts, gt_counts = [], [], []
-    found = annotated = found_and_annotated = 0
-    for rel in images:
-        preds = predict(rel)
-        truth_masks = gt[rel] if gt is not None else ground_truth([rel])[rel]
-        image = ImageResult(rel, truth_masks, [Prediction(i.mask, i.confidence or 0.0) for i in preds])
-        for thr, acc in inst.items():
-            tp, fp, fn, ious = match(image, thr)
-            acc[0] += tp
-            acc[1] += fp
-            acc[2] += fn
-            acc[3].extend(ious)
-        pred = np.zeros((size, size), bool)
-        for i in preds:
-            pred |= i.mask
-        truth = np.logical_or.reduce(truth_masks) if truth_masks else np.zeros((size, size), bool)
-        tp, fp, fn = int((pred & truth).sum()), int((pred & ~truth).sum()), int((~pred & truth).sum())
-        tp_px, fp_px, fn_px = tp_px + tp, fp_px + fp, fn_px + fn
-        per_image_iou.append(tp / (tp + fp + fn) if tp + fp + fn else 1.0)
-        has_pred, has_gt = bool(preds), bool(truth_masks)
-        found += has_pred
-        annotated += has_gt
-        found_and_annotated += has_pred and has_gt
-        counts.append(len(preds))
-        gt_counts.append(len(truth_masks))
-    instance = {}
-    for thr, (tp, fp, fn, ious) in inst.items():
-        p = tp / (tp + fp) if tp + fp else 0.0
-        r = tp / (tp + fn) if tp + fn else 0.0
-        instance[f"iou>={thr}"] = dict(precision=p, recall=r, f1=2 * p * r / (p + r) if p + r else 0.0, tp=tp, fp=fp,
-                                       fn=fn, mean_matched_iou=float(np.mean(ious)) if ious else 0.0)
-    pixel = dict(precision=tp_px / (tp_px + fp_px) if tp_px + fp_px else 0.0,
-                 recall=tp_px / (tp_px + fn_px) if tp_px + fn_px else 0.0,
-                 iou=tp_px / (tp_px + fp_px + fn_px) if tp_px + fp_px + fn_px else 0.0,
-                 mean_image_iou=float(np.mean(per_image_iou)))
-    n = len(images)
-    image = dict(images=n, annotated=annotated, negatives=n - annotated, with_any_prediction=found,
-                 detection_rate_on_positives=found_and_annotated / annotated if annotated else 0.0,
-                 false_alarm_rate_on_negatives=((found - found_and_annotated) / (n - annotated))
-                 if n - annotated else None)
-    return dict(instance=instance, pixel=pixel, image=image, predictions_per_image=float(np.mean(counts)),
-                gt_instances_per_image=float(np.mean(gt_counts)), gt_instances=int(sum(gt_counts)))
+    return aggregate([image_stats(gt[rel] if gt is not None else ground_truth([rel])[rel], predict(rel), size)
+                      for rel in images])
 
 
 def main() -> int:
