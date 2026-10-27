@@ -11,13 +11,14 @@ async function json<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function uploadClip(files: File[], asset: { asset_id: string; asset_type: string; pressurised: boolean; location: string }) {
+export async function uploadClip(files: File[], asset: { asset_id: string; asset_type: string; pressurised: boolean; location: string; service: string }) {
   const form = new FormData();
   files.forEach((f) => form.append("files", f));
   form.append("asset_id", asset.asset_id);
   form.append("asset_type", asset.asset_type);
   form.append("pressurised", String(asset.pressurised));
   form.append("location", asset.location);
+  form.append("service", asset.service);
   return json<{ clip_id: string; duration_s: number }>(await fetch(`${API_URL}/clips`, { method: "POST", body: form }));
 }
 

@@ -48,7 +48,7 @@ export interface RegisterEntry {
 }
 
 export interface Register {
-  asset: { asset_id: string; asset_type: string; pressurised: boolean; location: string };
+  asset: { asset_id: string; asset_type: string; pressurised: boolean; location: string; service: string | null };
   entries: RegisterEntry[];
 }
 
@@ -76,6 +76,7 @@ export interface Explanation {
   release_hour: number;
   earliest_feasible_start: number | null;
   reasons: Reason[];
+  priority: { service: string | null; severity: number; likelihood: number; consequence_factor: number; risk_weight: number; critical: boolean; high: boolean };
 }
 
 export interface Plan {

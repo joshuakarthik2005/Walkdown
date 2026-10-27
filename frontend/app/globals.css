@@ -67,3 +67,18 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; }
 .spinner { width: 12px; height: 12px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .error-box { color: var(--bad); white-space: pre-wrap; }
+/* decision flow */
+.sticky { position: sticky; top: 0; z-index: 5; background: var(--bg); }
+.flow { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 2px solid var(--line); }
+.flow .step { position: relative; padding: 10px 12px; margin: 0 0 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; }
+.flow .step::before { content: ""; position: absolute; left: -26px; top: 14px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
+.flow .step.failed::before { background: var(--bad); }
+.flow .step.pending::before { background: var(--muted); }
+.step-head { display: flex; justify-content: space-between; gap: 8px; }
+.step-title { font-weight: 650; }
+.decision { margin-top: 4px; }
+.small { font-size: 12px; }
+.hero { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr); gap: 16px; }
+@media (max-width: 960px) { .hero { grid-template-columns: 1fr; } }
+.answer-big { font-size: 15px; line-height: 1.55; }
+.scope { color: var(--muted); font-size: 12px; margin-top: 18px; border-top: 1px solid var(--line); padding-top: 10px; }

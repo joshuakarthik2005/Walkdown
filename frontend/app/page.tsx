@@ -13,10 +13,33 @@ import { usd } from "@/lib/format";
 
 const POLL_MS = 1200;
 
+const SERVICES: [string, string][] = [
+  ["", "unknown"],
+  ["lpg", "LPG"],
+  ["crude", "crude oil"],
+  ["hydrogen", "hydrogen"],
+  ["hydrocarbon_vapour", "hydrocarbon vapour"],
+  ["chemical", "chemical"],
+  ["steam", "steam"],
+  ["cooling_water", "cooling water"],
+  ["fire_water", "fire water"],
+  ["air_nitrogen", "air / nitrogen"],
+];
+
+const ASSET_TYPES: [string, string][] = [
+  ["pipe", "plant piping"],
+  ["tank", "storage tank"],
+  ["vessel", "pressure vessel"],
+  ["valve", "valve / manifold"],
+  ["pump", "pump / compressor"],
+  ["support", "pipe support / structure"],
+  ["railing", "railing / walkway"],
+];
+
 export default function Home() {
   const [clipId, setClipId] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [asset, setAsset] = useState({ asset_id: "PIPE-RACK-207", asset_type: "pipe", pressurised: true, location: "" });
+  const [asset, setAsset] = useState({ asset_id: "UNIT2-LPG-RACK", asset_type: "pipe", pressurised: true, location: "", service: "lpg" });
   const [live, setLive] = useState(false);
   const [runId, setRunId] = useState<string | null>(null);
   const [status, setStatus] = useState<RunStatus | null>(null);
@@ -37,11 +60,10 @@ export default function Home() {
       setFrames(f.frames);
       setPlan(await api.getPlan(id));
     } catch {
-      /* the plan is not ready until plan_maintenance has run */
+      /* no plan until plan_maintenance has run */
     }
   }, []);
 
-  // Poll the trace and status while the agent works.
   useEffect(() => {
     if (!runId) return;
     let stop = false;
@@ -75,8 +97,7 @@ export default function Home() {
     setError(null);
     setUploading(true);
     try {
-      const r = await api.uploadClip(files, asset);
-      setClipId(r.clip_id);
+      setClipId((await api.uploadClip(files, asset)).clip_id);
     } catch (e) {
       setError(String(e));
     } finally {
@@ -112,98 +133,115 @@ export default function Home() {
   }
 
   const answers = status?.answers ?? [];
+  const latest = answers[answers.length - 1];
 
   return (
     <main className="shell">
-      <header className="top">
+      <header className="top sticky">
         <div>
           <h1>Walkdown</h1>
-          <div className="tag">Inspection video → verified defect register → risk-optimal maintenance plan</div>
+          <div className="tag">An agent that turns a plant walkdown video into verified defects and a risk-optimal repair plan</div>
         </div>
         <div className="row">
-          {plan && <StatusBadge plan={plan.plan} />}
+          {plan ? <StatusBadge plan={plan.plan} /> : <span className="badge">no plan yet</span>}
           {status && <span className="muted mono">{usd(status.usd)} · {status.elapsed_s.toFixed(0)} s</span>}
         </div>
       </header>
 
-      <div className="grid">
-        <section>
+      {error && <div className="panel error-box">{error}</div>}
+
+      <div className="hero">
+        <section className="panel">
+          <h2>The agent{running ? " · working" : runId ? " · done" : ""}</h2>
+          {events.length ? (
+            <AgentTrail events={events} running={running} />
+          ) : (
+            <p className="muted">
+              Upload a walkdown clip and run the agent. It decides what to inspect, checks every finding, writes the defect register, plans the
+              repairs and explains each decision. Every step appears here as it happens.
+            </p>
+          )}
+          {latest && (
+            <>
+              <h2 style={{ marginTop: 16 }}>What the agent concluded{answers.length > 1 ? ` · after change ${answers.length - 1}` : ""}</h2>
+              <div className="answer answer-big">{latest}</div>
+            </>
+          )}
+        </section>
+
+        <aside>
           <div className="panel">
-            <h2>1 · Walkdown clip</h2>
+            <h2>Walkdown clip</h2>
             <label>Video (MP4/MOV) or photos</label>
             <input type="file" multiple accept="video/mp4,video/quicktime,image/jpeg,image/png" onChange={(e) => setFiles(Array.from(e.target.files ?? []))} />
             <label>Asset id</label>
             <input value={asset.asset_id} onChange={(e) => setAsset({ ...asset, asset_id: e.target.value })} />
             <div className="row">
               <div style={{ flex: 1 }}>
-                <label>Asset type</label>
+                <label>Asset</label>
                 <select value={asset.asset_type} onChange={(e) => setAsset({ ...asset, asset_type: e.target.value })}>
-                  {["pipe", "tank", "valve", "support", "railing"].map((t) => <option key={t}>{t}</option>)}
+                  {ASSET_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               </div>
-              <label className="row" style={{ marginTop: 24 }}>
-                <input type="checkbox" checked={asset.pressurised} onChange={(e) => setAsset({ ...asset, pressurised: e.target.checked })} /> pressurised
-              </label>
+              <div style={{ flex: 1 }}>
+                <label>Line service</label>
+                <select value={asset.service} onChange={(e) => setAsset({ ...asset, service: e.target.value })}>
+                  {SERVICES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
             </div>
+            <label className="row"><input type="checkbox" checked={asset.pressurised} onChange={(e) => setAsset({ ...asset, pressurised: e.target.checked })} /> pressurised</label>
             <label>Location</label>
-            <input value={asset.location} onChange={(e) => setAsset({ ...asset, location: e.target.value })} placeholder="e.g. unit 2 east rack" />
+            <input value={asset.location} onChange={(e) => setAsset({ ...asset, location: e.target.value })} placeholder="e.g. unit 2, east pipe rack" />
             <div className="row" style={{ marginTop: 10 }}>
               <button onClick={upload} disabled={!files.length || uploading}>{uploading ? "Uploading…" : "Upload"}</button>
-              <span className="muted">or clip id</span>
-              <input style={{ flex: 1 }} value={clipId} onChange={(e) => setClipId(e.target.value)} placeholder="clip-…" />
+              <input style={{ flex: 1 }} value={clipId} onChange={(e) => setClipId(e.target.value)} placeholder="or paste a clip id" />
             </div>
-            <label className="row"><input type="checkbox" checked={live} onChange={(e) => setLive(e.target.checked)} /> live mode (ignore cached perception and verification)</label>
+            <label className="row"><input type="checkbox" checked={live} onChange={(e) => setLive(e.target.checked)} /> live (skip cached perception and verification)</label>
             <div className="row" style={{ marginTop: 10 }}>
-              <button onClick={run} disabled={!clipId || running}>Run agent</button>
+              <button onClick={run} disabled={!clipId || running}>Run the agent</button>
             </div>
-          </div>
-
-          <div className="panel">
-            <h2>2 · Agent at work</h2>
-            {events.length ? <AgentTrail events={events} running={running} /> : <p className="muted">The agent's tool calls appear here as it works.</p>}
           </div>
 
           {plan && (
             <div className="panel">
-              <h2>5 · Change a constraint</h2>
+              <h2>Something changed on site?</h2>
               <ChangePanel scenario={plan.scenario} nowHour={plan.plan.now} busy={running} onSubmit={change} />
             </div>
           )}
-        </section>
-
-        <section>
-          {error && <div className="panel error-box">{error}</div>}
-
-          {answers.length > 0 && (
-            <div className="panel">
-              <h2>Agent summary{answers.length > 1 ? ` · update ${answers.length - 1}` : ""}</h2>
-              <div className="answer">{answers[answers.length - 1]}</div>
-            </div>
-          )}
-
-          {register && runId && (
-            <div className="panel">
-              <h2>3 · Verified defect register · {register.asset.asset_id} · {register.entries.length} defects</h2>
-              <RegisterView runId={runId} register={register} frames={frames} />
-            </div>
-          )}
-
-          {plan && (
-            <div className="panel">
-              <h2>4 · Maintenance plan</h2>
-              <div className="row" style={{ marginBottom: 10 }}>
-                <StatusBadge plan={plan.plan} />
-                <span className="muted">
-                  {plan.plan.assignments.length} jobs scheduled · {plan.plan.unscheduled.length} unscheduled · {plan.plan.moved_jobs.length} moved by last replan
-                </span>
-              </div>
-              <Gantt data={plan} />
-              <h2 style={{ marginTop: 14 }}>Not scheduled (walkdown defects)</h2>
-              <Unscheduled explanations={plan.plan.explanations} walkdownIds={plan.walkdown_defect_ids} />
-            </div>
-          )}
-        </section>
+        </aside>
       </div>
+
+      {register && runId && (
+        <section className="panel">
+          <h2>
+            Verified defect register · {register.asset.asset_id}
+            {register.asset.service ? ` · ${register.asset.service.replaceAll("_", " ")} service` : ""} · {register.entries.length} defects
+          </h2>
+          <RegisterView runId={runId} register={register} frames={frames} />
+        </section>
+      )}
+
+      {plan && (
+        <section className="panel">
+          <h2>Repair plan the agent produced</h2>
+          <div className="row" style={{ marginBottom: 10 }}>
+            <StatusBadge plan={plan.plan} />
+            <span className="muted">
+              {plan.plan.assignments.length} jobs scheduled · {plan.plan.unscheduled.length} unscheduled · {plan.plan.moved_jobs.length} moved by the last replan
+            </span>
+          </div>
+          <Gantt data={plan} />
+          <h2 style={{ marginTop: 14 }}>Walkdown defects that do not fit</h2>
+          <Unscheduled explanations={plan.plan.explanations} walkdownIds={plan.walkdown_defect_ids} />
+        </section>
+      )}
+
+      <p className="scope">
+        For plant and facility walkdowns: refineries, tank farms, terminals, pump and compressor stations, power plants. Long cross-country
+        pipelines are inspected with in-line inspection tools; Walkdown complements them on unpiggable plant piping. Footage today is handheld;
+        drone and robot footage is future work.
+      </p>
     </main>
   );
 }
