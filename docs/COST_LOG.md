@@ -14,3 +14,4 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-10-27 | SAM fixtures, run 1: synthetic plate image + 6-frame clip, prompt "rust" (both empty) | sam-3.1 | 1 image + 50 frames billed | – | – | 0.0125 | 0.0162 |
 | 2026-10-27 | SAM fixtures, run 2: same media, prompt "circle" (image 2 found, video empty) | sam-3.1 | 1 image + 50 frames billed | – | – | 0.0125 | 0.0287 |
 | 2026-10-27 | SAM video debug probes, mp4v then H.264 (both empty) | sam-3.1 | 2 × 50 frames billed | – | – | 0.0200 | 0.0487 |
+| 2026-10-27 | SAM dry run, dev split, prompts "rust", "corrosion", "corroded metal" | sam-3.1 | 150 images | – | – | 0.3750 | 0.4237 |

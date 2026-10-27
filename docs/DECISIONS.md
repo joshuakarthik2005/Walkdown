@@ -114,3 +114,17 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - Retries: exponential backoff on 429, 5xx, timeouts and connection errors. Auth, permission and 402 errors raise `BillingError` immediately: stop and report, per the brief.
 - Video: clips are re-encoded to `sample_fps` (default 2) before upload, so only sampled frames are billed (minimum 50 per request). **Unverified**: on a synthetic clip the request completes and is billed but returns no detections, in both MPEG-4 and H.264, while the same frame sent as an image matches. To be re-tested on the builder's real footage.
 - An empty output means "no match" (per the docs). The synthetic "rust" plate is not recognised as rust, so parser fixtures use the concept "circle".
+
+## 2026-10-27 — SAM prompt choice from the dev dry run
+- 50 dev images (320 ground-truth instances, 6.4 per image; 24% of instances are under 500 px), IoU ≥ 0.5, instance level:
+
+  | Prompt | Precision | Recall | F1 | Matched IoU | Pixel IoU | Preds/img |
+  |---|---|---|---|---|---|---|
+  | rust | 0.45 | 0.33 | 0.38 | 0.82 | 0.51 | 4.7 |
+  | corrosion | 0.57 | 0.27 | 0.37 | 0.83 | 0.41 | 3.0 |
+  | corroded metal | 0.37 | 0.06 | 0.10 | 0.83 | 0.30 | 1.0 |
+
+- **Chosen: "rust"**. It has the best recall and pixel IoU, and F1 equal to the best. In Walkdown, SAM proposes candidates and Muse Spark rejects false positives, so SAM's recall matters more than its precision. "corroded metal" tends to segment the whole object as one instance.
+- Combining "rust" with "corrosion" (deduplicated at mask IoU 0.5) gives exactly the same scores as "rust" alone: the "corrosion" masks duplicate "rust" masks. So a second prompt doubles the cost for nothing.
+- SAM returns no detection below confidence ~0.5 (minimum seen 0.504). Thresholds of 0, 0.3 and 0.5 are identical, and 0.7 trades recall for precision (rust: P 0.75, R 0.17).
+- Caveat: recall is limited partly by annotation granularity. The ground truth splits rust into many small patches, while SAM returns fewer, larger regions. Matched IoU (0.82) shows that what SAM does match, it segments well. Pixel IoU is reported alongside for that reason.
