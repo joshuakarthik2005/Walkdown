@@ -8,6 +8,7 @@ on, so a job's cost can be measured from real usage before scaling up.
 from __future__ import annotations
 
 import json
+import os
 import threading
 import time
 from dataclasses import asdict, dataclass, field
@@ -69,8 +70,12 @@ class CostLedger:
             self.entries.append(entry)
             if self.path is not None:
                 self.path.parent.mkdir(parents=True, exist_ok=True)
-                with self.path.open("a", encoding="utf-8") as f:
-                    f.write(json.dumps(asdict(entry)) + "\n")
+                # One unbuffered O_APPEND write per record, so parallel processes don't interleave lines.
+                fd = os.open(self.path, os.O_WRONLY | os.O_APPEND | os.O_CREAT | getattr(os, "O_BINARY", 0))
+                try:
+                    os.write(fd, (json.dumps(asdict(entry)) + "\n").encode("utf-8"))
+                finally:
+                    os.close(fd)
         return entry
 
     def total(self, job: str | None = None) -> float:
@@ -84,3 +89,15 @@ class CostLedger:
         out = {k: sum(getattr(e, k) for e in es) for k in keys}
         out.update(calls=len(es), usd=sum(e.usd for e in es))
         return out
+
+
+def read_ledger(path: Path) -> list[dict]:
+    """All well-formed records in a ledger file (malformed lines from older concurrent writes are skipped)."""
+    out = []
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+    return out

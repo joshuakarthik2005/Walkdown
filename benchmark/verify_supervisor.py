@@ -19,6 +19,7 @@ import sys
 import time
 from pathlib import Path
 
+from backend.clients.cost import read_ledger
 from benchmark.download_dataset import DATA_DIR
 from benchmark.splits import load_split
 from benchmark.verify_scale import journal_path, read_journal
@@ -33,14 +34,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 def verifier_spend() -> float:
     """Total ledger spend on hosted verifier calls (job 'verify-meta')."""
-    if not LEDGER.exists():
-        return 0.0
-    total = 0.0
-    for line in LEDGER.read_text(encoding="utf-8").splitlines():
-        e = json.loads(line)
-        if e["job"] == "verify-meta":
-            total += e["usd"]
-    return total
+    return sum(e["usd"] for e in read_ledger(LEDGER) if e.get("job") == "verify-meta")
 
 
 def log(msg: str) -> None:
