@@ -64,3 +64,10 @@ Task reports, appended after every task.
 
 ## 2026-10-27 — Phase 1 follow-up A: two-tier priority
 - Status: DONE. Tests: 41 passed (2 new). Severity 5 is critical, severity 4 is high; both configurable.
+
+## 2026-10-27 — Phase 2.3: impact sources (first pass)
+- Status: PARTIAL. 6 figures verified from primary sources:
+  - NACE IMPACT 2016: $2.5T, 3.4% of GDP, 15–35% savings, excludes safety and environmental costs
+  - CSB Chevron Richmond 2012: 19 workers endangered, 15,000+ residents sought medical attention
+  - Koch/FHWA: U.S. $276B, 3.1% of GDP; storage tanks $7B a year
+- 5 candidates are listed but not usable: GAO and PHMSA pipeline-incident shares (sites block automated fetch), the CUI 40–60% figure (secondary sources only), HSE RR509 ageing, inspection effort.
