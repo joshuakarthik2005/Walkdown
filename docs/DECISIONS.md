@@ -204,3 +204,8 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - The full run uses 8 concurrent calls (4 processes × 2 threads). More concurrency only adds latency.
   - It is supervised and restarts from cache automatically (`benchmark/verify_supervisor.py`).
   - **The live demo must use cached perception and verification results.** At this cap, a 30-frame clip with ~100 candidates would take 6+ minutes of verifier time live. Live mode stays available behind the `live` flag, and the trace shows its real timing.
+
+## 2026-10-27 — Correction: the "~16–17 calls/min throughput cap" was not a stable cap
+- The earlier entry described a server-side cap of ~16–17 verifier calls/min. Over the rest of the run, the same 8-concurrent setup reached **74 calls/min** in its final clean chunk, with a run-wide median latency of 5.3 s (p90 25.9 s).
+- The early low throughput was a mix of: a temporary period of high API latency; this benchmark's own chunk crashes (an unpicklable `APIConnectionError` broke the process pool; fixed in d1c3a43); and pure-Python mask decoding.
+- Correct statement: Meta API latency and throughput varied by ~4× over a few hours, with no 429s. The decision that the demo path uses cached perception and verification stands, for this reason.

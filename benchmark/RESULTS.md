@@ -36,3 +36,39 @@ For Walkdown this sets the design: SAM proposes, Muse Spark verifies. SAM's miss
 ### What is not measured yet
 - **False alarms on clean surfaces.** Every test image contains corrosion. The builder is recording negative footage (clean and look-alike surfaces); see `benchmark/build_negatives.py`. Image-level false-alarm rate and candidate counts on negatives will be added when it exists.
 - **Video mode.** SAM 3.1 video requests are accepted and billed, but returned no detections on a synthetic clip. The demo uses frame-by-frame image calls until video is re-tested on real footage.
+
+## 2. Verification: Muse Spark on every SAM candidate
+
+**Setup**
+- Every SAM 3.1 "rust" candidate on the test split (**5,066 candidates** on 1,444 images) is verified by hosted **`muse-spark-1.3`**, reasoning effort **low**.
+- Each call gets a 448 px crop with the mask outlined in cyan plus a 256 px frame thumbnail. The reply is strict JSON-schema output: is_defect, defect_type, severity 1–5, confidence, evidence, recommended_action.
+- Result file: `results/verify_scale_test_meta_low.json`. The verdict cache and per-image journal are on `WALKDOWN_DATA_DIR`.
+
+| Metric | Value |
+|---|---|
+| Candidates verified | 5,066 (complete) |
+| Invalid replies (schema or JSON failures) | **0** (0.0%) |
+| Accepted as defect | 4,549 (89.8%); rejected 517 |
+| **TP retention**: share of candidates mostly inside annotated corrosion (coverage ≥ 0.5, n = 3,616) that the verifier keeps | **95.5%** |
+| Consistency flags raised | 2 (both "poor mask fit") |
+| Severity of accepted candidates (1 / 2 / 3 / 4 / 5) | 170 / 2,521 / 1,534 / 290 / 34 |
+| Cost | **$21.78** total, **$0.0043 per candidate** (754 reasoning tokens on average; the fixed prompt prefix is cached) |
+| Latency per call | median 5.3 s, p90 25.9 s |
+| Throughput | 8 concurrent calls (4 processes × 2): 74 calls/min in the final clean chunk; much lower earlier in the run (see below) |
+
+**Severity is not accuracy.** There is no severity ground truth, so no accuracy is claimed. What was measured is consistency: on 30 dev candidates graded twice, is_defect agreed 100%, severity matched exactly 97% of the time and within ±1 100% of the time. Hosted and open-weights Muse Spark agreed on is_defect for 96% of 50 dev candidates.
+
+### Why dataset labels do not measure false-positive rejection
+- A candidate is labelled "FP" when less than 10% of its pixels lie inside annotated corrosion (n = 1,325). Against that label the verifier "rejects" only 25.1%, and candidate precision moves from 0.73 (SAM alone) to 0.78 (SAM + verifier).
+- **These two numbers are not a valid FP-rejection metric.** A private visual check of labelled-FP crops showed that many are real rust or rust staining the annotators did not mark: the dataset annotates *some* rust patches per image, not all of them.
+- A verifier that correctly accepts unannotated rust is therefore scored as failing to reject false positives.
+- The dataset also contains **no negative images**, so the verifier was never shown clean or look-alike surfaces in this benchmark.
+- What can be said honestly: the verifier keeps 95.5% of annotated corrosion (its cost in missed defects is small), its outputs are always well-formed, and it is consistent.
+- How often it rejects real false positives will be measured on:
+  1. the builder's negative footage: clean and look-alike surfaces, all of which should be rejected
+  2. the ~100 audited labels from the local labelling page (`benchmark/label_app.py`), reported side by side with the coverage labels.
+
+### Throughput note
+- At the start of this run, throughput sat at about 16 calls/min and latency rose to a 48 s median with 32 calls in flight. I first recorded that as a server-side cap.
+- That was wrong, or at most temporary. The same configuration later sustained 74 calls/min, and part of the early slowness came from this benchmark's own worker crashes and pure-Python mask decoding.
+- Throughput from the Meta API varied by a factor of ~4 over a few hours, with no 429s. The live demo uses cached perception and verification so it does not depend on it.
