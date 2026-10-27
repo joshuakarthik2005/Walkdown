@@ -1,0 +1,28 @@
+{
+ "image": {
+  "instances": 2,
+  "size": [
+   640,
+   480
+  ]
+ },
+ "video": {
+  "instances": 0,
+  "frames": [],
+  "size": [
+   640,
+   480
+  ],
+  "frames_billed": 50
+ },
+ "cost": {
+  "images": 1,
+  "frames": 50,
+  "input_tokens": 0,
+  "cached_tokens": 0,
+  "output_tokens": 0,
+  "reasoning_tokens": 0,
+  "calls": 2,
+  "usd": 0.0125
+ }
+}

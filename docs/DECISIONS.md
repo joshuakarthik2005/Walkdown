@@ -106,3 +106,11 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - two-stage moved 8 and 7 jobs; baseline patch moved 4 and 5
   - two-stage risk was 11.6% and 2.8% lower than patch
   - churn dropped (from ~15), but is still higher than patch
+
+## 2026-10-27 — SAM 3.1 client
+- Request format follows https://dev.meta.ai/docs/sam/segmenting: Responses API, `model="sam-3.1"`, one user message with `input_text` (a noun-phrase concept) and `input_image` (a base64 data URL) or `input_video` (a Files API `file_id`). `metadata.include_confidence="true"`.
+- Output is parsed with Meta's own `meta-sam-parser` 0.1.0 (SAM License, Meta Platforms). Each mask is a box-local raster exactly the size of its box; it is pasted at (left, top) into a full-frame boolean mask.
+- Billing comes from `usage.images_processed` and `usage.video_frames_processed`. Token counts are 0 for SAM. Each call is recorded in a `CostLedger`.
+- Retries: exponential backoff on 429, 5xx, timeouts and connection errors. Auth, permission and 402 errors raise `BillingError` immediately: stop and report, per the brief.
+- Video: clips are re-encoded to `sample_fps` (default 2) before upload, so only sampled frames are billed (minimum 50 per request). **Unverified**: on a synthetic clip the request completes and is billed but returns no detections, in both MPEG-4 and H.264, while the same frame sent as an image matches. To be re-tested on the builder's real footage.
+- An empty output means "no match" (per the docs). The synthetic "rust" plate is not recognised as rust, so parser fixtures use the concept "circle".
