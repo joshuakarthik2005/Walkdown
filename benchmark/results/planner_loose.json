@@ -1,0 +1,1032 @@
+{
+ "regime": "loose",
+ "config": {
+  "severity_weight": {
+   "1": 1.0,
+   "2": 2.0,
+   "3": 4.0,
+   "4": 8.0,
+   "5": 16.0
+  },
+  "risk_scale": 100,
+  "critical_severity": 5,
+  "critical_penalty": 1000000,
+  "high_severity": 4,
+  "high_penalty": 100000,
+  "move_penalty": 200,
+  "lexicographic_replan": true,
+  "replan_epsilon": 0.02,
+  "stage1_time_share": 0.6,
+  "move_job_weight": 24,
+  "time_limit_s": 10.0,
+  "num_workers": 4,
+  "random_seed": 0,
+  "probing_level": 0
+ },
+ "replan_at": 48,
+ "static": [
+  {
+   "seed": 0,
+   "n_defects": 15,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 260733,
+    "exposure": 260733,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.1919642857142857,
+    "crew_utilisation": {
+     "C1": 0.20535714285714285,
+     "C2": 0.125,
+     "C3": 0.07142857142857142,
+     "C4": 0.36607142857142855
+    },
+    "solve_time_s": 0.6411782,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 272238,
+    "exposure": 272238,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.1919642857142857,
+    "crew_utilisation": {
+     "C1": 0.16071428571428573,
+     "C2": 0.125,
+     "C3": 0.07142857142857142,
+     "C4": 0.4107142857142857
+    },
+    "solve_time_s": 0.0023920999956317246,
+    "gap": null
+   }
+  },
+  {
+   "seed": 1,
+   "n_defects": 15,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 253460,
+    "exposure": 253460,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.21205357142857142,
+    "crew_utilisation": {
+     "C1": 0.13392857142857142,
+     "C2": 0.19642857142857142,
+     "C3": 0.375,
+     "C4": 0.14285714285714285
+    },
+    "solve_time_s": 0.7645562,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 279656,
+    "exposure": 279656,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.21205357142857142,
+    "crew_utilisation": {
+     "C1": 0.13392857142857142,
+     "C2": 0.17857142857142858,
+     "C3": 0.375,
+     "C4": 0.16071428571428573
+    },
+    "solve_time_s": 0.0021895999961998314,
+    "gap": null
+   }
+  },
+  {
+   "seed": 2,
+   "n_defects": 15,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 182320,
+    "exposure": 182320,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.25669642857142855,
+    "crew_utilisation": {
+     "C1": 0.35714285714285715,
+     "C2": 0.33035714285714285,
+     "C3": 0.14285714285714285,
+     "C4": 0.19642857142857142
+    },
+    "solve_time_s": 0.48083200000000004,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 189684,
+    "exposure": 189684,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.25669642857142855,
+    "crew_utilisation": {
+     "C1": 0.375,
+     "C2": 0.3125,
+     "C3": 0.14285714285714285,
+     "C4": 0.19642857142857142
+    },
+    "solve_time_s": 0.0016146999842021614,
+    "gap": null
+   }
+  },
+  {
+   "seed": 3,
+   "n_defects": 15,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 224516,
+    "exposure": 224516,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.23214285714285715,
+    "crew_utilisation": {
+     "C1": 0.25,
+     "C2": 0.17857142857142858,
+     "C3": 0.03571428571428571,
+     "C4": 0.4642857142857143
+    },
+    "solve_time_s": 0.40356850000000005,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 236668,
+    "exposure": 236668,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.23214285714285715,
+    "crew_utilisation": {
+     "C1": 0.25,
+     "C2": 0.17857142857142858,
+     "C3": 0.03571428571428571,
+     "C4": 0.4642857142857143
+    },
+    "solve_time_s": 0.0012328999873716384,
+    "gap": null
+   }
+  },
+  {
+   "seed": 4,
+   "n_defects": 15,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 155290,
+    "exposure": 155290,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.1986607142857143,
+    "crew_utilisation": {
+     "C1": 0.14285714285714285,
+     "C2": 0.2767857142857143,
+     "C3": 0.16964285714285715,
+     "C4": 0.20535714285714285
+    },
+    "solve_time_s": 1.5983327,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 156627,
+    "exposure": 156627,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.1986607142857143,
+    "crew_utilisation": {
+     "C1": 0.14285714285714285,
+     "C2": 0.2767857142857143,
+     "C3": 0.16964285714285715,
+     "C4": 0.20535714285714285
+    },
+    "solve_time_s": 0.0065848999947775155,
+    "gap": null
+   }
+  },
+  {
+   "seed": 5,
+   "n_defects": 15,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 120798,
+    "exposure": 120798,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.1607142857142857,
+    "crew_utilisation": {
+     "C1": 0.33035714285714285,
+     "C2": 0.10714285714285714,
+     "C3": 0.16964285714285715,
+     "C4": 0.03571428571428571
+    },
+    "solve_time_s": 1.6371207,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 148742,
+    "exposure": 148742,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.16071428571428573,
+    "crew_utilisation": {
+     "C1": 0.33035714285714285,
+     "C2": 0.05357142857142857,
+     "C3": 0.22321428571428573,
+     "C4": 0.03571428571428571
+    },
+    "solve_time_s": 0.0055976999865379184,
+    "gap": null
+   }
+  },
+  {
+   "seed": 6,
+   "n_defects": 15,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 110816,
+    "exposure": 110816,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.22321428571428573,
+    "crew_utilisation": {
+     "C1": 0.32142857142857145,
+     "C2": 0.16071428571428573,
+     "C3": 0.23214285714285715,
+     "C4": 0.17857142857142858
+    },
+    "solve_time_s": 1.7290702,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 111003,
+    "exposure": 111003,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.22321428571428573,
+    "crew_utilisation": {
+     "C1": 0.32142857142857145,
+     "C2": 0.23214285714285715,
+     "C3": 0.16071428571428573,
+     "C4": 0.17857142857142858
+    },
+    "solve_time_s": 0.0064901000005193055,
+    "gap": null
+   }
+  },
+  {
+   "seed": 7,
+   "n_defects": 15,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 756628,
+    "exposure": 756628,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.20982142857142858,
+    "crew_utilisation": {
+     "C1": 0.125,
+     "C2": 0.17857142857142858,
+     "C3": 0.30357142857142855,
+     "C4": 0.23214285714285715
+    },
+    "solve_time_s": 1.6003386000000002,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 781247,
+    "exposure": 781247,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.20982142857142858,
+    "crew_utilisation": {
+     "C1": 0.13392857142857142,
+     "C2": 0.17857142857142858,
+     "C3": 0.33035714285714285,
+     "C4": 0.19642857142857142
+    },
+    "solve_time_s": 0.00889399999869056,
+    "gap": null
+   }
+  },
+  {
+   "seed": 8,
+   "n_defects": 15,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 247650,
+    "exposure": 247650,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.19866071428571427,
+    "crew_utilisation": {
+     "C1": 0.21428571428571427,
+     "C2": 0.25,
+     "C3": 0.10714285714285714,
+     "C4": 0.22321428571428573
+    },
+    "solve_time_s": 1.5068502000000001,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 252266,
+    "exposure": 252266,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.19866071428571427,
+    "crew_utilisation": {
+     "C1": 0.21428571428571427,
+     "C2": 0.26785714285714285,
+     "C3": 0.10714285714285714,
+     "C4": 0.20535714285714285
+    },
+    "solve_time_s": 0.007754999998724088,
+    "gap": null
+   }
+  },
+  {
+   "seed": 9,
+   "n_defects": 15,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 131079,
+    "exposure": 131079,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.2566964285714286,
+    "crew_utilisation": {
+     "C1": 0.26785714285714285,
+     "C2": 0.23214285714285715,
+     "C3": 0.23214285714285715,
+     "C4": 0.29464285714285715
+    },
+    "solve_time_s": 1.8005639000000002,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 133212,
+    "exposure": 133212,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.25669642857142855,
+    "crew_utilisation": {
+     "C1": 0.26785714285714285,
+     "C2": 0.36607142857142855,
+     "C3": 0.125,
+     "C4": 0.26785714285714285
+    },
+    "solve_time_s": 0.008035100006964058,
+    "gap": null
+   }
+  }
+ ],
+ "replan": [
+  {
+   "seed": 0,
+   "change": "crew_unavailable",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 2,
+    "displaced_hours": 144,
+    "risk": 424485,
+    "exposure": 424485,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.196169
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 4,
+    "displaced_hours": 248,
+    "risk": 452822,
+    "exposure": 452822,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.002104200015310198
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 3,
+    "displaced_hours": 272,
+    "risk": 458496,
+    "exposure": 458496,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0032903999963309616
+   }
+  },
+  {
+   "seed": 0,
+   "change": "window_cancelled",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 1,
+    "displaced_hours": 120,
+    "risk": 423933,
+    "exposure": 423933,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.2406586
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 3,
+    "displaced_hours": 208,
+    "risk": 433670,
+    "exposure": 433670,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0015920000150799751
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 1,
+    "displaced_hours": 120,
+    "risk": 435438,
+    "exposure": 435438,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0013185999996494502
+   }
+  },
+  {
+   "seed": 0,
+   "change": "new_critical",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 312573,
+    "exposure": 312573,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.4561569
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 3,
+    "displaced_hours": 56,
+    "risk": 303398,
+    "exposure": 303398,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0020607000042218715
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 293838,
+    "exposure": 293838,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0019862000190187246
+   }
+  },
+  {
+   "seed": 1,
+   "change": "crew_unavailable",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 3,
+    "displaced_hours": 216,
+    "risk": 315380,
+    "exposure": 315380,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.24586020000000003
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 3,
+    "displaced_hours": 216,
+    "risk": 341576,
+    "exposure": 341576,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0019654000061564147
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 3,
+    "displaced_hours": 216,
+    "risk": 341576,
+    "exposure": 341576,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0023914999910630286
+   }
+  },
+  {
+   "seed": 1,
+   "change": "window_cancelled",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 1,
+    "displaced_hours": 70,
+    "risk": 267460,
+    "exposure": 267460,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.3005394
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 2,
+    "displaced_hours": 112,
+    "risk": 289560,
+    "exposure": 289560,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0016021000046748668
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 1,
+    "displaced_hours": 70,
+    "risk": 293656,
+    "exposure": 293656,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0016098000050988048
+   }
+  },
+  {
+   "seed": 1,
+   "change": "new_critical",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 273620,
+    "exposure": 273620,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.48769680000000004
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 296936,
+    "exposure": 296936,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.003116100007900968
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 296936,
+    "exposure": 296936,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.00259719998575747
+   }
+  },
+  {
+   "seed": 2,
+   "change": "crew_unavailable",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 1,
+    "displaced_hours": 47,
+    "risk": 185986,
+    "exposure": 185986,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.3236754
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 2,
+    "displaced_hours": 68,
+    "risk": 191892,
+    "exposure": 191892,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.00293360001523979
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 1,
+    "displaced_hours": 65,
+    "risk": 193506,
+    "exposure": 193506,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0026302999758627266
+   }
+  },
+  {
+   "seed": 2,
+   "change": "window_cancelled",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 3,
+    "displaced_hours": 360,
+    "risk": 234040,
+    "exposure": 234040,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.36711170000000004
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 3,
+    "displaced_hours": 360,
+    "risk": 241404,
+    "exposure": 241404,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0031848000071477145
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 3,
+    "displaced_hours": 360,
+    "risk": 241404,
+    "exposure": 241404,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.005198400001972914
+   }
+  },
+  {
+   "seed": 2,
+   "change": "new_critical",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 2,
+    "displaced_hours": 44,
+    "risk": 235680,
+    "exposure": 235680,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.48915050000000004
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 4,
+    "displaced_hours": 60,
+    "risk": 246496,
+    "exposure": 246496,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.003092400002060458
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 316404,
+    "exposure": 316404,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.002451800013659522
+   }
+  },
+  {
+   "seed": 3,
+   "change": "crew_unavailable",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 4,
+    "displaced_hours": 212,
+    "risk": 257108,
+    "exposure": 257108,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.25373120000000005
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 5,
+    "displaced_hours": 270,
+    "risk": 309828,
+    "exposure": 309828,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.003408699994906783
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 4,
+    "displaced_hours": 266,
+    "risk": 310992,
+    "exposure": 310992,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.004721300007076934
+   }
+  },
+  {
+   "seed": 3,
+   "change": "window_cancelled",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 7,
+    "displaced_hours": 623,
+    "risk": 295391,
+    "exposure": 295391,
+    "unscheduled": 1,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.2665596
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 7,
+    "displaced_hours": 525,
+    "risk": 302615,
+    "exposure": 302615,
+    "unscheduled": 1,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0024333999899681658
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 4,
+    "displaced_hours": 547,
+    "risk": 318339,
+    "exposure": 318339,
+    "unscheduled": 1,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.003905400022631511
+   }
+  },
+  {
+   "seed": 3,
+   "change": "new_critical",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 243236,
+    "exposure": 243236,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.30074960000000006
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 255388,
+    "exposure": 255388,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0027188000094611198
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 255388,
+    "exposure": 255388,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0025687000015750527
+   }
+  },
+  {
+   "seed": 4,
+   "change": "crew_unavailable",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 2,
+    "displaced_hours": 144,
+    "risk": 172066,
+    "exposure": 172066,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.3662105
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 2,
+    "displaced_hours": 144,
+    "risk": 173403,
+    "exposure": 173403,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0026276999851688743
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 2,
+    "displaced_hours": 144,
+    "risk": 173403,
+    "exposure": 173403,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.002448299987008795
+   }
+  },
+  {
+   "seed": 4,
+   "change": "window_cancelled",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 2,
+    "displaced_hours": 192,
+    "risk": 181594,
+    "exposure": 181594,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.3588988000000001
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 2,
+    "displaced_hours": 192,
+    "risk": 182931,
+    "exposure": 182931,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0025080000050365925
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 2,
+    "displaced_hours": 192,
+    "risk": 182931,
+    "exposure": 182931,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0028369000065140426
+   }
+  },
+  {
+   "seed": 4,
+   "change": "new_critical",
+   "cpsat": {
+    "status": "OPTIMAL",
+    "stages": [
+     "OPTIMAL",
+     "OPTIMAL"
+    ],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 172570,
+    "exposure": 172570,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.562891
+   },
+   "baseline_scratch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 173907,
+    "exposure": 173907,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0029233999957796186
+   },
+   "baseline_patch": {
+    "status": "HEURISTIC",
+    "stages": [],
+    "moved": 0,
+    "displaced_hours": 0,
+    "risk": 173907,
+    "exposure": 173907,
+    "unscheduled": 0,
+    "critical_unscheduled": 0,
+    "solve_time_s": 0.0021526999771595
+   }
+  }
+ ],
+ "elapsed_s": 25.898248200013768
+}

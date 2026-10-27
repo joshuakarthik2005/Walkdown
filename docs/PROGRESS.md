@@ -96,3 +96,15 @@ Task reports, appended after every task.
 - Status: DONE, with a blocker on negatives. The dataset was downloaded via the Roboflow API (key from .env, never printed). valid/test are on G:. Licence and source are recorded in the README.
 - Polygons confirmed. **Zero-annotation images: 0**, so negatives are 0% of test, below the 20% target. Reported, not invented.
 - dev 50 / test 1,444, built over near-duplicate clusters with stock-style filenames excluded (215). See DECISIONS.md.
+
+## 2026-10-27 — Phase 1 follow-up C: two-stage replan and full planner benchmark
+- Status: DONE. Tests: 50 passed. The benchmark ran in the foreground, one regime at a time, with 4 workers: 10.8 min total, results saved per regime in `benchmark/results/`. The report is `benchmark/PLANNER_RESULTS.md`.
+- Static, median risk improvement (min–max):
+  - default: 5.8% (0.3–19.2)
+  - loose: 3.5%
+  - tight_capacity: 2.8%, all FEASIBLE, gap median 9.9%
+  - tight_shutdown: 1.0%
+  - tight_permits: 7.5% (1.5–24.9)
+  - CP-SAT ≤ baseline on all 60 runs.
+- Replan: CP-SAT moves fewer jobs than re-running the baseline from scratch in every regime/change cell. It still moves **more than the baseline patch in 8 of 12 cells** (e.g. tight_capacity crew out: 8 vs 4), with 1–41% lower risk than patch.
+- Against scratch the risk difference is small, and sometimes slightly negative (down to −3.0% in single runs; median −0.6% for tight_shutdown/new_critical). This is because the 2% epsilon lets stage 2 give up a little risk for stability.

@@ -1,0 +1,831 @@
+{
+ "regime": "default",
+ "config": {
+  "severity_weight": {
+   "1": 1.0,
+   "2": 2.0,
+   "3": 4.0,
+   "4": 8.0,
+   "5": 16.0
+  },
+  "risk_scale": 100,
+  "critical_severity": 5,
+  "critical_penalty": 1000000,
+  "high_severity": 4,
+  "high_penalty": 100000,
+  "move_penalty": 200,
+  "lexicographic_replan": true,
+  "replan_epsilon": 0.02,
+  "stage1_time_share": 0.6,
+  "move_job_weight": 24,
+  "time_limit_s": 10.0,
+  "num_workers": 4,
+  "random_seed": 0,
+  "probing_level": 0
+ },
+ "replan_at": 48,
+ "static": [
+  {
+   "seed": 0,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "FEASIBLE",
+    "objective": 747870,
+    "exposure": 747870,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.3236607142857143,
+    "crew_utilisation": {
+     "C1": 0.5178571428571429,
+     "C2": 0.16964285714285715,
+     "C3": 0.05357142857142857,
+     "C4": 0.5535714285714286
+    },
+    "solve_time_s": 10.634642300000001,
+    "gap": 0.0696538168398251
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 812624,
+    "exposure": 812624,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.31919642857142855,
+    "crew_utilisation": {
+     "C1": 0.42857142857142855,
+     "C2": 0.16964285714285715,
+     "C3": 0.05357142857142857,
+     "C4": 0.625
+    },
+    "solve_time_s": 0.003308999992441386,
+    "gap": null
+   }
+  },
+  {
+   "seed": 1,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "FEASIBLE",
+    "objective": 541662,
+    "exposure": 541662,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.32589285714285715,
+    "crew_utilisation": {
+     "C1": 0.25892857142857145,
+     "C2": 0.2857142857142857,
+     "C3": 0.44642857142857145,
+     "C4": 0.3125
+    },
+    "solve_time_s": 10.2086436,
+    "gap": 0.08237424814736866
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 625820,
+    "exposure": 625820,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 2,
+    "mean_crew_utilisation": 0.3035714285714286,
+    "crew_utilisation": {
+     "C1": 0.3125,
+     "C2": 0.26785714285714285,
+     "C3": 0.35714285714285715,
+     "C4": 0.2767857142857143
+    },
+    "solve_time_s": 0.012456600001314655,
+    "gap": null
+   }
+  },
+  {
+   "seed": 2,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "FEASIBLE",
+    "objective": 405752,
+    "exposure": 405752,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.38616071428571425,
+    "crew_utilisation": {
+     "C1": 0.7321428571428571,
+     "C2": 0.36607142857142855,
+     "C3": 0.08928571428571429,
+     "C4": 0.35714285714285715
+    },
+    "solve_time_s": 10.0650027,
+    "gap": 0.14608677221554053
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 438942,
+    "exposure": 438942,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.38616071428571425,
+    "crew_utilisation": {
+     "C1": 0.7321428571428571,
+     "C2": 0.36607142857142855,
+     "C3": 0.08928571428571429,
+     "C4": 0.35714285714285715
+    },
+    "solve_time_s": 0.008372000011149794,
+    "gap": null
+   }
+  },
+  {
+   "seed": 3,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 474841,
+    "exposure": 474841,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 2,
+    "mean_crew_utilisation": 0.38839285714285715,
+    "crew_utilisation": {
+     "C1": 0.5178571428571429,
+     "C2": 0.3392857142857143,
+     "C3": 0.17857142857142858,
+     "C4": 0.5178571428571429
+    },
+    "solve_time_s": 1.1248548,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 493003,
+    "exposure": 493003,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 2,
+    "mean_crew_utilisation": 0.38839285714285715,
+    "crew_utilisation": {
+     "C1": 0.5178571428571429,
+     "C2": 0.3392857142857143,
+     "C3": 0.17857142857142858,
+     "C4": 0.5178571428571429
+    },
+    "solve_time_s": 0.008570599980885163,
+    "gap": null
+   }
+  },
+  {
+   "seed": 4,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 207602,
+    "exposure": 207602,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.36160714285714285,
+    "crew_utilisation": {
+     "C1": 0.3392857142857143,
+     "C2": 0.38392857142857145,
+     "C3": 0.3125,
+     "C4": 0.4107142857142857
+    },
+    "solve_time_s": 2.7490437,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 208193,
+    "exposure": 208193,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.36160714285714285,
+    "crew_utilisation": {
+     "C1": 0.38392857142857145,
+     "C2": 0.38392857142857145,
+     "C3": 0.3125,
+     "C4": 0.36607142857142855
+    },
+    "solve_time_s": 0.011544799985131249,
+    "gap": null
+   }
+  },
+  {
+   "seed": 5,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "FEASIBLE",
+    "objective": 323087,
+    "exposure": 323087,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.27901785714285715,
+    "crew_utilisation": {
+     "C1": 0.3482142857142857,
+     "C2": 0.21428571428571427,
+     "C3": 0.44642857142857145,
+     "C4": 0.10714285714285714
+    },
+    "solve_time_s": 10.0695628,
+    "gap": 0.02807293391563263
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 349837,
+    "exposure": 349837,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.27901785714285715,
+    "crew_utilisation": {
+     "C1": 0.33035714285714285,
+     "C2": 0.23214285714285715,
+     "C3": 0.44642857142857145,
+     "C4": 0.10714285714285714
+    },
+    "solve_time_s": 0.010372899996582419,
+    "gap": null
+   }
+  },
+  {
+   "seed": 6,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "FEASIBLE",
+    "objective": 235672,
+    "exposure": 235672,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.3013392857142857,
+    "crew_utilisation": {
+     "C1": 0.4017857142857143,
+     "C2": 0.25892857142857145,
+     "C3": 0.25,
+     "C4": 0.29464285714285715
+    },
+    "solve_time_s": 10.072892900000001,
+    "gap": 0.050816388879459586
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 250095,
+    "exposure": 250095,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.3013392857142857,
+    "crew_utilisation": {
+     "C1": 0.42857142857142855,
+     "C2": 0.25,
+     "C3": 0.23214285714285715,
+     "C4": 0.29464285714285715
+    },
+    "solve_time_s": 0.008961900020949543,
+    "gap": null
+   }
+  },
+  {
+   "seed": 7,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 427323,
+    "exposure": 427323,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.29017857142857145,
+    "crew_utilisation": {
+     "C1": 0.125,
+     "C2": 0.375,
+     "C3": 0.32142857142857145,
+     "C4": 0.3392857142857143
+    },
+    "solve_time_s": 3.8647078,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 449111,
+    "exposure": 449111,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.29017857142857145,
+    "crew_utilisation": {
+     "C1": 0.125,
+     "C2": 0.375,
+     "C3": 0.32142857142857145,
+     "C4": 0.3392857142857143
+    },
+    "solve_time_s": 0.010571899998467416,
+    "gap": null
+   }
+  },
+  {
+   "seed": 8,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 535191,
+    "exposure": 535191,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.35714285714285715,
+    "crew_utilisation": {
+     "C1": 0.5625,
+     "C2": 0.2857142857142857,
+     "C3": 0.26785714285714285,
+     "C4": 0.3125
+    },
+    "solve_time_s": 9.067458,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 543147,
+    "exposure": 543147,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.35714285714285715,
+    "crew_utilisation": {
+     "C1": 0.5625,
+     "C2": 0.2857142857142857,
+     "C3": 0.26785714285714285,
+     "C4": 0.3125
+    },
+    "solve_time_s": 0.009015399991767481,
+    "gap": null
+   }
+  },
+  {
+   "seed": 9,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "FEASIBLE",
+    "objective": 391484,
+    "exposure": 391484,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.3169642857142857,
+    "crew_utilisation": {
+     "C1": 0.3125,
+     "C2": 0.2857142857142857,
+     "C3": 0.26785714285714285,
+     "C4": 0.4017857142857143
+    },
+    "solve_time_s": 10.702779300000001,
+    "gap": 0.0222588918065617
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 395526,
+    "exposure": 395526,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.3169642857142857,
+    "crew_utilisation": {
+     "C1": 0.25,
+     "C2": 0.3482142857142857,
+     "C3": 0.19642857142857142,
+     "C4": 0.4732142857142857
+    },
+    "solve_time_s": 0.012283200019737706,
+    "gap": null
+   }
+  },
+  {
+   "seed": 10,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "FEASIBLE",
+    "objective": 343277,
+    "exposure": 343277,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.3683035714285714,
+    "crew_utilisation": {
+     "C1": 0.4732142857142857,
+     "C2": 0.49107142857142855,
+     "C3": 0.08928571428571429,
+     "C4": 0.41964285714285715
+    },
+    "solve_time_s": 10.5813456,
+    "gap": 0.08709293078184673
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 369741,
+    "exposure": 369741,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.3683035714285714,
+    "crew_utilisation": {
+     "C1": 0.4732142857142857,
+     "C2": 0.5357142857142857,
+     "C3": 0.08928571428571429,
+     "C4": 0.375
+    },
+    "solve_time_s": 0.011048100015614182,
+    "gap": null
+   }
+  },
+  {
+   "seed": 11,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 514336,
+    "exposure": 514336,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.30580357142857145,
+    "crew_utilisation": {
+     "C1": 0.4107142857142857,
+     "C2": 0.23214285714285715,
+     "C3": 0.16071428571428573,
+     "C4": 0.41964285714285715
+    },
+    "solve_time_s": 9.9765981,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 530626,
+    "exposure": 530626,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.30580357142857145,
+    "crew_utilisation": {
+     "C1": 0.35714285714285715,
+     "C2": 0.23214285714285715,
+     "C3": 0.16071428571428573,
+     "C4": 0.4732142857142857
+    },
+    "solve_time_s": 0.008898699976271018,
+    "gap": null
+   }
+  },
+  {
+   "seed": 12,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 783550,
+    "exposure": 683550,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 1,
+    "unscheduled": 2,
+    "mean_crew_utilisation": 0.296875,
+    "crew_utilisation": {
+     "C1": 0.32142857142857145,
+     "C2": 0.23214285714285715,
+     "C3": 0.4017857142857143,
+     "C4": 0.23214285714285715
+    },
+    "solve_time_s": 3.6912618000000004,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 823104,
+    "exposure": 723104,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 1,
+    "unscheduled": 3,
+    "mean_crew_utilisation": 0.2924107142857143,
+    "crew_utilisation": {
+     "C1": 0.3482142857142857,
+     "C2": 0.23214285714285715,
+     "C3": 0.35714285714285715,
+     "C4": 0.23214285714285715
+    },
+    "solve_time_s": 0.007985300006112084,
+    "gap": null
+   }
+  },
+  {
+   "seed": 13,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 417562,
+    "exposure": 417562,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.36160714285714285,
+    "crew_utilisation": {
+     "C1": 0.5446428571428571,
+     "C2": 0.3392857142857143,
+     "C3": 0.4732142857142857,
+     "C4": 0.08928571428571429
+    },
+    "solve_time_s": 2.0819371,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 516650,
+    "exposure": 516650,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 2,
+    "mean_crew_utilisation": 0.3325892857142857,
+    "crew_utilisation": {
+     "C1": 0.5446428571428571,
+     "C2": 0.3392857142857143,
+     "C3": 0.44642857142857145,
+     "C4": 0.0
+    },
+    "solve_time_s": 0.007654699991689995,
+    "gap": null
+   }
+  },
+  {
+   "seed": 14,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 444731,
+    "exposure": 444731,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.31473214285714285,
+    "crew_utilisation": {
+     "C1": 0.44642857142857145,
+     "C2": 0.2857142857142857,
+     "C3": 0.2857142857142857,
+     "C4": 0.24107142857142858
+    },
+    "solve_time_s": 2.8881095,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 481304,
+    "exposure": 481304,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.31473214285714285,
+    "crew_utilisation": {
+     "C1": 0.5178571428571429,
+     "C2": 0.2857142857142857,
+     "C3": 0.25892857142857145,
+     "C4": 0.19642857142857142
+    },
+    "solve_time_s": 0.009277899982407689,
+    "gap": null
+   }
+  },
+  {
+   "seed": 15,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 324726,
+    "exposure": 324726,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.34598214285714285,
+    "crew_utilisation": {
+     "C1": 0.625,
+     "C2": 0.29464285714285715,
+     "C3": 0.23214285714285715,
+     "C4": 0.23214285714285715
+    },
+    "solve_time_s": 2.5215737000000003,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 344620,
+    "exposure": 344620,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.34598214285714285,
+    "crew_utilisation": {
+     "C1": 0.625,
+     "C2": 0.25892857142857145,
+     "C3": 0.1875,
+     "C4": 0.3125
+    },
+    "solve_time_s": 0.013363700010813773,
+    "gap": null
+   }
+  },
+  {
+   "seed": 16,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "FEASIBLE",
+    "objective": 168987,
+    "exposure": 168987,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.3348214285714286,
+    "crew_utilisation": {
+     "C1": 0.5625,
+     "C2": 0.5,
+     "C3": 0.25892857142857145,
+     "C4": 0.017857142857142856
+    },
+    "solve_time_s": 10.0654634,
+    "gap": 0.05899862119571328
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 170424,
+    "exposure": 170424,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.3348214285714286,
+    "crew_utilisation": {
+     "C1": 0.5625,
+     "C2": 0.5,
+     "C3": 0.25892857142857145,
+     "C4": 0.017857142857142856
+    },
+    "solve_time_s": 0.011941999982809648,
+    "gap": null
+   }
+  },
+  {
+   "seed": 17,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 771293,
+    "exposure": 771293,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.3549107142857143,
+    "crew_utilisation": {
+     "C1": 0.7857142857142857,
+     "C2": 0.25,
+     "C3": 0.21428571428571427,
+     "C4": 0.16964285714285715
+    },
+    "solve_time_s": 3.9901909000000004,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 796557,
+    "exposure": 796557,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.33705357142857145,
+    "crew_utilisation": {
+     "C1": 0.7142857142857143,
+     "C2": 0.25,
+     "C3": 0.21428571428571427,
+     "C4": 0.16964285714285715
+    },
+    "solve_time_s": 0.007772599987220019,
+    "gap": null
+   }
+  },
+  {
+   "seed": 18,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "FEASIBLE",
+    "objective": 688602,
+    "exposure": 688602,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 0,
+    "mean_crew_utilisation": 0.3325892857142857,
+    "crew_utilisation": {
+     "C1": 0.38392857142857145,
+     "C2": 0.4107142857142857,
+     "C3": 0.14285714285714285,
+     "C4": 0.39285714285714285
+    },
+    "solve_time_s": 10.050818600000001,
+    "gap": 0.13895690108364483
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 777560,
+    "exposure": 777560,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.31473214285714285,
+    "crew_utilisation": {
+     "C1": 0.39285714285714285,
+     "C2": 0.375,
+     "C3": 0.09821428571428571,
+     "C4": 0.39285714285714285
+    },
+    "solve_time_s": 0.013155499997083098,
+    "gap": null
+   }
+  },
+  {
+   "seed": 19,
+   "n_defects": 25,
+   "cpsat": {
+    "solver": "cp-sat",
+    "status": "OPTIMAL",
+    "objective": 636706,
+    "exposure": 636706,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.3370535714285714,
+    "crew_utilisation": {
+     "C1": 0.4107142857142857,
+     "C2": 0.49107142857142855,
+     "C3": 0.25,
+     "C4": 0.19642857142857142
+    },
+    "solve_time_s": 3.1739769,
+    "gap": 0.0
+   },
+   "baseline": {
+    "solver": "priority-sort",
+    "status": "HEURISTIC",
+    "objective": 704134,
+    "exposure": 704134,
+    "critical_unscheduled": 0,
+    "high_unscheduled": 0,
+    "unscheduled": 1,
+    "mean_crew_utilisation": 0.3236607142857143,
+    "crew_utilisation": {
+     "C1": 0.44642857142857145,
+     "C2": 0.49107142857142855,
+     "C3": 0.16071428571428573,
+     "C4": 0.19642857142857142
+    },
+    "solve_time_s": 0.011101400014013052,
+    "gap": null
+   }
+  }
+ ],
+ "replan": [],
+ "elapsed_s": 139.6093780999945
+}
