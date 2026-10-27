@@ -1,0 +1,119 @@
+{
+ "scenario": "demo",
+ "now": 48,
+ "busiest_crew": "C3",
+ "rows": [
+  {
+   "change": "crew_unavailable",
+   "epsilon": 0.0,
+   "moved": 7,
+   "displaced_hours": 476,
+   "exposure": 560332,
+   "risk": 560332,
+   "unscheduled": 1,
+   "status": "OPTIMAL",
+   "stages": [
+    "OPTIMAL",
+    "OPTIMAL"
+   ]
+  },
+  {
+   "change": "crew_unavailable",
+   "epsilon": 0.02,
+   "moved": 6,
+   "displaced_hours": 474,
+   "exposure": 560796,
+   "risk": 560796,
+   "unscheduled": 1,
+   "status": "OPTIMAL",
+   "stages": [
+    "OPTIMAL",
+    "OPTIMAL"
+   ]
+  },
+  {
+   "change": "crew_unavailable",
+   "epsilon": 0.05,
+   "moved": 6,
+   "displaced_hours": 474,
+   "exposure": 569328,
+   "risk": 569328,
+   "unscheduled": 1,
+   "status": "OPTIMAL",
+   "stages": [
+    "OPTIMAL",
+    "OPTIMAL"
+   ]
+  },
+  {
+   "change": "crew_unavailable",
+   "epsilon": 0.1,
+   "moved": 6,
+   "displaced_hours": 474,
+   "exposure": 560796,
+   "risk": 560796,
+   "unscheduled": 1,
+   "status": "OPTIMAL",
+   "stages": [
+    "OPTIMAL",
+    "OPTIMAL"
+   ]
+  },
+  {
+   "change": "window_cancelled",
+   "epsilon": 0.0,
+   "moved": 12,
+   "displaced_hours": 1300,
+   "exposure": 712150,
+   "risk": 812150,
+   "unscheduled": 3,
+   "status": "OPTIMAL",
+   "stages": [
+    "OPTIMAL",
+    "OPTIMAL"
+   ]
+  },
+  {
+   "change": "window_cancelled",
+   "epsilon": 0.02,
+   "moved": 9,
+   "displaced_hours": 1143,
+   "exposure": 728262,
+   "risk": 828262,
+   "unscheduled": 3,
+   "status": "OPTIMAL",
+   "stages": [
+    "OPTIMAL",
+    "OPTIMAL"
+   ]
+  },
+  {
+   "change": "window_cancelled",
+   "epsilon": 0.05,
+   "moved": 7,
+   "displaced_hours": 1094,
+   "exposure": 749126,
+   "risk": 849126,
+   "unscheduled": 3,
+   "status": "OPTIMAL",
+   "stages": [
+    "OPTIMAL",
+    "OPTIMAL"
+   ]
+  },
+  {
+   "change": "window_cancelled",
+   "epsilon": 0.1,
+   "moved": 7,
+   "displaced_hours": 1094,
+   "exposure": 749126,
+   "risk": 849126,
+   "unscheduled": 3,
+   "status": "OPTIMAL",
+   "stages": [
+    "OPTIMAL",
+    "OPTIMAL"
+   ]
+  }
+ ]
+}

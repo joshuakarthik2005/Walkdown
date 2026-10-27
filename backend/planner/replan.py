@@ -59,11 +59,22 @@ def replan(
     *,
     now: int,
     config: PlannerConfig | None = None,
+    epsilon: float | None = None,
 ) -> ReplanResult:
-    """Apply ``change`` at hour ``now`` and re-solve, keeping started work fixed."""
+    """Apply ``change`` at hour ``now`` and re-solve, keeping started work fixed.
+
+    ``epsilon`` is the stability-vs-risk setting: how much worse (as a share)
+    the risk objective may get in exchange for moving fewer jobs. 0 means
+    "lowest risk found, then as stable as possible at that risk"; larger values
+    favour stability. Defaults to ``config.replan_epsilon``.
+    """
     if now < previous.now:
         raise ValueError(f"cannot replan at hour {now}, before the previous plan's hour {previous.now}")
     config = config or PlannerConfig()
+    if epsilon is not None:
+        if epsilon < 0:
+            raise ValueError("epsilon must be >= 0")
+        config = config.model_copy(update={"replan_epsilon": epsilon})
     changed = apply_change(scenario, change, now)
     plan = solve(changed, config, now=now, previous=previous)
     before = {a.defect_id for a in previous.assignments}

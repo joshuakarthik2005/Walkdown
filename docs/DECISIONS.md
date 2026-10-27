@@ -143,3 +143,20 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 
 ## 2026-10-27 — Severity: consistency, not accuracy
 - There is no severity ground truth, so no severity accuracy is claimed. Consistency is measured instead: 30 candidates are graded twice with identical requests, and agreement on is_defect, defect_type, exact severity and severity ±1 is reported. Cross-provider agreement (hosted vs open) is reported too.
+
+## 2026-10-27 — Stability vs risk setting (epsilon) and its Pareto points
+- `replan(..., epsilon=…)` exposes the two-stage epsilon as a "stability vs risk" setting for the planner API (and later the UI).
+- Demo scenario, change at hour 48 (`benchmark/results/replan_pareto_demo.json`), all OPTIMAL:
+
+  | Change | ε | Jobs moved | Hours displaced | Exposure |
+  |---|---|---|---|---|
+  | busiest crew out 72 h | 0.00 | 7 | 476 | 560,332 |
+  | | 0.02 | 6 | 474 | 560,796 |
+  | | 0.05 | 6 | 474 | 569,328 |
+  | | 0.10 | 6 | 474 | 560,796 |
+  | first shutdown window cancelled | 0.00 | 12 | 1,300 | 712,150 |
+  | | 0.02 | 9 | 1,143 | 728,262 |
+  | | 0.05 | 7 | 1,094 | 749,126 |
+  | | 0.10 | 7 | 1,094 | 749,126 |
+
+- Known gap: stage 2 minimises churn only, so among equally stable plans it doesn't prefer the lower-risk one. That's why ε 0.05 shows higher exposure than ε 0.10 for the crew-out case. A tie-break (a small risk term in stage 2, or a third stage) would fix it; deferred.
