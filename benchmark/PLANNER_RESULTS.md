@@ -9,6 +9,8 @@ Risk objective = risk-weighted exposure + penalties for unscheduled critical (se
 
 ## Static planning
 
+![CP-SAT risk reduction by regime](charts/planner_improvement.svg)
+
 | Regime | Seeds | Defects | Risk improvement % | Exposure reduction % | Unscheduled CP-SAT | Unscheduled baseline | Crit+high unscheduled CP-SAT / baseline | CP-SAT status | Gap % | CP-SAT time s |
 |---|---|---|---|---|---|---|---|---|---|---|
 | default | 20 | 25 | 5.8 (0.3 – 19.2) | 5.8 (0.3 – 19.2) | 0 (0 – 2) | 1 (0 – 3) | 1 / 1 | FEASIBLE 10, OPTIMAL 10 | 1.1 (0.0 – 14.4) | 9.3 (1.2 – 10.6) |
@@ -20,6 +22,10 @@ Risk objective = risk-weighted exposure + penalties for unscheduled critical (se
 CP-SAT risk objective ≤ baseline on every static run: **True** (60 runs).
 
 ## Replan stability
+
+![Jobs moved after a crew outage](charts/replan_moves.svg)
+
+![Stability vs risk on the demo scenario](charts/replan_pareto.svg)
 
 Change applied at hour 48; work started before then is fixed for every method, and each method replans its own original plan. Moved = previously planned, not-started jobs whose crew or start changed, or that were dropped. Displaced h = total hours those starts moved (dropped jobs count to the horizon end).
 

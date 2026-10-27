@@ -168,6 +168,8 @@ def write_report() -> None:
         "",
         "## Static planning",
         "",
+        "![CP-SAT risk reduction by regime](charts/planner_improvement.svg)",
+        "",
         "| Regime | Seeds | Defects | Risk improvement % | Exposure reduction % | Unscheduled CP-SAT | "
         "Unscheduled baseline | Crit+high unscheduled CP-SAT / baseline | CP-SAT status | Gap % | CP-SAT time s |",
         "|---|---|---|---|---|---|---|---|---|---|---|",
@@ -193,6 +195,8 @@ def write_report() -> None:
     lines += ["", f"CP-SAT risk objective ≤ baseline on every static run: **{never_worse}** "
               f"({len(all_static)} runs).", "",
               "## Replan stability", "",
+              "![Jobs moved after a crew outage](charts/replan_moves.svg)", "",
+              "![Stability vs risk on the demo scenario](charts/replan_pareto.svg)", "",
               f"Change applied at hour {REPLAN_AT}; work started before then is fixed for every method, and each "
               "method replans its own original plan. Moved = previously planned, not-started jobs whose crew or "
               "start changed, or that were dropped. Displaced h = total hours those starts moved (dropped jobs "

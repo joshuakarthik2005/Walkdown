@@ -10,6 +10,8 @@ All numbers come from runs in this repository; the raw result files are in `benc
 - Test split: **1,444 images, 9,812 annotated corrosion instances** (6.8 per image). These come from the Roboflow corrosion dataset's own valid and test folders after near-duplicate removal and exclusion of stock-photo-named images (`benchmark/splits/manifest.json`).
 - Cost: 1,444 images × $0.0025 = **$3.61**. Result file: `results/sam_test_rust.json`.
 
+![SAM 3.1 variants: pixel precision and recall](charts/perception_recall.svg)
+
 | Level | Metric | Value |
 |---|---|---|
 | Instance, IoU ≥ 0.5 | precision / recall / F1 | **0.51 / 0.26 / 0.34** (TP 2,560, FP 2,506, FN 7,252) |
