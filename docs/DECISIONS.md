@@ -160,3 +160,33 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   | | 0.10 | 7 | 1,094 | 749,126 |
 
 - Known gap: stage 2 minimises churn only, so among equally stable plans it doesn't prefer the lower-risk one. That's why ε 0.05 shows higher exposure than ε 0.10 for the crew-out case. A tie-break (a small risk term in stage 2, or a third stage) would fix it; deferred.
+
+## 2026-10-27 — Verifier effort: minimal for the live demo, low for the benchmark (builder rule)
+- Same 50 dev candidates, minimal vs low:
+  - is_defect agreement 94% (47/50). All 3 disagreements are on dataset-labelled FPs: minimal accepted 2 that low rejected, and rejected 1 that low accepted.
+  - TPs wrongly rejected: 0 for both. Invalid replies: 0 for both.
+  - Severity agreement: 81% exact, 100% within ±1.
+  - Cost per candidate: $0.0024 vs $0.0043. Reasoning tokens: 300 vs 743. Median latency: 5.7 s vs 6.3 s.
+- Under the builder's rule (match on is_defect agreement and TP rejections), minimal is used in the live agent path. API default: `verify_effort="minimal"`. The benchmark stays on low.
+
+## 2026-10-27 — Agent loop (Phase 5)
+- Muse Spark (`muse-spark-1.3`, reasoning low) with Chat Completions tool calling, following the Meta tool-calling docs: tools under `function`, `tool_choice` left at auto (the only supported value), the assistant message with `tool_calls` appended before one `tool` message per call.
+- The six tools work on an `AgentSession`: segment_frames, verify_candidate, build_register, plan_maintenance, replan(change, now_hour, epsilon), explain_plan. The model only ever sees compact summaries (ids, boxes, grades, plan stats, structured reasons), never masks or images.
+- `explain_plan` returns the planner's own structured reasons. The system prompt says every reason must come from those codes.
+- SAM outputs and verdicts are cached per clip and frame on G:. `live=True` ignores the cache. A cached demo run makes no SAM or verifier calls.
+- Each model turn and tool call becomes a `TraceEvent`: kind, name, args, summary, result, start, duration, tokens, cost. Tool errors go back to the model as `{"error": …}`, so it can recover. In the dry run it fixed its own malformed `replan` call. The change format is now normalised to tolerate nesting, too.
+- Verification inside the tool runs 8 candidates in parallel. The sequential first version took 188 s for 20 candidates.
+
+## 2026-10-27 — Register to planner mapping (rules, not model output)
+- Detections are merged into one register entry when, within ≤2 sampled frames, their box IoU is ≥0.3. Photo clips are never merged. The entry keeps its most severe grade.
+- skill / permit:
+  - leak_stain → mechanical / cold_work
+  - damaged_insulation → insulation
+  - severity ≥4, or action repair/replace → welding / hot_work
+  - otherwise → coating
+  - a tank with severity ≥4 needs confined_space
+- needs_shutdown: severity ≥4 on a pressurised asset, or any leak stain.
+- repair_hours by severity: 2 / 3 / 6 / 10 / 12.
+- failure_risk = base risk by severity (0.05 / 0.15 / 0.35 / 0.6 / 0.85) × (0.5 + 0.5 × verifier confidence), capped at 0.95.
+- found_at = the session's current hour.
+- These are placeholder engineering rules for the demo, stated openly, not calibrated values.
