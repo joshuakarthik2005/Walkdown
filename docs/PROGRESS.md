@@ -53,3 +53,7 @@ Task reports, appended after every task.
   - SD1 cancelled: 9 moved, 1 crowded out
   - SD1 moved: 8 moved
   - new critical defect: 0 moved, and it is scheduled
+
+## 2026-10-27 — Phase 1.6: explainability data
+- Status: DONE. Tests: 37 passed (6 new).
+- Tests cover every reason code path: permit lead time, shutdown wait, crew capacity naming the blocking job, crew leave, the four unscheduled causes plus crowded out, and work in progress after a replan. They also check that every defect is explained exactly once and that the plan serialises to JSON with string codes.
