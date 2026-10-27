@@ -76,3 +76,16 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - Rights: 215 images have commercial-stock-style original filenames (Adobe Stock `1000_F_<id>`, `istockphoto-…`, Alamy-style ids). The uploader's Public Domain label may not cover them, so they are excluded from both splits and never sent to an API.
 - **No negatives**: 0 of 2,050 images have zero annotations. The test split is 100% positive. Negatives were not invented; the builder decides where they come from.
 - Result: dev 50 images (320 instances), test 1,444 images (9,812 instances), seed 20261027. `benchmark/splits/manifest.json` has every count.
+
+## 2026-10-27 — Rule: dataset images are for scoring only, never for public material (builder decision)
+- The 1,494 filtered Roboflow images (and every other dataset image) are used **only for benchmark scoring**. They must never appear in the README, the demo video, UI screenshots, X posts, slides or any other public material. Their provenance can't be fully verified (see "Dataset, storage and splits").
+- Every public visual comes from the builder's own footage and photos.
+- Practical consequences: the demo path and cached demo results use the builder's clips only. Benchmark reports show numbers and charts, never sample images. Any debugging overlays of dataset images stay under `WALKDOWN_DATA_DIR` (outside the repo).
+
+## 2026-10-27 — Negatives set from the builder's own footage
+- `benchmark/build_negatives.py`: frames at ~1 fps from the builder's clips, plus photos, resized to 640 px on the long side, deduplicated with the same dHash clustering (≤10 bits). Stored under `WALKDOWN_DATA_DIR/negatives/frames`.
+- Every frame from one source file goes to the same split, to avoid leakage between near-identical frames. About 10 go to dev; test is capped so negatives are ~20% of test (≈361 for 1,444 positives). File lists are `benchmark/splits/negatives_{dev,test}.txt`, with `negatives_manifest.json`.
+- The positive splits are unchanged, so the negatives are an additional, separately reported set: false-positive rate on negatives.
+
+## 2026-10-27 — Caches on G:
+- C: is nearly full. pip cache is at `G:\walkdown-cache\pip` (user pip.ini and PIP_CACHE_DIR), npm cache at `G:\walkdown-cache\npm`, and HF_HOME at `G:\walkdown-cache\hf`. Datasets live in `G:\walkdown-data`. No large files go on C:.
