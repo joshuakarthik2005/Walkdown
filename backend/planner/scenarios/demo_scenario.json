@@ -1,0 +1,383 @@
+{
+  "name": "demo",
+  "horizon_days": 14,
+  "defects": [
+    {
+      "id": "D01",
+      "asset": "FLARE-LINE-990",
+      "defect_type": "damaged_insulation",
+      "severity": 3,
+      "failure_risk": 0.43,
+      "repair_hours": 4,
+      "skill": "insulation",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D02",
+      "asset": "PUMP-767",
+      "defect_type": "rust",
+      "severity": 5,
+      "failure_risk": 0.84,
+      "repair_hours": 6,
+      "skill": "coating",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D03",
+      "asset": "FLARE-LINE-250",
+      "defect_type": "damaged_insulation",
+      "severity": 2,
+      "failure_risk": 0.26,
+      "repair_hours": 12,
+      "skill": "insulation",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D04",
+      "asset": "FLARE-LINE-990",
+      "defect_type": "leak_stain",
+      "severity": 3,
+      "failure_risk": 0.52,
+      "repair_hours": 3,
+      "skill": "mechanical",
+      "needs_shutdown": true,
+      "permit": "cold_work",
+      "found_at": 0
+    },
+    {
+      "id": "D05",
+      "asset": "HEAT-EXCH-336",
+      "defect_type": "damaged_insulation",
+      "severity": 2,
+      "failure_risk": 0.27,
+      "repair_hours": 8,
+      "skill": "insulation",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D06",
+      "asset": "PUMP-767",
+      "defect_type": "leak_stain",
+      "severity": 2,
+      "failure_risk": 0.29,
+      "repair_hours": 3,
+      "skill": "mechanical",
+      "needs_shutdown": false,
+      "permit": "cold_work",
+      "found_at": 0
+    },
+    {
+      "id": "D07",
+      "asset": "TANK-800",
+      "defect_type": "wall_loss",
+      "severity": 3,
+      "failure_risk": 0.58,
+      "repair_hours": 10,
+      "skill": "welding",
+      "needs_shutdown": true,
+      "permit": "confined_space",
+      "found_at": 0
+    },
+    {
+      "id": "D08",
+      "asset": "PUMP-290",
+      "defect_type": "corrosion",
+      "severity": 4,
+      "failure_risk": 0.76,
+      "repair_hours": 6,
+      "skill": "coating",
+      "needs_shutdown": true,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D09",
+      "asset": "PIPE-RACK-365",
+      "defect_type": "damaged_insulation",
+      "severity": 2,
+      "failure_risk": 0.33,
+      "repair_hours": 10,
+      "skill": "insulation",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D10",
+      "asset": "TANK-801",
+      "defect_type": "leak_stain",
+      "severity": 4,
+      "failure_risk": 0.71,
+      "repair_hours": 4,
+      "skill": "mechanical",
+      "needs_shutdown": false,
+      "permit": "confined_space",
+      "found_at": 0
+    },
+    {
+      "id": "D11",
+      "asset": "TANK-800",
+      "defect_type": "leak_stain",
+      "severity": 4,
+      "failure_risk": 0.69,
+      "repair_hours": 8,
+      "skill": "mechanical",
+      "needs_shutdown": false,
+      "permit": "confined_space",
+      "found_at": 0
+    },
+    {
+      "id": "D12",
+      "asset": "FLARE-LINE-990",
+      "defect_type": "rust",
+      "severity": 3,
+      "failure_risk": 0.54,
+      "repair_hours": 3,
+      "skill": "coating",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D13",
+      "asset": "HEAT-EXCH-782",
+      "defect_type": "corrosion",
+      "severity": 4,
+      "failure_risk": 0.57,
+      "repair_hours": 8,
+      "skill": "coating",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D14",
+      "asset": "TANK-801",
+      "defect_type": "leak_stain",
+      "severity": 2,
+      "failure_risk": 0.27,
+      "repair_hours": 10,
+      "skill": "mechanical",
+      "needs_shutdown": false,
+      "permit": "confined_space",
+      "found_at": 0
+    },
+    {
+      "id": "D15",
+      "asset": "TANK-801",
+      "defect_type": "rust",
+      "severity": 1,
+      "failure_risk": 0.2,
+      "repair_hours": 8,
+      "skill": "coating",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D16",
+      "asset": "PUMP-767",
+      "defect_type": "corrosion",
+      "severity": 4,
+      "failure_risk": 0.7,
+      "repair_hours": 8,
+      "skill": "coating",
+      "needs_shutdown": true,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D17",
+      "asset": "PIPE-RACK-397",
+      "defect_type": "leak_stain",
+      "severity": 3,
+      "failure_risk": 0.58,
+      "repair_hours": 8,
+      "skill": "mechanical",
+      "needs_shutdown": false,
+      "permit": "cold_work",
+      "found_at": 0
+    },
+    {
+      "id": "D18",
+      "asset": "PUMP-767",
+      "defect_type": "corrosion",
+      "severity": 3,
+      "failure_risk": 0.57,
+      "repair_hours": 2,
+      "skill": "coating",
+      "needs_shutdown": true,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D19",
+      "asset": "TANK-801",
+      "defect_type": "leak_stain",
+      "severity": 3,
+      "failure_risk": 0.59,
+      "repair_hours": 8,
+      "skill": "mechanical",
+      "needs_shutdown": false,
+      "permit": "confined_space",
+      "found_at": 0
+    },
+    {
+      "id": "D20",
+      "asset": "FLARE-LINE-250",
+      "defect_type": "rust",
+      "severity": 2,
+      "failure_risk": 0.39,
+      "repair_hours": 6,
+      "skill": "coating",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D21",
+      "asset": "FLARE-LINE-990",
+      "defect_type": "rust",
+      "severity": 2,
+      "failure_risk": 0.32,
+      "repair_hours": 12,
+      "skill": "coating",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D22",
+      "asset": "PUMP-290",
+      "defect_type": "leak_stain",
+      "severity": 3,
+      "failure_risk": 0.47,
+      "repair_hours": 3,
+      "skill": "mechanical",
+      "needs_shutdown": false,
+      "permit": "cold_work",
+      "found_at": 0
+    },
+    {
+      "id": "D23",
+      "asset": "TANK-800",
+      "defect_type": "damaged_insulation",
+      "severity": 3,
+      "failure_risk": 0.49,
+      "repair_hours": 4,
+      "skill": "insulation",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D24",
+      "asset": "PIPE-RACK-397",
+      "defect_type": "corrosion",
+      "severity": 4,
+      "failure_risk": 0.69,
+      "repair_hours": 2,
+      "skill": "coating",
+      "needs_shutdown": false,
+      "permit": null,
+      "found_at": 0
+    },
+    {
+      "id": "D25",
+      "asset": "TANK-800",
+      "defect_type": "leak_stain",
+      "severity": 3,
+      "failure_risk": 0.6,
+      "repair_hours": 6,
+      "skill": "mechanical",
+      "needs_shutdown": true,
+      "permit": "confined_space",
+      "found_at": 0
+    }
+  ],
+  "crews": [
+    {
+      "id": "C1",
+      "name": "Crew A",
+      "skills": [
+        "coating",
+        "insulation"
+      ],
+      "shift_start": 6,
+      "shift_hours": 8,
+      "work_days": null,
+      "unavailable": []
+    },
+    {
+      "id": "C2",
+      "name": "Crew B",
+      "skills": [
+        "insulation"
+      ],
+      "shift_start": 8,
+      "shift_hours": 8,
+      "work_days": null,
+      "unavailable": []
+    },
+    {
+      "id": "C3",
+      "name": "Crew C",
+      "skills": [
+        "mechanical",
+        "welding"
+      ],
+      "shift_start": 6,
+      "shift_hours": 8,
+      "work_days": null,
+      "unavailable": []
+    },
+    {
+      "id": "C4",
+      "name": "Crew D",
+      "skills": [
+        "welding"
+      ],
+      "shift_start": 8,
+      "shift_hours": 8,
+      "work_days": null,
+      "unavailable": []
+    }
+  ],
+  "windows": [
+    {
+      "id": "SD1",
+      "start": 54,
+      "end": 90
+    },
+    {
+      "id": "SD2",
+      "start": 150,
+      "end": 174
+    }
+  ],
+  "permits": [
+    {
+      "id": "cold_work",
+      "lead_hours": 4,
+      "max_concurrent": null
+    },
+    {
+      "id": "hot_work",
+      "lead_hours": 24,
+      "max_concurrent": 2
+    },
+    {
+      "id": "confined_space",
+      "lead_hours": 48,
+      "max_concurrent": 1
+    }
+  ]
+}

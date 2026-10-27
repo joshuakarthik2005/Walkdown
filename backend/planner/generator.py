@@ -32,7 +32,7 @@ PERMITS = [
 ]
 
 DEMO_PATH = Path(__file__).parent / "scenarios" / "demo_scenario.json"
-DEMO_SEED = 7
+DEMO_SEED = 13  # picked from seeds 0-19 for a clear demo story; benchmarks use all seeds
 
 
 def generate_scenario(

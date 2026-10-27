@@ -61,3 +61,15 @@ def compare(scenario: Scenario, config: PlannerConfig | None = None) -> Comparis
     base = priority_sort(scenario, config)
     opt = solve(scenario, config, hint=base.assignments)
     return Comparison(scenario_name=scenario.name, cpsat=summarise(scenario, opt), baseline=summarise(scenario, base))
+
+
+if __name__ == "__main__":
+    from .generator import load_scenario
+
+    demo = load_scenario()
+    result = compare(demo)
+    for s in (result.baseline, result.cpsat):
+        print(f"{s.solver:14} status={s.status:9} objective={s.objective:>9} exposure={s.exposure:>9} "
+              f"unscheduled={s.unscheduled} critical_unscheduled={s.critical_unscheduled} "
+              f"utilisation={s.mean_crew_utilisation:.2f} time={s.solve_time_s:.2f}s")
+    print(f"exposure reduction vs baseline: {100 * result.exposure_reduction:.1f}%")
