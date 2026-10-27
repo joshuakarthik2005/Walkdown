@@ -78,7 +78,7 @@ def summarise(split: str, effort: str, images: list[str], done: dict[str, list[d
     )
 
 
-def process_image(rel: str, effort: str) -> tuple[str, list[dict], float, int]:
+def process_image(rel: str, effort: str) -> tuple[str, list[dict] | None, float, int, str | None]:
     """Verify every candidate on one image (runs in a worker process)."""
     ledger = CostLedger(DATA_DIR / "runs" / "cost_ledger.jsonl")
     sam_path = SAM_DIR / "rust" / (Path(rel).stem + ".txt")
@@ -90,8 +90,19 @@ def process_image(rel: str, effort: str) -> tuple[str, list[dict], float, int]:
         cands.append(dict(id=f"{Path(rel).stem}#{inst.object_id}", image=rel, instance=inst, label=lab,
                           coverage=cov))
     # The API calls are I/O-bound, so a few threads per process overlap them.
+    def safe(c: dict):
+        # Exceptions must not escape a worker process: some (e.g. openai.APIConnectionError) cannot be
+        # pickled back to the parent and would break the whole pool. Failed candidates are retried later.
+        try:
+            return _cached_verify(c, "meta", effort, ledger)
+        except Exception as err:  # noqa: BLE001
+            return f"{type(err).__name__}: {str(err)[:200]}"
+
     with ThreadPoolExecutor(max_workers=CALLS_PER_PROCESS) as pool:
-        verdicts = list(pool.map(lambda c: _cached_verify(c, "meta", effort, ledger), cands))
+        verdicts = list(pool.map(safe, cands))
+    errors = [v for v in verdicts if isinstance(v, str)]
+    if errors:  # not journaled: the image is retried in a later chunk (finished verdicts are cached)
+        return rel, None, ledger.total(), ledger.summary()["calls"], errors[0]
     rows = []
     for cand, v in zip(cands, verdicts):
         g = v.grade
@@ -99,7 +110,7 @@ def process_image(rel: str, effort: str) -> tuple[str, list[dict], float, int]:
                          accepted=g.is_defect if g else True, valid=g is not None,
                          severity=g.severity if g and g.is_defect else None, flags=v.flags,
                          usd=v.usd or 0.0, latency=v.latency_s, reasoning=v.reasoning_tokens))
-    return rel, rows, ledger.total(), ledger.summary()["calls"]
+    return rel, rows, ledger.total(), ledger.summary()["calls"], None
 
 
 def main() -> int:
@@ -136,10 +147,14 @@ def main() -> int:
         while pending:
             fut = next(as_completed(pending))
             pending.pop(fut)
-            rel, rows, new_usd, new_calls = fut.result()
-            with journal.open("a", encoding="utf-8") as f:
-                f.write(json.dumps(dict(image=rel, rows=rows)) + "\n")
-            spent, calls, finished = spent + new_usd, calls + new_calls, finished + 1
+            rel, rows, new_usd, new_calls, error = fut.result()
+            if rows is None:
+                print(f"{rel}: {error}; will retry in a later chunk", flush=True)
+            else:
+                with journal.open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(dict(image=rel, rows=rows)) + "\n")
+                finished += 1
+            spent, calls = spent + new_usd, calls + new_calls
             if finished % 20 == 0:
                 print(f"{finished} images this chunk, new spend ${spent:.2f}", flush=True)
             if spent > args.max_usd:
