@@ -18,3 +18,9 @@ Task reports, appended after every task.
 - `backend/clients/smoke_test.py` loads `.env` with python-dotenv, confirms which key names exist, and calls `muse-spark-1.3` via the Responses API, printing only reply and usage.
 - `.env` loads; `MODEL_API_KEY` and `BASETEN_API_KEY` are both present. Key formatting checks (no quotes, no whitespace, no placeholder) pass without revealing the value.
 - The call fails with `openai.AuthenticationError: Error code: 401 - Unauthorized`. Stopped per the brief; waiting for the builder to check the key on dev.meta.ai.
+
+## 2026-10-27 — Phase 0.3 (resolved): Meta API smoke test
+- Status: DONE
+- Cause of the 401: a stale `MODEL_API_KEY` in the shell environment took precedence over `.env`. Fixed with `load_dotenv(..., override=True)`.
+- Run 1 authenticated, but the reply was empty: reasoning used all 200 output tokens. Run 2 used `reasoning.effort=minimal` and `max_output_tokens=500`, and the reply was "Walkdown smoke test OK" (input 17, output 75 of which 61 were reasoning).
+- Spend: $0.001211 total.

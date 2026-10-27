@@ -8,3 +8,5 @@ Budget: target $50–70 Meta spend, hard stop $120.
 
 | Date | Job | Model | Items | Input tokens | Output tokens | Est. $ | Running total $ |
 |---|---|---|---|---|---|---|---|
+| 2026-10-27 | Smoke test, run 1 (no reasoning effort set; reply empty, 200-token cap used up by reasoning) | muse-spark-1.3 | 1 | 17 | 200 | 0.000871 | 0.000871 |
+| 2026-10-27 | Smoke test, run 2 (`reasoning.effort=minimal`) | muse-spark-1.3 | 1 | 17 | 75 (61 reasoning) | 0.000340 | 0.001211 |

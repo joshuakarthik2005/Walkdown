@@ -27,7 +27,8 @@ PRICE_OUTPUT = 4.25
 
 def main() -> int:
     """Run one minimal call and report reply, usage and estimated cost."""
-    load_dotenv(PROJECT_ROOT / ".env")
+    # override=True: .env always wins over a stale key in the shell environment.
+    load_dotenv(PROJECT_ROOT / ".env", override=True)
     present = {name: bool(os.environ.get(name)) for name in ("MODEL_API_KEY", "BASETEN_API_KEY")}
     print("Env variables present:", present)
     if not present["MODEL_API_KEY"]:
@@ -38,13 +39,22 @@ def main() -> int:
     response = client.responses.create(
         model=MODEL,
         input="Reply with exactly: Walkdown smoke test OK",
-        max_output_tokens=200,
+        # Reasoning tokens count toward max_output_tokens; keep effort minimal
+        # so the visible reply is not starved.
+        reasoning={"effort": "minimal"},
+        max_output_tokens=500,
     )
 
     usage = response.usage
+    details = getattr(usage, "output_tokens_details", None)
+    reasoning_tokens = getattr(details, "reasoning_tokens", None)
     cost = (usage.input_tokens * PRICE_INPUT + usage.output_tokens * PRICE_OUTPUT) / 1_000_000
+    print("Status:", response.status)
     print("Reply:", response.output_text.strip())
-    print(f"Usage: input={usage.input_tokens} output={usage.output_tokens} total={usage.total_tokens}")
+    print(
+        f"Usage: input={usage.input_tokens} output={usage.output_tokens} "
+        f"(reasoning={reasoning_tokens}) total={usage.total_tokens}"
+    )
     print(f"Estimated cost: ${cost:.6f}")
     return 0
 
