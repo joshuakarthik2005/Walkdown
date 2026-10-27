@@ -1,0 +1,54 @@
+{
+ "split": "dev",
+ "variant": "grid1_rust+corrosion+rust_stain",
+ "grid": 1,
+ "prompts": [
+  "rust",
+  "corrosion",
+  "rust stain"
+ ],
+ "images": 50,
+ "calls_per_image": 3,
+ "cost_per_image": 0.0075,
+ "new_usd": 0.125,
+ "wall_s": 207.75373590001254,
+ "scores": {
+  "instance": {
+   "iou>=0.5": {
+    "precision": 0.45416666666666666,
+    "recall": 0.340625,
+    "f1": 0.3892857142857143,
+    "tp": 109,
+    "fp": 131,
+    "fn": 211,
+    "mean_matched_iou": 0.8253235122524235
+   },
+   "iou>=0.3": {
+    "precision": 0.49583333333333335,
+    "recall": 0.371875,
+    "f1": 0.425,
+    "tp": 119,
+    "fp": 121,
+    "fn": 201,
+    "mean_matched_iou": 0.7870252422116493
+   }
+  },
+  "pixel": {
+   "precision": 0.9068143126769591,
+   "recall": 0.3678299247378848,
+   "iou": 0.35443279377004455,
+   "mean_image_iou": 0.514731577380972
+  },
+  "image": {
+   "images": 50,
+   "annotated": 50,
+   "negatives": 0,
+   "with_any_prediction": 35,
+   "detection_rate_on_positives": 0.7,
+   "false_alarm_rate_on_negatives": null
+  },
+  "predictions_per_image": 4.8,
+  "gt_instances_per_image": 6.4,
+  "gt_instances": 320
+ }
+}

@@ -72,3 +72,20 @@ For Walkdown this sets the design: SAM proposes, Muse Spark verifies. SAM's miss
 - At the start of this run, throughput sat at about 16 calls/min and latency rose to a 48 s median with 32 calls in flight. I first recorded that as a server-side cap.
 - That was wrong, or at most temporary. The same configuration later sustained 74 calls/min, and part of the early slowness came from this benchmark's own worker crashes and pure-Python mask decoding.
 - Throughput from the Meta API varied by a factor of ~4 over a few hours, with no 429s. The live demo uses cached perception and verification so it does not depend on it.
+
+## 3. Recall experiment: tiling and prompt unions (dev split only; negative result)
+
+SAM 3.1 finds nothing in about a third of test images, and pixel recall is 0.36. Two standard fixes were tried **on the 50-image dev split only**, since test may not be used for tuning. Every variant goes through the same pipeline: masks are mapped to the full frame, then overlapping duplicates are merged (`backend/perception/tiling.py`). The baseline therefore differs slightly from §1's raw numbers.
+
+| Variant (dev, 50 images, 320 GT instances) | Image detection | Pixel P / R / IoU | Instance P / R / F1 @ IoU 0.5 | Candidates / image | SAM cost / image |
+|---|---|---|---|---|---|
+| Full frame, "rust" (baseline) | 68.0% | 0.92 / 0.35 / 0.34 | 0.45 / 0.33 / 0.38 | 4.7 | $0.0025 |
+| 2×2 tiles (15% overlap), "rust" | 70.0% | 0.87 / 0.32 / 0.30 | 0.28 / 0.33 / 0.30 | 7.6 | $0.0100 |
+| Full frame, "rust" ∪ "corrosion" ∪ "rust stain" | 70.0% | 0.91 / 0.37 / 0.35 | 0.45 / 0.34 / 0.39 | 4.8 | $0.0075 |
+| Full frame, "rust stain" alone | 50.0% | 0.91 / 0.23 / 0.22 | 0.50 / 0.26 / 0.34 | 3.3 | $0.0025 |
+
+What happened:
+- **Tiling does not help.** Pixel recall drops, and instance precision falls sharply (0.45 → 0.28) because regions get fragmented at tile scale. It costs 4× as much. Since 2×2 did not help, 3×3 was not tried.
+- **The prompt union is marginal.** It gains +2 points of image detection (1 image of 50) and +0.017 pixel recall at 3× the cost. That is within what 50 images can resolve, not a clear improvement.
+
+Decision: no variant clearly improves recall without hurting precision or tripling cost, so **nothing was frozen and nothing was run on the test split**. Walkdown keeps full-frame "rust". The ~1/3 of images with no detection stay a known limit of SAM 3.1 zero-shot on this dataset. Cost of the experiment: $0.625.

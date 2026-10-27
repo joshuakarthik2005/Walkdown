@@ -36,10 +36,17 @@ RESULTS_DIR = Path(__file__).parent / "results"
 
 
 def score_levels(outputs: dict[str, str], gt: dict[str, list[np.ndarray]] | None = None, size: int = 640) -> dict:
+    """Score raw SAM outputs (one text per image); see ``score_instances``."""
+    return score_instances(list(outputs), lambda rel: parse_output(outputs[rel], size, size), gt, size)
+
+
+def score_instances(images: list[str], predict, gt: dict[str, list[np.ndarray]] | None = None,
+                    size: int = 640) -> dict:
     """Instance (IoU 0.5 and 0.3), pixel and image-level metrics, streamed one image at a time.
 
-    ``gt`` may be omitted; ground truth is then decoded per image, so memory
-    stays bounded (masks for one image at a time).
+    ``predict(rel)`` returns the full-frame instances for an image. ``gt`` may
+    be omitted; ground truth is then decoded per image, so memory stays
+    bounded (masks for one image at a time).
     """
     from benchmark.seg_metrics import match
 
@@ -47,8 +54,8 @@ def score_levels(outputs: dict[str, str], gt: dict[str, list[np.ndarray]] | None
     tp_px = fp_px = fn_px = 0
     per_image_iou, counts, gt_counts = [], [], []
     found = annotated = found_and_annotated = 0
-    for rel, text in outputs.items():
-        preds = parse_output(text, size, size)
+    for rel in images:
+        preds = predict(rel)
         truth_masks = gt[rel] if gt is not None else ground_truth([rel])[rel]
         image = ImageResult(rel, truth_masks, [Prediction(i.mask, i.confidence or 0.0) for i in preds])
         for thr, acc in inst.items():
@@ -80,7 +87,7 @@ def score_levels(outputs: dict[str, str], gt: dict[str, list[np.ndarray]] | None
                  recall=tp_px / (tp_px + fn_px) if tp_px + fn_px else 0.0,
                  iou=tp_px / (tp_px + fp_px + fn_px) if tp_px + fp_px + fn_px else 0.0,
                  mean_image_iou=float(np.mean(per_image_iou)))
-    n = len(outputs)
+    n = len(images)
     image = dict(images=n, annotated=annotated, negatives=n - annotated, with_any_prediction=found,
                  detection_rate_on_positives=found_and_annotated / annotated if annotated else 0.0,
                  false_alarm_rate_on_negatives=((found - found_and_annotated) / (n - annotated))

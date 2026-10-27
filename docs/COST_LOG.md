@@ -24,3 +24,4 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-10-27 | API smoke test via TestClient (cached run + one change) | muse-spark-1.3 | 1 run | – | – | 0.0360 | 1.1583 |
 | 2026-10-27 | SAM test split, prompt "rust" (background, in progress; ~1,291 of 1,444 images at last check) | sam-3.1 | ~1,291 images | – | – | ~3.23 | ~4.39 |
 | 2026-10-27 | Verifier at scale, test split, all 5,066 SAM candidates, reasoning low (incl. 310 verdicts from earlier interrupted chunks) | muse-spark-1.3 | 5,066 | – | mean 754 reasoning/call | 21.78 | ≈26.50 (ledger total $26.45 + ~$0.05 early probes) |
+| 2026-10-27 | Recall experiment on dev: 2×2 tiling "rust" (200 tiles) + "rust stain" full frame (50) | sam-3.1 | 250 images | – | – | 0.625 | ≈27.13 |

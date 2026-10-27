@@ -1,0 +1,52 @@
+{
+ "split": "dev",
+ "variant": "grid1_rust_stain",
+ "grid": 1,
+ "prompts": [
+  "rust stain"
+ ],
+ "images": 50,
+ "calls_per_image": 1,
+ "cost_per_image": 0.0025,
+ "new_usd": 0,
+ "wall_s": 46.43838289999985,
+ "scores": {
+  "instance": {
+   "iou>=0.5": {
+    "precision": 0.5,
+    "recall": 0.25625,
+    "f1": 0.33884297520661155,
+    "tp": 82,
+    "fp": 82,
+    "fn": 238,
+    "mean_matched_iou": 0.8363601514961915
+   },
+   "iou>=0.3": {
+    "precision": 0.5365853658536586,
+    "recall": 0.275,
+    "f1": 0.36363636363636365,
+    "tp": 88,
+    "fp": 76,
+    "fn": 232,
+    "mean_matched_iou": 0.8071641703537235
+   }
+  },
+  "pixel": {
+   "precision": 0.9046967852734025,
+   "recall": 0.22578375848340015,
+   "iou": 0.22053832630957385,
+   "mean_image_iou": 0.3454553033025707
+  },
+  "image": {
+   "images": 50,
+   "annotated": 50,
+   "negatives": 0,
+   "with_any_prediction": 25,
+   "detection_rate_on_positives": 0.5,
+   "false_alarm_rate_on_negatives": null
+  },
+  "predictions_per_image": 3.28,
+  "gt_instances_per_image": 6.4,
+  "gt_instances": 320
+ }
+}

@@ -1,0 +1,52 @@
+{
+ "split": "dev",
+ "variant": "grid1_rust",
+ "grid": 1,
+ "prompts": [
+  "rust"
+ ],
+ "images": 50,
+ "calls_per_image": 1,
+ "cost_per_image": 0.0025,
+ "new_usd": 0,
+ "wall_s": 79.3984405999945,
+ "scores": {
+  "instance": {
+   "iou>=0.5": {
+    "precision": 0.45064377682403434,
+    "recall": 0.328125,
+    "f1": 0.37974683544303794,
+    "tp": 105,
+    "fp": 128,
+    "fn": 215,
+    "mean_matched_iou": 0.8225271748526757
+   },
+   "iou>=0.3": {
+    "precision": 0.4892703862660944,
+    "recall": 0.35625,
+    "f1": 0.4122965641952983,
+    "tp": 114,
+    "fp": 119,
+    "fn": 206,
+    "mean_matched_iou": 0.7843229863326938
+   }
+  },
+  "pixel": {
+   "precision": 0.9213720904962626,
+   "recall": 0.35099647006040763,
+   "iou": 0.34078872892723355,
+   "mean_image_iou": 0.506030203268623
+  },
+  "image": {
+   "images": 50,
+   "annotated": 50,
+   "negatives": 0,
+   "with_any_prediction": 34,
+   "detection_rate_on_positives": 0.68,
+   "false_alarm_rate_on_negatives": null
+  },
+  "predictions_per_image": 4.66,
+  "gt_instances_per_image": 6.4,
+  "gt_instances": 320
+ }
+}
