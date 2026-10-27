@@ -108,3 +108,7 @@ Task reports, appended after every task.
   - CP-SAT ≤ baseline on all 60 runs.
 - Replan: CP-SAT moves fewer jobs than re-running the baseline from scratch in every regime/change cell. It still moves **more than the baseline patch in 8 of 12 cells** (e.g. tight_capacity crew out: 8 vs 4), with 1–41% lower risk than patch.
 - Against scratch the risk difference is small, and sometimes slightly negative (down to −3.0% in single runs; median −0.6% for tight_shutdown/new_critical). This is because the 2% epsilon lets stage 2 give up a little risk for stability.
+
+## 2026-10-27 — Phase 3/4/5 summary entries
+- SAM test split scored (1,444 images, prompt "rust", $3.61): instance F1 0.34 at IoU 0.5; pixel precision 0.92, recall 0.36; image detection 65.6%. Written up in `benchmark/RESULTS.md` §1, including the granularity mismatch.
+- Verifier dev dry runs (hosted and open), minimal-vs-low trial, agent loop, API, epsilon Pareto: see DECISIONS.md entries dated 2026-10-27.
