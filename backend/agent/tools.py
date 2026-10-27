@@ -34,7 +34,8 @@ class AgentSession:
     ledger: CostLedger
     live: bool = False
     verify_effort: str = "low"
-    planner_config: PlannerConfig = field(default_factory=lambda: PlannerConfig(num_workers=4))
+    # Demo path: 30 s per solve (status and gap are always reported; FEASIBLE is shown as such).
+    planner_config: PlannerConfig = field(default_factory=lambda: PlannerConfig(num_workers=4, time_limit_s=30))
     base_scenario: Scenario = field(default_factory=load_scenario)
     now: int = 0
     candidates: dict[str, tuple[int, Instance]] = field(default_factory=dict)  # id -> (frame index, instance)

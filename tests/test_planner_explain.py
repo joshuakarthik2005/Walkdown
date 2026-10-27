@@ -75,6 +75,9 @@ def test_unscheduled_reasons():
     assert _codes(ex["permit"]) == [ReasonCode.PERMIT_NOT_READY_IN_HORIZON]
     assert _codes(ex["c"]) == [ReasonCode.CROWDED_OUT] and ex["c"].status == "unscheduled"
     assert ex["c"].earliest_feasible_start == 8
+    detail = ex["c"].reasons[0].detail
+    assert detail["skill"] == "coating" and detail["skilled_crew_hours_from_release"] == 8
+    assert detail["skilled_crew_hours_free"] == 0 and "not enough coating crew hours" in detail["summary"]
 
 
 def test_no_shutdown_window_fits():

@@ -240,6 +240,7 @@ class Reason(BaseModel):
     delay_hours: int | None = None
     until_hour: int | None = None
     related_ids: list[str] = Field(default_factory=list)
+    detail: dict = Field(default_factory=dict, description="Extra structured facts, e.g. crew-hour capacity.")
 
 
 class DefectExplanation(BaseModel):

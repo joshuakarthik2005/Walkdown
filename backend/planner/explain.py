@@ -18,7 +18,28 @@ The output is data, not prose: Muse Spark narrates it later.
 from __future__ import annotations
 
 from .models import DefectExplanation, Plan, Reason, ReasonCode, Scenario
-from .timegrid import feasible_slots, release_hour, window_containing
+from .timegrid import feasible_slots, release_hour, shift_hours, window_containing
+
+
+def _capacity_detail(scenario: Scenario, plan: Plan, defect, eligible, release: int) -> dict:
+    """Crew-hour arithmetic behind a crowded-out defect: skilled hours left vs hours the job needs."""
+    horizon = scenario.horizon_hours
+    available = booked = 0
+    for c in eligible:
+        on = shift_hours(c, horizon)
+        free = {h for h in range(release, horizon) if on[h] and not any(u.start <= h < u.end for u in c.unavailable)}
+        busy = {h for a in plan.assignments if a.crew_id == c.id for h in range(max(a.start, release), a.end)}
+        available += len(free)
+        booked += len(free & busy)
+    unscheduled = set(plan.unscheduled)
+    return dict(skill=defect.skill, eligible_crews=sorted(c.id for c in eligible), repair_hours=defect.repair_hours,
+                skilled_crew_hours_from_release=available, skilled_crew_hours_booked=booked,
+                skilled_crew_hours_free=available - booked,
+                unscheduled_same_skill_hours=sum(x.repair_hours for x in scenario.defects
+                                                 if x.id in unscheduled and x.skill == defect.skill),
+                summary=f"not enough {defect.skill} crew hours in the horizon: "
+                        f"{available - booked} of {available} skilled hours are left after higher-risk work, "
+                        f"in gaps too short or too late for this {defect.repair_hours} h job")
 
 
 def explain(scenario: Scenario, plan: Plan, *, fixed_ids: set[str] | None = None) -> list[DefectExplanation]:
@@ -66,7 +87,8 @@ def explain(scenario: Scenario, plan: Plan, *, fixed_ids: set[str] | None = None
             elif e_full is None:
                 reason = Reason(code=ReasonCode.CREW_UNAVAILABLE, related_ids=leave_crews)
             else:
-                reason = Reason(code=ReasonCode.CROWDED_OUT, related_ids=sorted(c.id for c in eligible))
+                reason = Reason(code=ReasonCode.CROWDED_OUT, related_ids=sorted(c.id for c in eligible),
+                                detail=_capacity_detail(scenario, plan, d, eligible, release))
             out.append(DefectExplanation(defect_id=d.id, status="unscheduled", release_hour=release,
                                          earliest_feasible_start=e_full, reasons=[reason]))
             continue

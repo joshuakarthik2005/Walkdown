@@ -190,3 +190,7 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - failure_risk = base risk by severity (0.05 / 0.15 / 0.35 / 0.6 / 0.85) × (0.5 + 0.5 × verifier confidence), capped at 0.95.
 - found_at = the session's current hour.
 - These are placeholder engineering rules for the demo, stated openly, not calibrated values.
+
+## 2026-10-27 — Demo solver limit and capacity explanations (builder decision)
+- The demo path (`AgentSession`) gives each solve 30 s instead of 10 s. The first dry-run plan, with 52 defects, was FEASIBLE rather than OPTIMAL at 10 s. Status and gap are always reported, and the agent prompt forbids calling a FEASIBLE plan optimal.
+- Crowded-out defects now carry the crew-hour arithmetic in `Reason.detail`: skill, eligible crews, skilled hours from release to horizon, hours booked, hours free, and the job's repair hours. There is also a one-line summary ("not enough coating crew hours in the horizon: …"). The agent is told to say this plainly, using those numbers.
