@@ -43,8 +43,17 @@ def generate_scenario(
     n_windows: int = 2,
     horizon_days: int = 14,
     name: str | None = None,
+    window_lengths: tuple[int, ...] = (24, 36, 48),
+    shutdown_scale: float = 1.0,
+    permits: list[PermitType] | None = None,
 ) -> Scenario:
-    """Build a random but reproducible scenario. Every skill is covered by at least one crew."""
+    """Build a random but reproducible scenario. Every skill is covered by at least one crew.
+
+    ``window_lengths``, ``shutdown_scale`` (multiplies each defect type's
+    shutdown probability) and ``permits`` (replaces the default permit types)
+    let the benchmark build loose and tight regimes. The defaults reproduce the
+    original scenarios exactly: the random draw sequence does not change.
+    """
     rng = random.Random(seed)
     assets = [f"{kind}-{rng.randint(100, 999)}" for kind in ASSET_KINDS for _ in range(2)]
 
@@ -64,7 +73,7 @@ def generate_scenario(
     windows = []
     day = rng.randint(2, 4)
     for i in range(n_windows):
-        length = rng.choice([24, 36, 48])
+        length = rng.choice(list(window_lengths))
         start = day * 24 + 6
         if start + length > horizon_days * 24:
             break
@@ -88,7 +97,7 @@ def generate_scenario(
             failure_risk=failure_risk,
             repair_hours=rng.choice([2, 3, 4, 6, 8, 10, 12]),
             skill=skill,
-            needs_shutdown=bool(windows) and rng.random() < p_shutdown,
+            needs_shutdown=bool(windows) and rng.random() < min(1.0, p_shutdown * shutdown_scale),
             permit=permit,
         ))
 
@@ -98,7 +107,7 @@ def generate_scenario(
         defects=defects,
         crews=crews,
         windows=windows,
-        permits=list(PERMITS),
+        permits=list(permits if permits is not None else PERMITS),
     )
 
 

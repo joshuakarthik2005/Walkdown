@@ -76,3 +76,18 @@ Task reports, appended after every task.
 - Status: DONE (code). Tests: 7 new, passing. Real splits wait on the dataset download.
 - `docs/DEMO_SHOT_LIST.md`: 5 clips (railings, pipe run, valves, tank, clean negatives), camera settings, privacy notes, licence statement, CC backup rules.
 - `benchmark/seg_metrics.py`: mask IoU, greedy matching, precision/recall/F1, negative-image false-positive rate. `benchmark/splits.py`: stratified, seeded, disjoint dev/test file lists.
+
+## 2026-10-27 — Phase 1 follow-up B: stratified planner benchmark and replan stability
+- Status: PARTIAL. `benchmark/planner_benchmark.py` is written: 5 regimes (default, loose, tight_capacity, tight_shutdown, tight_permits), the static comparison, and a replan-stability comparison of CP-SAT vs baseline-from-scratch vs baseline-patch. The generator gained regime knobs; defaults are unchanged, and the demo reproducibility test passes.
+- The full run was **stopped by Claude Code because the machine ran low on memory**. It got through all static runs and about 24 of 60 replan runs. Result files are written only at the end, so none exist. The numbers below are parsed from the console log and are unofficial:
+  - static improvement over baseline, median (min–max):
+    - default: 5.8% (0.3–19.2), n=19 parsed
+    - loose: 3.5% (0.2–18.8)
+    - tight_capacity: 2.7% (0.2–6.7), all FEASIBLE, none proven optimal
+    - tight_shutdown: 1.0% (0.2–10.3)
+    - tight_permits: 7.5% (1.5–24.9)
+  - replan moved jobs, median CP-SAT / scratch / patch:
+    - loose: 2/3/3 for crew out, 2/3/2 for window cancelled
+    - tight_capacity: 15/16/3 for crew out, 18/13/2 for window cancelled, 12/15/0 for new critical
+  - Finding: under tight capacity, CP-SAT replanning moves about as many jobs as re-running from scratch, far more than the baseline patch. The move penalty (200) is too weak there. A decision on this is needed.
+- Not re-run: the session's rule is not to restart a job killed for memory pressure without being asked.
