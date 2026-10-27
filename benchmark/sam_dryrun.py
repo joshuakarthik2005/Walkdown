@@ -15,6 +15,7 @@ import json
 import re
 import sys
 import time
+from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -33,15 +34,22 @@ THRESHOLDS = (0.0, 0.3, 0.5, 0.7)
 MAX_USD = 1.00  # guard for this dry run
 
 
+@lru_cache(maxsize=4)
+def _coco_index(split: str) -> tuple[dict, dict]:
+    """(images by relative path, annotations by image id) for one dataset folder, parsed once."""
+    coco = json.loads((RAW_DIR / split / "_annotations.coco.json").read_text(encoding="utf-8"))
+    images = {f"{split}/{i['file_name']}": i for i in coco["images"]}
+    by_id: dict[int, list] = {}
+    for a in coco["annotations"]:
+        by_id.setdefault(a["image_id"], []).append(a)
+    return images, by_id
+
+
 def ground_truth(rel_paths: list[str]) -> dict[str, list[np.ndarray]]:
     """Ground-truth instance masks per image, decoded from the COCO polygons."""
     out: dict[str, list[np.ndarray]] = {}
     for split in sorted({p.split("/")[0] for p in rel_paths}):
-        coco = json.loads((RAW_DIR / split / "_annotations.coco.json").read_text(encoding="utf-8"))
-        images = {f"{split}/{i['file_name']}": i for i in coco["images"]}
-        by_id: dict[int, list] = {}
-        for a in coco["annotations"]:
-            by_id.setdefault(a["image_id"], []).append(a)
+        images, by_id = _coco_index(split)
         for rel in rel_paths:
             if rel in images:
                 img = images[rel]

@@ -35,30 +35,47 @@ from benchmark.splits import load_split
 RESULTS_DIR = Path(__file__).parent / "results"
 
 
-def score_levels(outputs: dict[str, str], gt: dict[str, list[np.ndarray]], size: int = 640) -> dict:
-    """Instance (IoU 0.5 and 0.3), pixel and image-level metrics."""
-    parsed = {rel: parse_output(text, size, size) for rel, text in outputs.items()}
-    instance = {}
-    for thr in (0.5, 0.3):
-        m = evaluate([ImageResult(rel, gt[rel], [Prediction(i.mask, i.confidence or 0.0) for i in parsed[rel]])
-                      for rel in outputs], iou_threshold=thr)
-        instance[f"iou>={thr}"] = dict(precision=m.precision, recall=m.recall, f1=m.f1, tp=m.tp, fp=m.fp, fn=m.fn,
-                                       mean_matched_iou=m.mean_matched_iou)
+def score_levels(outputs: dict[str, str], gt: dict[str, list[np.ndarray]] | None = None, size: int = 640) -> dict:
+    """Instance (IoU 0.5 and 0.3), pixel and image-level metrics, streamed one image at a time.
+
+    ``gt`` may be omitted; ground truth is then decoded per image, so memory
+    stays bounded (masks for one image at a time).
+    """
+    from benchmark.seg_metrics import match
+
+    inst = {0.5: [0, 0, 0, []], 0.3: [0, 0, 0, []]}
     tp_px = fp_px = fn_px = 0
-    per_image_iou = []
+    per_image_iou, counts, gt_counts = [], [], []
     found = annotated = found_and_annotated = 0
-    for rel in outputs:
+    for rel, text in outputs.items():
+        preds = parse_output(text, size, size)
+        truth_masks = gt[rel] if gt is not None else ground_truth([rel])[rel]
+        image = ImageResult(rel, truth_masks, [Prediction(i.mask, i.confidence or 0.0) for i in preds])
+        for thr, acc in inst.items():
+            tp, fp, fn, ious = match(image, thr)
+            acc[0] += tp
+            acc[1] += fp
+            acc[2] += fn
+            acc[3].extend(ious)
         pred = np.zeros((size, size), bool)
-        for inst in parsed[rel]:
-            pred |= inst.mask
-        truth = np.logical_or.reduce(gt[rel]) if gt[rel] else np.zeros((size, size), bool)
+        for i in preds:
+            pred |= i.mask
+        truth = np.logical_or.reduce(truth_masks) if truth_masks else np.zeros((size, size), bool)
         tp, fp, fn = int((pred & truth).sum()), int((pred & ~truth).sum()), int((~pred & truth).sum())
         tp_px, fp_px, fn_px = tp_px + tp, fp_px + fp, fn_px + fn
         per_image_iou.append(tp / (tp + fp + fn) if tp + fp + fn else 1.0)
-        has_pred, has_gt = bool(parsed[rel]), bool(gt[rel])
+        has_pred, has_gt = bool(preds), bool(truth_masks)
         found += has_pred
         annotated += has_gt
         found_and_annotated += has_pred and has_gt
+        counts.append(len(preds))
+        gt_counts.append(len(truth_masks))
+    instance = {}
+    for thr, (tp, fp, fn, ious) in inst.items():
+        p = tp / (tp + fp) if tp + fp else 0.0
+        r = tp / (tp + fn) if tp + fn else 0.0
+        instance[f"iou>={thr}"] = dict(precision=p, recall=r, f1=2 * p * r / (p + r) if p + r else 0.0, tp=tp, fp=fp,
+                                       fn=fn, mean_matched_iou=float(np.mean(ious)) if ious else 0.0)
     pixel = dict(precision=tp_px / (tp_px + fp_px) if tp_px + fp_px else 0.0,
                  recall=tp_px / (tp_px + fn_px) if tp_px + fn_px else 0.0,
                  iou=tp_px / (tp_px + fp_px + fn_px) if tp_px + fp_px + fn_px else 0.0,
@@ -68,10 +85,8 @@ def score_levels(outputs: dict[str, str], gt: dict[str, list[np.ndarray]], size:
                  detection_rate_on_positives=found_and_annotated / annotated if annotated else 0.0,
                  false_alarm_rate_on_negatives=((found - found_and_annotated) / (n - annotated))
                  if n - annotated else None)
-    counts = [len(v) for v in parsed.values()]
-    return dict(instance=instance, pixel=pixel, image=image,
-                predictions_per_image=float(np.mean(counts)),
-                gt_instances_per_image=float(np.mean([len(gt[r]) for r in outputs])))
+    return dict(instance=instance, pixel=pixel, image=image, predictions_per_image=float(np.mean(counts)),
+                gt_instances_per_image=float(np.mean(gt_counts)), gt_instances=int(sum(gt_counts)))
 
 
 def main() -> int:
@@ -93,10 +108,9 @@ def main() -> int:
     t0 = time.perf_counter()
     outputs = run_prompt(args.prompt, images, ledger)
     wall = time.perf_counter() - t0
-    gt = ground_truth(images)
-    result = dict(split=args.split, prompt=args.prompt, images=len(images),
-                  gt_instances=sum(len(v) for v in gt.values()), new_calls=ledger.summary()["calls"],
-                  usd=ledger.total(), wall_s=wall, scores=score_levels(outputs, gt))
+    scores = score_levels(outputs)
+    result = dict(split=args.split, prompt=args.prompt, images=len(images), gt_instances=scores["gt_instances"],
+                  new_calls=ledger.summary()["calls"], usd=ledger.total(), wall_s=wall, scores=scores)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     out = RESULTS_DIR / f"sam_{args.split}_{_slug(args.prompt)}.json"
     out.write_text(json.dumps(result, indent=1) + "\n", encoding="utf-8")
