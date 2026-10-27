@@ -83,9 +83,26 @@ def test_new_critical_defect_is_scheduled(base):
 def test_move_penalty_keeps_plan_stable(base):
     sc, plan = base
     change = CrewUnavailable(crew_id="C1", start=NOW, end=NOW + 48)
-    loose = replan(sc, plan, change, now=NOW, config=CONFIG.model_copy(update={"move_penalty": 0}))
-    tight = replan(sc, plan, change, now=NOW, config=CONFIG.model_copy(update={"move_penalty": 100_000}))
+    single = {"lexicographic_replan": False}
+    loose = replan(sc, plan, change, now=NOW, config=CONFIG.model_copy(update={**single, "move_penalty": 0}))
+    tight = replan(sc, plan, change, now=NOW, config=CONFIG.model_copy(update={**single, "move_penalty": 100_000}))
     assert len(tight.moved_jobs) <= len(loose.moved_jobs)
+
+
+def test_two_stage_replan_bounds_risk_and_reduces_churn(base):
+    sc, plan = base
+    change = CrewUnavailable(crew_id="C1", start=NOW, end=NOW + 48)
+    lex = replan(sc, plan, change, now=NOW, config=CONFIG)
+    stages = lex.plan.stats.stages
+    assert [s["stage"] for s in stages] == ["risk", "stability"]
+    risk = lex.plan.breakdown.total - lex.plan.breakdown.move_penalty
+    assert risk <= stages[0]["objective"] * (1 + CONFIG.replan_epsilon)
+    assert lex.plan.stats.objective == risk
+    assert lex.plan.stats.is_optimal == all(s["status"] == "OPTIMAL" for s in stages)
+    churn = replan(sc, plan, change, now=NOW,
+                   config=CONFIG.model_copy(update={"lexicographic_replan": False, "move_penalty": 0}))
+    assert len(lex.moved_jobs) <= len(churn.moved_jobs)
+    _check_common(sc, plan, lex)
 
 
 def test_invalid_changes_rejected(base):

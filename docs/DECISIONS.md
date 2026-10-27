@@ -89,3 +89,20 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 
 ## 2026-10-27 — Caches on G:
 - C: is nearly full. pip cache is at `G:\walkdown-cache\pip` (user pip.ini and PIP_CACHE_DIR), npm cache at `G:\walkdown-cache\npm`, and HF_HOME at `G:\walkdown-cache\hf`. Datasets live in `G:\walkdown-data`. No large files go on C:.
+
+## 2026-10-27 — Two-stage (lexicographic) replan instead of a move penalty (builder decision)
+- Why: in the interrupted benchmark, with a 200 move penalty, CP-SAT replans under tight capacity moved about as many jobs as re-running from scratch (median 15 vs 16) and far more than the baseline patch (3).
+- Now, when replanning with previously planned work, the solve runs in two stages:
+  1. Minimise risk (exposure + critical/high penalties). Gets `stage1_time_share` = 60% of the time limit.
+  2. Add `risk ≤ stage-1 value × (1 + replan_epsilon)`, with epsilon 0.02, and minimise `move_job_weight × moved jobs + hours displaced` (weight 24, i.e. one moved job ≈ one day of displacement; a dropped job counts as displaced to the horizon end). Warm-started from the stage-1 solution with every variable hinted. Gets the rest of the time.
+- If stage 2 finds nothing better, the stage-1 plan stands.
+- Reporting:
+  - `stats.stages` lists both stages.
+  - Overall status is OPTIMAL only if both stages are OPTIMAL.
+  - `stats.objective` is the final plan's risk objective. `best_bound` and `gap` are stage 1's.
+- Caveat: epsilon is relative to the stage-1 value *found*. If stage 1 is FEASIBLE rather than OPTIMAL, the stage-2 cap is relative to a sub-optimal risk value.
+- The single-stage move penalty is still available (`lexicographic_replan=False`) for comparison.
+- First check (tight capacity, 45 defects, 3 crews, busiest crew out 72 h, seeds 0–1):
+  - two-stage moved 8 and 7 jobs; baseline patch moved 4 and 5
+  - two-stage risk was 11.6% and 2.8% lower than patch
+  - churn dropped (from ~15), but is still higher than patch

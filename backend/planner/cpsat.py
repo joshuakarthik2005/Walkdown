@@ -17,6 +17,13 @@ Objective (all weights in ``PlannerConfig``):
 + move_penalty x previously planned jobs that move (replanning only).
 
 Replanning: jobs from ``previous`` that started before ``now`` are fixed.
+With ``config.lexicographic_replan`` (default) the replan is solved in two
+stages instead of with a move penalty:
+  stage 1: minimise exposure + unscheduled penalties;
+  stage 2: keep that objective <= stage-1 value x (1 + replan_epsilon) and
+           minimise move_job_weight x moved jobs + hours displaced.
+Stage 2 is warm-started from the stage-1 solution. The time limit is split
+between the stages (``stage1_time_share``).
 
 Warm start: by default the priority-sort plan is passed as a solution hint,
 so CP-SAT starts from the baseline and only improves on it. If the time
@@ -77,13 +84,17 @@ def solve(
     unscheduled_lit: dict[str, cp_model.IntVar] = {}
     completion_var: dict[str, cp_model.IntVar] = {}
     same_var: dict[str, tuple[cp_model.IntVar, str, int]] = {}
-    objective = []
+    primary = []  # exposure + unscheduled penalties
+    move_terms = []  # 1 per moved job (legacy single-stage penalty)
+    stability = []  # stage-2 objective terms
+    displacement: dict[str, tuple[cp_model.IntVar, int]] = {}
+    lexicographic = previous is not None and config.lexicographic_replan and bool(planned_before)
 
     for d in scenario.defects:
         weight = config.risk_weight(d)
         if d.id in fixed_ids:
             end = next(a.end for a in fixed if a.defect_id == d.id)
-            objective.append(weight * (end - d.found_at))
+            primary.append(weight * (end - d.found_at))
             continue
 
         release = release_hour(d, scenario, now)
@@ -118,9 +129,9 @@ def solve(
         for _, x, _, e, _, _ in opts:
             model.add(completion == e).only_enforce_if(x)
         model.add(completion == horizon).only_enforce_if(u)
-        objective.append(weight * (completion - d.found_at))
+        primary.append(weight * (completion - d.found_at))
         if config.unscheduled_penalty(d):
-            objective.append(config.unscheduled_penalty(d) * u)
+            primary.append(config.unscheduled_penalty(d) * u)
 
         prev = planned_before.get(d.id)
         if prev is not None:
@@ -129,10 +140,19 @@ def solve(
                 same = model.new_bool_var(f"same_{d.id}")
                 model.add_implication(same, match[1])
                 model.add(match[2] == prev.start).only_enforce_if(same)
-                objective.append(config.move_penalty * (1 - same))
+                move_terms.append(1 - same)
                 same_var[d.id] = (same, prev.crew_id, prev.start)
             else:
-                objective.append(config.move_penalty)
+                move_terms.append(1)
+            if lexicographic:
+                # Hours the start moves; a dropped job counts as moved to the horizon end.
+                disp = model.new_int_var(0, horizon, f"disp_{d.id}")
+                for _, x, s, _, _, _ in opts:
+                    model.add(disp >= s - prev.start).only_enforce_if(x)
+                    model.add(disp >= prev.start - s).only_enforce_if(x)
+                model.add(disp >= horizon - prev.start).only_enforce_if(u)
+                displacement[d.id] = (disp, prev.start)
+                stability.append(config.move_job_weight * move_terms[-1] + disp)
 
     for ivs in crew_intervals.values():
         model.add_no_overlap(ivs)
@@ -141,7 +161,10 @@ def solve(
         if cap is not None:
             model.add_cumulative(ivs, [1] * len(ivs), cap)
 
-    model.minimize(sum(objective))
+    if lexicographic:
+        model.minimize(sum(primary))
+    else:
+        model.minimize(sum(primary) + config.move_penalty * sum(move_terms))
 
     if hint:
         # A complete hint (every variable) lets CP-SAT accept the warm start as its
@@ -162,16 +185,32 @@ def solve(
             if did in same_var:
                 same, crew_id, start_ = same_var[did]
                 model.add_hint(same, chosen is not None and h.crew_id == crew_id and h.start == start_)
+            if did in displacement:
+                disp, p_start = displacement[did]
+                model.add_hint(disp, abs(h.start - p_start) if chosen else horizon - p_start)
 
-    solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = config.time_limit_s
-    solver.parameters.num_workers = config.num_workers
-    solver.parameters.random_seed = config.random_seed
-    solver.parameters.cp_model_probing_level = config.probing_level
-    status = solver.solve(model)
+    def run(limit: float) -> tuple[cp_model.CpSolver, int]:
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = limit
+        solver.parameters.num_workers = config.num_workers
+        solver.parameters.random_seed = config.random_seed
+        solver.parameters.cp_model_probing_level = config.probing_level
+        return solver, solver.solve(model)
+
+    def extract(solver: cp_model.CpSolver) -> list[Assignment]:
+        out = list(fixed)
+        for did, opts in options.items():
+            for crew_id, x, s, e, _, _ in opts:
+                if solver.boolean_value(x):
+                    out.append(Assignment(defect_id=did, crew_id=crew_id, start=solver.value(s), end=solver.value(e)))
+        return out
+
+    ok = (cp_model.OPTIMAL, cp_model.FEASIBLE)
+    stage1_limit = config.time_limit_s * (config.stage1_time_share if lexicographic else 1.0)
+    solver, status = run(stage1_limit)
     status_name = solver.status_name(status)
 
-    if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+    if status not in ok:
         if status != cp_model.UNKNOWN or not hint:
             raise RuntimeError(f"CP-SAT returned {status_name} and there is no warm start to fall back on")
         stats = SolveStats(solver="cp-sat", status=status_name, fallback="warm_start", wall_time_s=solver.wall_time)
@@ -179,22 +218,40 @@ def solve(
         plan.stats.objective = float(plan.breakdown.total)
         return plan
 
-    assignments = list(fixed)
-    for did, opts in options.items():
-        for crew_id, x, s, e, _, _ in opts:
-            if solver.boolean_value(x):
-                assignments.append(Assignment(defect_id=did, crew_id=crew_id,
-                                              start=solver.value(s), end=solver.value(e)))
-    assignments.sort(key=lambda a: (a.start, a.crew_id))
-
     objective_value = solver.objective_value
     bound = solver.best_objective_bound
-    stats = SolveStats(
-        solver="cp-sat",
-        status=status_name,
-        objective=objective_value,
-        best_bound=bound,
-        gap=abs(objective_value - bound) / max(1.0, abs(objective_value)),
-        wall_time_s=solver.wall_time,
-    )
-    return build_plan(scenario, config, assignments, stats, now=now, previous=previous, fixed_ids=fixed_ids)
+    gap = abs(objective_value - bound) / max(1.0, abs(objective_value))
+    assignments = extract(solver)
+    wall = solver.wall_time
+
+    if not lexicographic:
+        stats = SolveStats(solver="cp-sat", status=status_name, objective=objective_value, best_bound=bound,
+                           gap=gap, wall_time_s=wall)
+        return build_plan(scenario, config, assignments, stats, now=now, previous=previous, fixed_ids=fixed_ids)
+
+    stages = [dict(stage="risk", status=status_name, objective=objective_value, best_bound=bound, gap=gap,
+                   wall_time_s=wall)]
+    # Stage 2: hold risk within epsilon of stage 1 and minimise churn, warm-started from stage 1.
+    model.add(sum(primary) <= int(objective_value * (1 + config.replan_epsilon)))
+    model.clear_hints()
+    for i in range(len(model.proto.variables)):
+        var = model.get_int_var_from_proto_index(i)
+        model.add_hint(var, solver.value(var))
+    model.minimize(sum(stability))
+    solver2, status2 = run(max(0.5, config.time_limit_s - wall))
+    stage2_name = solver2.status_name(status2)
+    stages.append(dict(stage="stability", status=stage2_name,
+                       objective=solver2.objective_value if status2 in ok else None,
+                       best_bound=solver2.best_objective_bound if status2 in ok else None,
+                       wall_time_s=solver2.wall_time))
+    if status2 in ok:
+        assignments = extract(solver2)
+    wall += solver2.wall_time
+    overall = "OPTIMAL" if status == cp_model.OPTIMAL and status2 == cp_model.OPTIMAL else "FEASIBLE"
+    stats = SolveStats(solver="cp-sat", status=overall, best_bound=bound, wall_time_s=wall, stages=stages)
+    plan = build_plan(scenario, config, assignments, stats, now=now, previous=previous, fixed_ids=fixed_ids)
+    # Reported objective = risk objective (exposure + penalties) of the final plan; bound and gap are stage 1's.
+    risk = plan.breakdown.total - plan.breakdown.move_penalty
+    plan.stats.objective = float(risk)
+    plan.stats.gap = abs(risk - bound) / max(1.0, abs(risk))
+    return plan

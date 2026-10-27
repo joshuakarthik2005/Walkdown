@@ -141,6 +141,10 @@ class PlannerConfig(BaseModel):
     high_severity: int = Field(default=4, ge=1, le=5, description="Severity from which a non-critical defect is 'high'.")
     high_penalty: int = Field(default=100_000, ge=0, description="Added per unscheduled high-priority defect.")
     move_penalty: int = Field(default=200, ge=0, description="Replanning: cost per already-planned job that moves.")
+    lexicographic_replan: bool = Field(default=True, description="Replan in two stages: risk first, then stability.")
+    replan_epsilon: float = Field(default=0.02, ge=0, description="Stage 2 may worsen stage-1 risk by at most this share.")
+    stage1_time_share: float = Field(default=0.6, gt=0, lt=1, description="Share of the time limit given to stage 1.")
+    move_job_weight: int = Field(default=24, ge=0, description="Stage 2: cost of one moved job, in displaced hours.")
     time_limit_s: float = Field(default=10.0, gt=0)
     num_workers: int = Field(default=8, ge=1)
     random_seed: int = 0
@@ -188,6 +192,7 @@ class SolveStats(BaseModel):
     gap: float | None = None
     wall_time_s: float = 0.0
     fallback: str | None = Field(default=None, description="Set when the solver found nothing and the warm start was returned.")
+    stages: list[dict] = Field(default_factory=list, description="Per-stage results for the two-stage replan.")
 
     @property
     def is_optimal(self) -> bool:
