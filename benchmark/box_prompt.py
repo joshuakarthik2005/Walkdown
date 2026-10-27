@@ -80,8 +80,12 @@ def propose_boxes(rel: str, ledger: CostLedger) -> list[Box]:
     cached = getattr(getattr(u, "prompt_tokens_details", None), "cached_tokens", 0) or 0
     ledger.add(CostEntry(job="box-propose", model="muse-spark-1.3", usd=muse_cost(u.prompt_tokens, u.completion_tokens, cached),
                          input_tokens=u.prompt_tokens, cached_tokens=cached, output_tokens=u.completion_tokens))
-    raw = Boxes.model_validate_json(resp.choices[0].message.content or '{"boxes": []}')
-    boxes = [b for b in raw.boxes if b.right - b.left >= 4 and b.bottom - b.top >= 4][:MAX_BOXES]
+    # Clamp to the frame: the model occasionally returns an edge a few pixels outside it (e.g. 642 on 640).
+    raw = json.loads(resp.choices[0].message.content or '{"boxes": []}').get("boxes", [])
+    clamp = lambda v: max(0, min(SIZE, int(v)))  # noqa: E731
+    boxes = [Box(left=clamp(b["left"]), top=clamp(b["top"]), right=clamp(b["right"]), bottom=clamp(b["bottom"]))
+             for b in raw if all(k in b for k in ("left", "top", "right", "bottom"))]
+    boxes = [b for b in boxes if b.right - b.left >= 4 and b.bottom - b.top >= 4][:MAX_BOXES]
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(Boxes(boxes=boxes).model_dump_json(), encoding="utf-8")
     return boxes
@@ -103,6 +107,26 @@ def box_masks(rel: str, boxes: list[Box], ledger: CostLedger):
 
 
 VARIANTS = ("text_only", "boxes_only", "text_plus_boxes")
+
+
+def free_ram_gb() -> float | None:
+    """Available physical memory in GB (Windows), or None if it cannot be read."""
+    try:
+        import ctypes
+
+        class MemoryStatus(ctypes.Structure):
+            _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                        ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                        ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+                        ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+                        ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+
+        status = MemoryStatus()
+        status.dwLength = ctypes.sizeof(MemoryStatus)
+        ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status))
+        return status.ullAvailPhys / 2**30
+    except Exception:  # noqa: BLE001 - non-Windows or no access: keep the requested worker count
+        return None
 
 
 def variant_stats(rel: str) -> dict:
@@ -142,8 +166,16 @@ def main() -> int:
     print(f"API part done: new ${ledger.total():.3f} (boxes ${ledger.total('box-propose'):.3f}, "
           f"SAM ${ledger.total('box-sam'):.3f})", flush=True)
     # Scoring decodes every mask once per image (pure-Python decoder), in worker processes.
-    with ProcessPoolExecutor(max_workers=args.score_workers) as pool:
-        per_image = list(pool.map(variant_stats, images, chunksize=4))
+    # Scored in chunks; before each chunk, fall back to 3 workers if free RAM is below 1.5 GB.
+    per_image = []
+    for i in range(0, len(images), 120):
+        chunk = images[i:i + 120]
+        free = free_ram_gb()
+        workers = args.score_workers if free is None or free >= 1.5 else min(3, args.score_workers)
+        print(f"scoring {i + len(chunk)}/{len(images)} with {workers} workers (free RAM "
+              f"{'?' if free is None else f'{free:.1f}'} GB)", flush=True)
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            per_image += list(pool.map(variant_stats, chunk, chunksize=4))
     out = dict(split=args.split, images=len(images), boxes_per_image=sum(n_boxes) / len(images),
                images_with_boxes=sum(n > 0 for n in n_boxes), new_usd=ledger.total(),
                usd_by_job={j: ledger.total(j) for j in ("box-propose", "box-sam")},
