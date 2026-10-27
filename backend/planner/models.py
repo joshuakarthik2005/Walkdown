@@ -142,6 +142,7 @@ class PlannerConfig(BaseModel):
     time_limit_s: float = Field(default=10.0, gt=0)
     num_workers: int = Field(default=8, ge=1)
     random_seed: int = 0
+    probing_level: int = Field(default=0, ge=0, le=2, description="CP-SAT presolve probing; 0 measured best here.")
 
     def risk_weight(self, defect: Defect) -> int:
         """Integer exposure weight per hour a defect stays unrepaired."""

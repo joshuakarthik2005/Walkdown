@@ -28,3 +28,15 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - What I saw: on a 40-defect scenario, CP-SAT presolve (probing) took 2–6.6 s, varying between runs. With a 1–5 s limit it sometimes returned UNKNOWN, meaning no solution at all.
 - Decision: `solve` passes the priority-sort plan to CP-SAT as a solution hint by default. If CP-SAT still has no solution when the limit expires, it returns the warm-start plan with `status="UNKNOWN"` and `fallback="warm_start"`, no bound and no gap. Such a result is never reported as a CP-SAT solution, and FEASIBLE is never reported as optimal (`SolveStats.is_optimal` is true only for OPTIMAL).
 - With the 10 s default, the 40-defect case reaches FEASIBLE with objective 1.31–1.39M against the baseline's 2.50M. The gap to the bound is still large: the LP bound is weak for this model, and that will be reported as-is in the benchmark.
+
+## 2026-10-27 — Complete solution hint, and CP-SAT probing level 0
+- What I saw: on seed 5 (30 defects), CP-SAT returned a plan *worse* than its baseline hint (2.10M vs 0.49M). Fixing the variables to the hint gave 490,579, which equals the baseline, so the hint was feasible. It was just incomplete (126 of 233 variables), and CP-SAT dropped it. The fix is to hint every variable: absent options, spans, completions, stability literals.
+- Presolve probing took most of the 5 s budget on some seeds (status UNKNOWN). Measured on seeds 0–5, 30 defects, 5 s limit, improvement over baseline:
+
+  | probing | 0 | 1 | 2 | 3 | 4 | 5 |
+  |---|---|---|---|---|---|---|
+  | default (2) | 5.5% | UNKNOWN | 2.5% | 5.3% OPT | UNKNOWN | 0.9% |
+  | 1 | 2.4% | UNKNOWN | 1.1% | 5.3% OPT | UNKNOWN | 0.9% |
+  | 0 | 6.1% | 60.6% | 5.6% | 5.3% OPT | 0.9% | 9.6% |
+
+  `PlannerConfig.probing_level` now defaults to 0.

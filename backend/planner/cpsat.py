@@ -70,8 +70,12 @@ def solve(
         if permit:
             permit_intervals[permit].append(iv)
 
-    options: dict[str, list[tuple[str, cp_model.IntVar, cp_model.IntVar, cp_model.IntVar]]] = {}
+    # option = (crew_id, presence, start, end, span, feasible {start: end})
+    options: dict[str, list[tuple[str, cp_model.IntVar, cp_model.IntVar, cp_model.IntVar, cp_model.IntVar,
+                                  dict[int, int]]]] = {}
     unscheduled_lit: dict[str, cp_model.IntVar] = {}
+    completion_var: dict[str, cp_model.IntVar] = {}
+    same_var: dict[str, tuple[cp_model.IntVar, str, int]] = {}
     objective = []
 
     for d in scenario.defects:
@@ -101,7 +105,7 @@ def solve(
             crew_intervals[c.id].append(iv)
             if d.permit and scenario.permit(d.permit).max_concurrent is not None:
                 permit_intervals[d.permit].append(iv)
-            opts.append((c.id, x, s, e))
+            opts.append((c.id, x, s, e, span, slots))
         options[d.id] = opts
 
         u = model.new_bool_var(f"u_{d.id}")
@@ -109,7 +113,8 @@ def solve(
         model.add_exactly_one([o[1] for o in opts] + [u])
 
         completion = model.new_int_var(0, horizon, f"C_{d.id}")
-        for _, x, _, e in opts:
+        completion_var[d.id] = completion
+        for _, x, _, e, _, _ in opts:
             model.add(completion == e).only_enforce_if(x)
         model.add(completion == horizon).only_enforce_if(u)
         objective.append(weight * (completion - d.found_at))
@@ -124,6 +129,7 @@ def solve(
                 model.add_implication(same, match[1])
                 model.add(match[2] == prev.start).only_enforce_if(same)
                 objective.append(config.move_penalty * (1 - same))
+                same_var[d.id] = (same, prev.crew_id, prev.start)
             else:
                 objective.append(config.move_penalty)
 
@@ -137,21 +143,30 @@ def solve(
     model.minimize(sum(objective))
 
     if hint:
+        # A complete hint (every variable) lets CP-SAT accept the warm start as its
+        # first solution; with a partial hint it may discard it.
         hinted = {a.defect_id: a for a in hint}
         for did, opts in options.items():
             h = hinted.get(did)
-            for crew_id, x, s, e in opts:
-                on = h is not None and h.crew_id == crew_id
-                model.add_hint(x, on)
-                if on:
-                    model.add_hint(s, h.start)
-                    model.add_hint(e, h.end)
-            model.add_hint(unscheduled_lit[did], h is None or all(o[0] != h.crew_id for o in opts))
+            chosen = next((o for o in opts if h is not None and o[0] == h.crew_id and o[5].get(h.start) == h.end), None)
+            for o in opts:
+                crew_id, x, s, e, span, slots = o
+                hs = h.start if o is chosen else min(slots)
+                model.add_hint(x, o is chosen)
+                model.add_hint(s, hs)
+                model.add_hint(e, slots[hs])
+                model.add_hint(span, slots[hs] - hs)
+            model.add_hint(unscheduled_lit[did], chosen is None)
+            model.add_hint(completion_var[did], h.end if chosen else horizon)
+            if did in same_var:
+                same, crew_id, start_ = same_var[did]
+                model.add_hint(same, chosen is not None and h.crew_id == crew_id and h.start == start_)
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = config.time_limit_s
     solver.parameters.num_workers = config.num_workers
     solver.parameters.random_seed = config.random_seed
+    solver.parameters.cp_model_probing_level = config.probing_level
     status = solver.solve(model)
     status_name = solver.status_name(status)
 
@@ -165,7 +180,7 @@ def solve(
 
     assignments = list(fixed)
     for did, opts in options.items():
-        for crew_id, x, s, e in opts:
+        for crew_id, x, s, e, _, _ in opts:
             if solver.boolean_value(x):
                 assignments.append(Assignment(defect_id=did, crew_id=crew_id,
                                               start=solver.value(s), end=solver.value(e)))

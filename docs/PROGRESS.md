@@ -38,3 +38,9 @@ Task reports, appended after every task.
 - Status: DONE. Tests: 18 passed.
 - `cpsat.py`: optional intervals with element-constrained ends, crew no-overlap, permit cumulative caps, critical penalty, stability penalty for replanning, and fixed in-progress jobs. Time limit (default 10 s); reports status, objective, best bound, gap and wall time. The baseline is the default warm start, with an honest UNKNOWN fallback (see DECISIONS.md).
 - `explain.py` (structured reasons) and `baseline.py` (priority sort, needed as the warm start) landed in the same commit; their own tests come in later tasks.
+
+## 2026-10-27 — Phase 1.4: baseline comparison
+- Status: DONE. Tests: 25 passed.
+- `compare.py`: runs priority-sort and CP-SAT (warm-started from the baseline) on the same scenario. Reports risk-weighted exposure, criticals unscheduled, unscheduled count, crew utilisation (per crew and mean), solve time and gap.
+- `test_cpsat_never_worse_than_baseline` is parametrised over seeds 0–5 (30 defects, 5 s limit).
+- Found and fixed two solver issues along the way: an incomplete hint was being discarded, and presolve probing was starving the search (see DECISIONS.md).
