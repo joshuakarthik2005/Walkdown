@@ -71,6 +71,7 @@ def solve(
 
     crew_intervals: dict[str, list] = defaultdict(list)
     permit_intervals: dict[str, list] = defaultdict(list)
+    crew_load: dict[str, list] = defaultdict(list)  # (presence, repair hours) per crew, for symmetry breaking
     for a in fixed:
         iv = model.new_interval_var(a.start, a.end - a.start, a.end, f"fixed_{a.defect_id}")
         crew_intervals[a.crew_id].append(iv)
@@ -117,6 +118,7 @@ def solve(
             crew_intervals[c.id].append(iv)
             if d.permit and scenario.permit(d.permit).max_concurrent is not None:
                 permit_intervals[d.permit].append(iv)
+            crew_load[c.id].append((x, d.repair_hours))
             opts.append((c.id, x, s, e, span, slots))
         options[d.id] = opts
 
@@ -156,6 +158,15 @@ def solve(
 
     for ivs in crew_intervals.values():
         model.add_no_overlap(ivs)
+
+    # Symmetry breaking: interchangeable crews (same skills, shift and calendar, no leave, nothing fixed or
+    # previously planned) are ordered by booked hours, so CP-SAT does not explore relabelled copies.
+    symmetric_groups = [] if (fixed or planned_before) else identical_crew_groups(scenario)
+    for group in symmetric_groups:
+        for a, b in zip(group, group[1:]):
+            model.add(sum(h * x for x, h in crew_load[a]) >= sum(h * x for x, h in crew_load[b]))
+    if hint and symmetric_groups:
+        hint = relabel_hint_for_symmetry(hint, symmetric_groups, scenario)
     for permit_id, ivs in permit_intervals.items():
         cap = scenario.permit(permit_id).max_concurrent
         if cap is not None:
@@ -255,3 +266,25 @@ def solve(
     plan.stats.objective = float(risk)
     plan.stats.gap = abs(risk - bound) / max(1.0, abs(risk))
     return plan
+
+
+def identical_crew_groups(scenario: Scenario) -> list[list[str]]:
+    """Groups (size >= 2) of crews that are interchangeable: same skills, shift, work days and no leave."""
+    groups: dict[tuple, list[str]] = defaultdict(list)
+    for c in scenario.crews:
+        if c.unavailable:
+            continue
+        key = (tuple(sorted(c.skills)), c.shift_start, c.shift_hours, tuple(c.work_days or ()))
+        groups[key].append(c.id)
+    return [sorted(g) for g in groups.values() if len(g) > 1]
+
+
+def relabel_hint_for_symmetry(hint: list[Assignment], groups: list[list[str]], scenario: Scenario) -> list[Assignment]:
+    """Swap identical crews' jobs in a warm start so it satisfies the symmetry-breaking order (busiest first)."""
+    hours = {d.id: d.repair_hours for d in scenario.defects}
+    rename: dict[str, str] = {}
+    for group in groups:
+        load = {c: sum(hours[a.defect_id] for a in hint if a.crew_id == c) for c in group}
+        for new, old in zip(group, sorted(group, key=lambda c: (-load[c], c))):
+            rename[old] = new
+    return [a.model_copy(update={"crew_id": rename.get(a.crew_id, a.crew_id)}) for a in hint]

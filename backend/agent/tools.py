@@ -24,6 +24,15 @@ from backend.verify.schema import Grade
 from backend.verify.verifier import Candidate, Verdict, verify
 
 PROMPT = "rust"  # frozen from the dev dry run
+# Demo plant backlog: the first 12 jobs of the demo scenario (same crews, windows, permits). Measured: with up
+# to 6 walkdown defects added, plan and replans solve to OPTIMAL within the 30 s demo limit (docs/DECISIONS.md).
+DEMO_BACKLOG_SIZE = 12
+
+
+def demo_backlog(size: int = DEMO_BACKLOG_SIZE) -> Scenario:
+    """The plant's existing maintenance backlog used by the demo."""
+    sc = load_scenario()
+    return sc.model_copy(update={"name": "demo-plant", "defects": sc.defects[:size]})
 
 
 @dataclass
@@ -35,8 +44,8 @@ class AgentSession:
     live: bool = False
     verify_effort: str = "low"
     # Demo path: 30 s per solve (status and gap are always reported; FEASIBLE is shown as such).
-    planner_config: PlannerConfig = field(default_factory=lambda: PlannerConfig(num_workers=4, time_limit_s=30))
-    base_scenario: Scenario = field(default_factory=load_scenario)
+    planner_config: PlannerConfig = field(default_factory=lambda: PlannerConfig(time_limit_s=30))
+    base_scenario: Scenario = field(default_factory=lambda: demo_backlog())
     now: int = 0
     candidates: dict[str, tuple[int, Instance]] = field(default_factory=dict)  # id -> (frame index, instance)
     frame_paths: dict[int, Path] = field(default_factory=dict)

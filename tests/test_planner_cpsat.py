@@ -94,3 +94,20 @@ def test_unknown_without_warm_start_raises():
         assert "no warm start" in str(err)
     else:  # a very fast machine may still find a solution
         assert plan.stats.status in ("OPTIMAL", "FEASIBLE")
+
+
+def test_symmetry_breaking_on_identical_crews_keeps_optimum():
+    from backend.planner.cpsat import identical_crew_groups
+    sc = Scenario(
+        name="sym", horizon_days=2,
+        defects=[Defect(id=f"d{i}", asset="A", severity=3, failure_risk=0.5, repair_hours=4 + i, skill="coating")
+                 for i in range(5)],
+        crews=[Crew(id="c1", skills=["coating"]), Crew(id="c2", skills=["coating"]), Crew(id="c3", skills=["welding"])],
+    )
+    assert identical_crew_groups(sc) == [["c1", "c2"]]
+    plan = solve(sc, FAST)
+    load = {c: sum(a.end - a.start for a in plan.assignments if a.crew_id == c) for c in ("c1", "c2")}
+    assert plan.stats.is_optimal and validate(sc, plan.assignments) == []
+    hours = {d.id: d.repair_hours for d in sc.defects}
+    booked = {c: sum(hours[a.defect_id] for a in plan.assignments if a.crew_id == c) for c in ("c1", "c2")}
+    assert booked["c1"] >= booked["c2"]

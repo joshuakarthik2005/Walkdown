@@ -230,3 +230,23 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - Long cross-country pipelines are inspected with in-line inspection tools; Walkdown complements them on unpiggable plant piping and equipment.
 - Footage is handheld today. Drone and robot footage is future scope and is not claimed to work.
 - The same framing is used in the README, the UI copy and the video script. Earlier wording ("energy plant (pipelines, …)") was replaced.
+
+## 2026-10-28 — Demo plan quality: why the gap was large, what was tried, and the demo sizing
+- **Before:** the demo case (25-job backlog + 27 walkdown defects from the dev pseudo-clip) ended FEASIBLE at 30 s with a 33–39% gap. That held for backlogs of 10, 15 or 25 jobs and for 4 or 12 workers. Even 25 + 4 walkdown defects left a 13.7% gap (10.1% at 120 s).
+- **Diagnosis:** the incumbent objective does not improve between 30 s and 120 s, so the plan is very likely near-optimal and the **lower bound is what's weak**. Removing permits, shutdown windows or the unscheduled penalties left a 16–22% gap. The cause is intrinsic: weighted completion time with release dates on a busy crew (strongly NP-hard), where LP bounds are weak.
+- **Tried and rejected:**
+  - CP-SAT `linearization_level=2`: gap 38.7%.
+  - Adding `optimize_with_lb_tree_search`: 53.6%.
+  - A working-hour-timeline reformulation (fixed-size intervals per crew, plus a valid linear cut linking wall-clock and working-hour completion). It was exact and passed all tests, but gave no bound gain and made the 25-job backlog 9× slower (0.9 s → 7.7 s). Reverted.
+- **Kept:**
+  - All CPU cores by default (`PlannerConfig.num_workers = os.cpu_count()`; benchmarks still pin 4 for comparability).
+  - Symmetry breaking for interchangeable crews (same skills, shift, calendar, no leave): booked hours ordered, and the warm start relabelled to match. Only applied without fixed or previously planned work.
+  - The baseline warm start with every variable hinted (already in place).
+- **Demo sizing (measured, 30 s limit):**
+  - backlog 12 + 3 or 6 walkdown defects: OPTIMAL in 1.2 s / 5.9 s
+  - backlog 16 + 6: OPTIMAL in 19 s
+  - backlog 12 + 8: FEASIBLE, gap 7.6%
+  - backlog 12 + 10: FEASIBLE, gap 10.2%
+  - replans on 12 + 6 (crew out, shutdown cancelled): OPTIMAL in < 2 s
+  - So the demo backlog is the first **12 jobs** of the demo scenario (`backend.agent.tools.demo_backlog`), and the demo clip should yield **≤ 6 register defects**. Above that the badge honestly shows FEASIBLE with the gap.
+- A replan with ε = 0.02 can show "OPTIMAL, gap 2.0%". That is by design: both stages are optimal, and stage 2 may give back up to ε of risk for stability, measured against the stage-1 bound.
