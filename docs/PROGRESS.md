@@ -71,3 +71,8 @@ Task reports, appended after every task.
   - CSB Chevron Richmond 2012: 19 workers endangered, 15,000+ residents sought medical attention
   - Koch/FHWA: U.S. $276B, 3.1% of GDP; storage tanks $7B a year
 - 5 candidates are listed but not usable: GAO and PHMSA pipeline-incident shares (sites block automated fetch), the CUI 40–60% figure (secondary sources only), HSE RR509 ageing, inspection effort.
+
+## 2026-10-27 — Phase 2.4: shot list, evaluation metrics, split tooling
+- Status: DONE (code). Tests: 7 new, passing. Real splits wait on the dataset download.
+- `docs/DEMO_SHOT_LIST.md`: 5 clips (railings, pipe run, valves, tank, clean negatives), camera settings, privacy notes, licence statement, CC backup rules.
+- `benchmark/seg_metrics.py`: mask IoU, greedy matching, precision/recall/F1, negative-image false-positive rate. `benchmark/splits.py`: stratified, seeded, disjoint dev/test file lists.

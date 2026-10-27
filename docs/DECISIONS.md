@@ -62,3 +62,8 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - Severity 5 is **critical** (`critical_penalty`, default 1,000,000 per unscheduled defect). Severity 4 is **high** (`high_penalty`, default 100,000). Both thresholds and penalties are in `PlannerConfig`.
 - High is ten times smaller than critical, so a critical job always wins a scarce slot over a high one. It is still larger than the exposure of any single defect over the 14-day horizon (at most 100 × 1.0 × 8 × 336 ≈ 269k for severity 4), so a high job beats any lower-severity job, as the test for this shows.
 - Plans now report `high_unscheduled` alongside `critical_unscheduled`, and the breakdown has a separate `high_penalty` term.
+
+## 2026-10-27 — Segmentation evaluation protocol
+- Instance-level matching: greedy and one-to-one, in descending prediction score, at IoU ≥ 0.5 (configurable). Mask IoU via pycocotools RLE. Precision, recall and F1 are computed over all instances in the split. Mean IoU is over matched pairs only.
+- Negative images (no ground-truth instance) are counted separately: the share of negatives with any false positive, and the total false positives on negatives. These are the main numbers for the verifier, whose job is to reject false positives.
+- Splits: one fixed seed (20261027). The dev split (~50 images) is for dry runs and prompt tuning; the held-out test split (1,000–2,000) is never used for tuning. Both are stratified by positive/negative, disjoint, and saved as sorted text lists in `benchmark/splits/`.
