@@ -1,17 +1,32 @@
 # Walkdown
 
-Walkdown turns first-person inspection video of an energy plant (pipelines, tanks, valves) into a **verified defect register** and a **solver-optimal maintenance plan**, and replans when constraints change.
+Walkdown is an agent for **plant and facility walkdowns**: refineries, tank farms, terminals, pump and compressor stations, power plants. A technician records a handheld video or photos of plant piping, tanks, vessels, valves and supports. Walkdown turns that into a **verified defect register** and a **risk-optimal repair plan**, and replans when something changes on site.
 
 Entry in the Meta Global AI Developer Hackathon (Indie Developer track, theme: Push the Frontier).
 
-> Status: work in progress. Built during the hackathon building period (Oct 27 – Nov 4, 2026).
+> Status: work in progress, built during the hackathon building period (Oct 27 – Nov 4, 2026).
 
-## Pipeline (planned)
+### Where it fits
+- **Long cross-country pipelines** are inspected from the inside with in-line inspection tools ("pigs"). Walkdown is not a replacement for that.
+- Walkdown targets **plant piping and equipment that pigs cannot reach**: short, branched, small-bore and unpiggable lines, supports, flanges and tanks. These are inspected by people walking the plant, and the findings usually end up in notes and spreadsheets.
+- Footage today is **handheld**. Drone and robot footage is future work, not something Walkdown claims to handle now.
 
-1. **Perceive:** SAM 3.1 (Meta Model API) segments and tracks candidate defects in video from text prompts.
-2. **Verify and grade:** Muse Spark checks each candidate, rejects false positives and returns a schema-validated severity grade with evidence.
-3. **Plan:** an OR-Tools CP-SAT model schedules repairs across crews, skills, permits and shutdown windows, and replans when constraints change.
-4. **Agent loop:** Muse Spark with tool calling drives perception, verification, planning and replanning.
+## How it works
+
+An agent (Muse Spark with tool calling) runs the whole loop and decides what to do next:
+
+1. **Perceive.** SAM 3.1 (Meta Model API) segments candidate corrosion on sampled frames from a text prompt ("rust"). The agent starts with a coarse pass and looks again at stretches that need it.
+2. **Verify and grade.** Muse Spark looks at each candidate (a crop with the mask outlined, plus the full frame), rejects false positives, and returns a schema-validated grade: defect type, severity 1–5, confidence, evidence, recommended action. Rule-based checks flag contradictory grades for human review.
+3. **Register.** Repeat sightings are merged into one entry per defect. The asset's line service (LPG, hydrogen, crude, steam, cooling water, …) sets a consequence factor.
+4. **Plan.** An OR-Tools CP-SAT model schedules repairs across crews, skills, shift hours, permits (lead times, concurrency limits) and shutdown windows. It minimises risk-weighted exposure: likelihood × consequence × hours unrepaired.
+5. **Replan.** When a crew drops out, a shutdown window moves or a new defect is found, a two-stage replan keeps started work fixed, finds the lowest-risk plan, then moves as few jobs as possible within a chosen "stability vs risk" tolerance.
+6. **Explain.** The agent explains the plan only through the planner's structured reasons (permit lead time, waiting for a shutdown window, crew capacity, "not enough coating crew hours in the horizon", …). It never invents reasons. Solver status and optimality gap are always shown; a FEASIBLE plan is never called optimal.
+
+Every model turn and tool call is logged as a structured trace (timing, tokens, cost) and shown live in the web UI.
+
+## Results
+
+See [`benchmark/RESULTS.md`](benchmark/RESULTS.md) (perception and verification) and [`benchmark/PLANNER_RESULTS.md`](benchmark/PLANNER_RESULTS.md) (CP-SAT vs a priority-sort baseline), with all limitations stated.
 
 ## Built during the hackathon
 
@@ -19,13 +34,30 @@ All code in this repository was written during the building period. A full break
 
 ## Third-party libraries, models and datasets
 
+### Models and services
+| Component | Licence / terms | Use |
+|---|---|---|
+| SAM 3.1 (`sam-3.1`), Meta Model API | Meta Model API terms | Candidate segmentation |
+| Muse Spark (`muse-spark-1.3`), Meta Model API | Meta Model API terms | Verification, grading, agent tool calling |
+| Muse Spark Open (`meta-models/muse-spark-open-1026`) on Baseten | Baseten Model API terms; Meta open-weights licence | Hosted vs open-weights verifier comparison |
+
+### Libraries
+| Library | Licence | Use |
+|---|---|---|
+| `meta-sam-parser` 0.1.0 (Meta Platforms, Inc.) | **SAM License** (Meta; see the package's `licenses/` file) | Parsing and decoding SAM 3.1 segmentation output |
+| OR-Tools (CP-SAT) | Apache-2.0 | Maintenance scheduling |
+| FastAPI, Uvicorn, Pydantic, python-multipart, httpx | MIT / BSD | API |
+| OpenAI Python SDK | Apache-2.0 | Client for the OpenAI-compatible Meta and Baseten APIs |
+| NumPy, OpenCV (opencv-python), Pillow, pycocotools | BSD / Apache-2.0 / HPND / BSD | Image handling, masks, evaluation |
+| Next.js, React, TypeScript | MIT / MIT / Apache-2.0 | Web UI |
+
 ### Datasets
 
 | Dataset | Source | Licence | How it is used |
 |---|---|---|---|
-| Corrosion Segmentation v1 (Roboflow Universe, workspace `computervision-adpf6`), COCO-segmentation export | https://universe.roboflow.com/computervision-adpf6/corrosion-segmentation-xybsj | **Public Domain**, as listed by the uploader on Roboflow Universe and in the export's README | Evaluation only. Only the dataset's `valid` and `test` folders are used (2,050 images; `train` holds augmented copies). Near-duplicates are removed, and images with commercial-stock-style filenames are excluded, because the uploader's licence label may not cover them. File lists are in `benchmark/splits/`. Images are not redistributed in this repo. |
+| Corrosion Segmentation v1 (Roboflow Universe, workspace `computervision-adpf6`), COCO-segmentation export | https://universe.roboflow.com/computervision-adpf6/corrosion-segmentation-xybsj | **Public Domain**, as listed by the uploader on Roboflow Universe and in the export's README | Benchmark scoring only. Only the dataset's `valid` and `test` folders are used (2,050 images; `train` holds augmented copies). Near-duplicates are removed, and images with commercial-stock-style filenames are excluded, because the uploader's licence label may not cover them. File lists are in `benchmark/splits/`. Images are not redistributed here and never appear in public material (README, video, screenshots). |
 
-Libraries and models will be listed here as they are added.
+All public visuals come from footage recorded by the author.
 
 ## Licence
 

@@ -224,3 +224,9 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - air/nitrogen 0.8
   They are configurable per site in `PlannerConfig.consequence_factor`. A real deployment should take them from the site's own risk-based-inspection consequence ranking.
 - The service is set per asset at upload time (`service` form field). It flows into the register and into every planner defect. Each plan explanation carries `priority` = {service, severity, likelihood, consequence_factor, risk_weight, critical, high}, and the agent is told to use it when explaining why one job outranks another.
+
+## 2026-10-27 — Product framing (builder decision)
+- Walkdown is for **plant and facility walkdowns**: refineries, tank farms, terminals, pump and compressor stations, power plants.
+- Long cross-country pipelines are inspected with in-line inspection tools; Walkdown complements them on unpiggable plant piping and equipment.
+- Footage is handheld today. Drone and robot footage is future scope and is not claimed to work.
+- The same framing is used in the README, the UI copy and the video script. Earlier wording ("energy plant (pipelines, …)") was replaced.
