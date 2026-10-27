@@ -29,3 +29,6 @@ data/raw/
 Thumbs.db
 .vscode/
 .idea/
+
+# TypeScript incremental build info
+*.tsbuildinfo
