@@ -1,0 +1,54 @@
+"""Warm the perception/verification caches for a demo clip by running the agent on it.
+
+The agent chooses its own sampling rates, so the clip is run twice: the
+first run fills the caches, the second shows how much of a repeat run is
+served from cache (it should cost only the Muse Spark agent turns). Prints
+the register size, plan status and cost of each run.
+
+    .venv\\Scripts\\python.exe -m backend.agent.warm_cache <clip_id> [--effort minimal]
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+import time
+
+from backend.agent.clip import Clip
+from backend.agent.loop import WalkdownAgent
+from backend.agent.tools import AgentSession
+from backend.clients.cost import CostLedger
+
+DEMO_MAX_DEFECTS = 6  # with the 12-job demo backlog, plans stay provably optimal (DECISIONS.md)
+
+
+def run_once(clip_id: str, effort: str) -> dict:
+    clip = Clip(clip_id)
+    session = AgentSession(clip=clip, ledger=CostLedger(clip.dir / "cost_ledger.jsonl"), verify_effort=effort)
+    agent = WalkdownAgent(session)
+    t0 = time.time()
+    agent.run(f"New walkdown clip of {clip.asset.asset_id} is uploaded. Inspect it, build the register, plan the "
+              f"repairs and explain the plan.")
+    by_job = {j: round(session.ledger.total(j), 4) for j in sorted({e.job for e in session.ledger.entries})}
+    return dict(seconds=round(time.time() - t0, 1), usd=round(session.ledger.total(), 4), by_job=by_job,
+                register=len(session.register),
+                plan=session.plan.stats.status if session.plan else None,
+                gap=session.plan.stats.gap if session.plan else None)
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("clip_id")
+    ap.add_argument("--effort", default="minimal")
+    args = ap.parse_args()
+    for label in ("fill", "repeat"):
+        r = run_once(args.clip_id, args.effort)
+        print(f"{label:6} {r}", flush=True)
+    if r["register"] > DEMO_MAX_DEFECTS:
+        print(f"note: {r['register']} register entries > {DEMO_MAX_DEFECTS}; the plan may end FEASIBLE with a gap "
+              f"within the 30 s limit. Consider a shorter or cleaner clip for the video.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
