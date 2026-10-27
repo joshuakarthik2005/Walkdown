@@ -128,3 +128,18 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - Combining "rust" with "corrosion" (deduplicated at mask IoU 0.5) gives exactly the same scores as "rust" alone: the "corrosion" masks duplicate "rust" masks. So a second prompt doubles the cost for nothing.
 - SAM returns no detection below confidence ~0.5 (minimum seen 0.504). Thresholds of 0, 0.3 and 0.5 are identical, and 0.7 trades recall for precision (rust: P 0.75, R 0.17).
 - Caveat: recall is limited partly by annotation granularity. The ground truth splits rust into many small patches, while SAM returns fewer, larger regions. Matched IoU (0.82) shows that what SAM does match, it segments well. Pixel IoU is reported alongside for that reason.
+
+## 2026-10-27 — Verifier design (Phase 4)
+- Input per candidate: a tight crop around the mask's box with 30% margin (at least 64 px), the mask outlined in cyan, scaled to 448 px; plus a 256 px full-frame thumbnail with the box drawn. Text gives the SAM confidence, the mask's share of the frame, and the box.
+- Output schema: `is_defect`, `defect_type` (enum), `severity` 1–5, `confidence`, `evidence` {visual_cues, location, extent, mask_fit}, `recommended_action` (enum). Validated with Pydantic, plus rule-based consistency flags for human review.
+- Meta (hosted `muse-spark-1.3`): Chat Completions, `response_format` json_schema with `strict: true`, `reasoning_effort="low"`, `max_tokens=4000`, `prompt_cache_key`. Chat Completions is used because it is the form the Meta structured-output docs actually show. The fixed system prompt comes first, so it is cached automatically: 612 of ~990 input tokens were cached on average.
+- Baseten (`meta-models/muse-spark-open-1026`): Baseten's docs say structured outputs are offered for all Model APIs *except* Muse Spark Open, so the schema goes in the prompt and replies are validated with Pydantic (one retry on invalid JSON). `reasoning_effort` is not documented for it and is not sent.
+- If a reply is invalid, the candidate is accepted ("fail open") and flagged `no_valid_grade`. Better to show a candidate for review than to silently drop a possible defect.
+
+## 2026-10-27 — Verifier ground truth (rule)
+- For each SAM candidate, `coverage = |candidate ∩ union of GT masks| / |candidate|`. **TP if coverage ≥ 0.5, FP if coverage < 0.1, ambiguous otherwise.** Ambiguous candidates are verified and counted, but left out of the classifier metrics.
+- Why coverage rather than instance IoU: the annotations split rust into many small patches while SAM returns larger regions, so a correct SAM region covering several annotated patches would fail an IoU ≥ 0.5 match.
+- **Caveat found in the dev dry run:** a private visual check of labelled-FP crops (kept on G:, never published) showed that several "FPs" are visible rust or rust staining that the dataset didn't annotate. On this dataset the FP labels are partly annotation gaps, not true negatives. FP-rejection numbers from it are therefore a lower bound on usefulness and **not** a reliable estimate. The negatives set from the builder's own footage is the real test of false-positive rejection.
+
+## 2026-10-27 — Severity: consistency, not accuracy
+- There is no severity ground truth, so no severity accuracy is claimed. Consistency is measured instead: 30 candidates are graded twice with identical requests, and agreement on is_defect, defect_type, exact severity and severity ±1 is reported. Cross-provider agreement (hosted vs open) is reported too.

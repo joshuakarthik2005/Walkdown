@@ -1,0 +1,64 @@
+{
+ "split": "dev",
+ "provider": "meta",
+ "effort": "low",
+ "candidates_available": 233,
+ "label_counts": {
+  "TP": 163,
+  "FP": 68,
+  "ambiguous": 2
+ },
+ "sample_label_counts": {
+  "TP": 38,
+  "FP": 10,
+  "ambiguous": 2
+ },
+ "verified": 50,
+ "invalid_replies": 0,
+ "metrics": {
+  "labelled_tp": 38,
+  "labelled_fp": 10,
+  "verifier_precision": 0.8260869565217391,
+  "verifier_recall": 1.0,
+  "fps_removed": 2,
+  "fps_removed_share": 0.2,
+  "tps_wrongly_rejected": 0,
+  "tps_wrongly_rejected_share": 0.0,
+  "candidate_precision_sam_alone": 0.7916666666666666,
+  "candidate_precision_sam_plus_verifier": 0.8260869565217391,
+  "candidate_recall_sam_plus_verifier_vs_sam": 1.0
+ },
+ "flags": {},
+ "severity_histogram": {
+  "1": 0,
+  "2": 33,
+  "3": 14,
+  "4": 1,
+  "5": 0
+ },
+ "cost": {
+  "usd_total": 0.21391,
+  "usd_per_candidate": 0.0042782,
+  "input_tokens_mean": 990.64,
+  "cached_tokens_mean": 612.5,
+  "output_tokens_mean": 873.8,
+  "reasoning_tokens_mean": 743.48,
+  "output_tokens_max": 1473,
+  "latency_s_median": 6.309920200001216,
+  "latency_s_p90": 8.707203099998878
+ },
+ "projection": {
+  "candidates_per_image": 4.66,
+  "test_candidates_estimated": 6729,
+  "usd_for_test": 28.788178928
+ },
+ "consistency": {
+  "pairs": 30,
+  "is_defect_agreement": 1.0,
+  "severity_pairs_both_defect": 29,
+  "severity_exact": 0.9655172413793104,
+  "severity_within_1": 1.0,
+  "defect_type_agreement": 0.9666666666666667
+ },
+ "usd_spent_this_run": 0.1310325
+}

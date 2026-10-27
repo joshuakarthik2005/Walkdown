@@ -15,3 +15,6 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-10-27 | SAM fixtures, run 2: same media, prompt "circle" (image 2 found, video empty) | sam-3.1 | 1 image + 50 frames billed | – | – | 0.0125 | 0.0287 |
 | 2026-10-27 | SAM video debug probes, mp4v then H.264 (both empty) | sam-3.1 | 2 × 50 frames billed | – | – | 0.0200 | 0.0487 |
 | 2026-10-27 | SAM dry run, dev split, prompts "rust", "corrosion", "corroded metal" | sam-3.1 | 150 images | – | – | 0.3750 | 0.4237 |
+| 2026-10-27 | Verifier dry run, dev, 50 candidates, reasoning low | muse-spark-1.3 | 50 | 49,532 (30,625 cached) | 43,690 (37,174 reasoning) | 0.2139 | 0.6376 |
+| 2026-10-27 | Verifier consistency repeat, dev, 30 candidates | muse-spark-1.3 | 30 | – | – | 0.1310 | 0.7686 |
+| 2026-10-27 | Verifier dry run on Baseten Muse Spark Open, same 50 + 30 repeats | muse-spark-open-1026 (Baseten) | 80 | ~1,204/call | ~1,817/call (~1,671 reasoning) | Baseten price not yet confirmed | – |
