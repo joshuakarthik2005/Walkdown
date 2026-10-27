@@ -12,3 +12,9 @@ Task reports, appended after every task.
 - Status: DONE
 - `.venv` built on Python 3.12.10 (see DECISIONS.md). All requirements installed and pinned; import check passes, including `ortools.sat.python.cp_model`.
 - Folder layout created: backend/{perception,verify,planner,agent,clients,api}, frontend, benchmark, docs, tests.
+
+## 2026-10-27 — Phase 0.3: Meta API smoke test
+- Status: BLOCKED
+- `backend/clients/smoke_test.py` loads `.env` with python-dotenv, confirms which key names exist, and calls `muse-spark-1.3` via the Responses API, printing only reply and usage.
+- `.env` loads; `MODEL_API_KEY` and `BASETEN_API_KEY` are both present. Key formatting checks (no quotes, no whitespace, no placeholder) pass without revealing the value.
+- The call fails with `openai.AuthenticationError: Error code: 401 - Unauthorized`. Stopped per the brief; waiting for the builder to check the key on dev.meta.ai.
