@@ -82,28 +82,39 @@ def _verdict_cache(s: AgentSession, cid: str) -> Path:
     return s.clip.dir / "verify" / s.verify_effort / f"{cid}.json"
 
 
+VERIFY_WORKERS = 8
+
+
+def _verify_one(s: AgentSession, cid: str) -> Verdict:
+    frame, inst = s.candidates[cid]
+    cache = _verdict_cache(s, cid)
+    if cache.exists() and not s.live:
+        d = json.loads(cache.read_text(encoding="utf-8"))
+        d["grade"] = Grade.model_validate(d["grade"]) if d["grade"] else None
+        return Verdict(**d)
+    import cv2
+    image = cv2.imread(str(s.frame_paths[frame]), cv2.IMREAD_COLOR)
+    v = verify(Candidate(cid, image, inst.mask, inst.box, inst.confidence), provider="meta",
+               reasoning_effort=s.verify_effort, ledger=s.ledger, job="agent-verify")
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    d = asdict(v)
+    d["grade"] = v.grade.model_dump(mode="json") if v.grade else None
+    cache.write_text(json.dumps(d, indent=1), encoding="utf-8")
+    return v
+
+
 def verify_candidate(s: AgentSession, candidate_ids: list[str]) -> dict:
-    """Verify and grade candidates with Muse Spark; returns one summary per candidate."""
+    """Verify and grade candidates with Muse Spark (in parallel); returns one summary per candidate."""
+    from concurrent.futures import ThreadPoolExecutor
+    known = [c for c in dict.fromkeys(candidate_ids) if c in s.candidates]
+    with ThreadPoolExecutor(max_workers=VERIFY_WORKERS) as pool:
+        done = dict(zip(known, pool.map(lambda c: _verify_one(s, c), known)))
     out = []
     for cid in candidate_ids:
-        if cid not in s.candidates:
+        if cid not in done:
             out.append(dict(id=cid, error="unknown candidate id"))
             continue
-        frame, inst = s.candidates[cid]
-        cache = _verdict_cache(s, cid)
-        if cache.exists() and not s.live:
-            d = json.loads(cache.read_text(encoding="utf-8"))
-            d["grade"] = Grade.model_validate(d["grade"]) if d["grade"] else None
-            v = Verdict(**d)
-        else:
-            import cv2
-            image = cv2.imread(str(s.frame_paths[frame]), cv2.IMREAD_COLOR)
-            v = verify(Candidate(cid, image, inst.mask, inst.box, inst.confidence), provider="meta",
-                       reasoning_effort=s.verify_effort, ledger=s.ledger, job="agent-verify")
-            cache.parent.mkdir(parents=True, exist_ok=True)
-            d = asdict(v)
-            d["grade"] = v.grade.model_dump(mode="json") if v.grade else None
-            cache.write_text(json.dumps(d, indent=1), encoding="utf-8")
+        v = done[cid]
         s.verdicts[cid] = v
         g = v.grade
         out.append(dict(id=cid, is_defect=g.is_defect if g else None, defect_type=g.defect_type.value if g else None,
@@ -158,11 +169,29 @@ def plan_maintenance(s: AgentSession) -> dict:
     return _plan_summary(s, s.plan, {d.id for d in new})
 
 
+CHANGE_KINDS = ("crew_unavailable", "shutdown_window_changed", "new_defect")
+
+
+def normalise_change(change: dict) -> dict:
+    """Flatten a change the model nested under its kind, e.g. {"crew_unavailable": {...}} (with or without "type")."""
+    change = dict(change)
+    for kind in CHANGE_KINDS:
+        body = change.get(kind)
+        if isinstance(body, dict) and kind != "new_defect":
+            change.pop(kind)
+            change = {**body, **change, "type": change.get("type", kind)}
+        elif kind == "new_defect" and isinstance(body, dict) and "defect" not in change:
+            change.pop(kind)
+            change = {"type": "new_defect", "defect": body.get("defect", body)}
+    return change
+
+
 def replan_tool(s: AgentSession, change: dict, now_hour: int, epsilon: float | None = None) -> dict:
     """Apply a constraint change at ``now_hour`` and re-solve (two-stage, started work fixed)."""
     if s.plan is None or s.scenario is None:
         return dict(error="no plan yet; call plan_maintenance first")
     from pydantic import TypeAdapter
+    change = normalise_change(change)
     parsed = TypeAdapter(Change).validate_python(change)
     r = replan(s.scenario, s.plan, parsed, now=now_hour, config=s.planner_config, epsilon=epsilon)
     s.scenario, s.plan, s.now = r.scenario, r.plan, now_hour
@@ -195,10 +224,16 @@ def _fn(name: str, description: str, properties: dict, required: list[str]) -> d
 
 CHANGE_SCHEMA = {
     "type": "object",
-    "description": ("One constraint change. crew_unavailable: crew_id, start, end (hours). "
-                    "shutdown_window_changed: window_id, new_start/new_end (omit both to cancel). "
-                    "new_defect: defect {id, asset, severity, failure_risk, repair_hours, skill, needs_shutdown}."),
-    "properties": {"type": {"type": "string", "enum": ["crew_unavailable", "shutdown_window_changed", "new_defect"]}},
+    "description": ("One constraint change, flat (not nested). crew_unavailable: crew_id, start, end. "
+                    "shutdown_window_changed: window_id, new_start, new_end (omit both to cancel the window). "
+                    "new_defect: defect. Hours count from plan start."),
+    "properties": {
+        "type": {"type": "string", "enum": ["crew_unavailable", "shutdown_window_changed", "new_defect"]},
+        "crew_id": {"type": "string"}, "start": {"type": "integer"}, "end": {"type": "integer"},
+        "window_id": {"type": "string"}, "new_start": {"type": "integer"}, "new_end": {"type": "integer"},
+        "defect": {"type": "object", "description": "id, asset, severity 1-5, failure_risk 0-1, repair_hours, "
+                   "skill (coating|insulation|mechanical|welding), needs_shutdown"},
+    },
     "required": ["type"],
 }
 

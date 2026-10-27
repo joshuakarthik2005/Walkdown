@@ -95,3 +95,15 @@ def test_agent_loop_runs_tools_traces_and_recovers_from_tool_errors(monkeypatch)
     assert sent[1]["messages"][3]["tool_call_id"] == "call_0"
     assert agent.trace[0].usd > 0 and agent.trace[0].cached_tokens == 800
     assert sent[0]["tools"] and sent[0]["reasoning_effort"] == "low"
+
+
+def test_normalise_change_accepts_flat_and_nested_forms():
+    from backend.agent.tools import normalise_change
+    flat = {"type": "crew_unavailable", "crew_id": "C1", "start": 48, "end": 120}
+    assert normalise_change(flat) == flat
+    assert normalise_change({"crew_unavailable": {"crew_id": "C1", "start": 48, "end": 120}}) == flat
+    assert normalise_change({"type": "crew_unavailable",
+                             "crew_unavailable": {"crew_id": "C1", "start": 48, "end": 120}}) == flat
+    d = {"id": "N1", "asset": "A", "severity": 5, "failure_risk": 0.9, "repair_hours": 6, "skill": "coating"}
+    assert normalise_change({"new_defect": d}) == {"type": "new_defect", "defect": d}
+    assert normalise_change({"type": "new_defect", "defect": d}) == {"type": "new_defect", "defect": d}

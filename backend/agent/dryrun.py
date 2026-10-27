@@ -25,6 +25,7 @@ N_FRAMES = 6
 
 
 def main(live: bool = False) -> int:
+    sys.stdout.reconfigure(encoding="utf-8")
     if not (CLIPS_DIR / CLIP_ID).exists():
         photos = [RAW_DIR / rel for rel in load_split("dev")[:N_FRAMES]]
         create_clip(CLIP_ID, photos=photos, asset={"asset_id": "PIPE-RACK-207", "asset_type": "pipe",
