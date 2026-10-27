@@ -40,19 +40,31 @@ def build_sample() -> list[dict]:
     """Stratified sample of test candidates by coverage label, built once and saved (seeded)."""
     if SAMPLE_PATH.exists():
         return json.loads(SAMPLE_PATH.read_text(encoding="utf-8"))
-    pool: dict[str, list[dict]] = {k: [] for k in PER_STRATUM}
-    for rel in load_split("test"):
+    # Visit test images in a seeded random order and take at most 2 candidates per image per stratum
+    # until every stratum is full: only the visited images' masks are decoded (decoding is slow).
+    rng = random.Random(SEED)
+    images = load_split("test")
+    rng.shuffle(images)
+    picked: dict[str, list[dict]] = {k: [] for k in PER_STRATUM}
+    for rel in images:
+        if all(len(picked[k]) >= n for k, n in PER_STRATUM.items()):
+            break
         path = SAM_DIR / "rust" / (Path(rel).stem + ".txt")
         if not path.exists():
             continue
         gt = ground_truth([rel])[rel]
         union = np.logical_or.reduce(gt) if gt else np.zeros((640, 640), bool)
-        for inst in parse_output(path.read_text(encoding="utf-8"), 640, 640):
+        per_image: dict[str, int] = {}
+        insts = parse_output(path.read_text(encoding="utf-8"), 640, 640)
+        rng.shuffle(insts)
+        for inst in insts:
             lab, cov = label(inst.mask, union)
-            pool[lab].append(dict(id=f"{Path(rel).stem}#{inst.object_id}", image=rel, object_id=inst.object_id,
-                                  coverage_label=lab, coverage=round(cov, 3)))
-    rng = random.Random(SEED)
-    sample = [c for k, n in PER_STRATUM.items() for c in rng.sample(pool[k], min(n, len(pool[k])))]
+            if len(picked[lab]) >= PER_STRATUM[lab] or per_image.get(lab, 0) >= 2:
+                continue
+            per_image[lab] = per_image.get(lab, 0) + 1
+            picked[lab].append(dict(id=f"{Path(rel).stem}#{inst.object_id}", image=rel, object_id=inst.object_id,
+                                    coverage_label=lab, coverage=round(cov, 3)))
+    sample = [c for k in PER_STRATUM for c in picked[k]]
     rng.shuffle(sample)
     LABEL_DIR.mkdir(parents=True, exist_ok=True)
     SAMPLE_PATH.write_text(json.dumps(sample, indent=1), encoding="utf-8")
@@ -96,11 +108,26 @@ def _instance(cid: str):
     return cv2.imread(str(RAW_DIR / c["image"]), cv2.IMREAD_COLOR), inst
 
 
+CROP_DIR = LABEL_DIR / "crops"
+
+
+def render(cid: str) -> None:
+    """Render and cache the crop and thumbnail for one candidate (mask decoding is slow, so do it once)."""
+    img, inst = _instance(cid)
+    CROP_DIR.mkdir(parents=True, exist_ok=True)
+    stem = cid.replace("#", "__")
+    cv2.imwrite(str(CROP_DIR / f"{stem}_crop.png"), candidate_crop(img, inst.mask, inst.box))
+    cv2.imwrite(str(CROP_DIR / f"{stem}_thumb.png"), context_thumbnail(img, inst.box, side=320))
+
+
 @app.get("/img/{cid}/{kind}.png")
 def image(cid: str, kind: str) -> Response:
-    img, inst = _instance(cid.replace("__", "#"))
-    out = candidate_crop(img, inst.mask, inst.box) if kind == "crop" else context_thumbnail(img, inst.box, side=320)
-    return Response(cv2.imencode(".png", out)[1].tobytes(), media_type="image/png")
+    if kind not in ("crop", "thumb"):
+        raise HTTPException(404)
+    path = CROP_DIR / f"{cid}_{kind}.png"
+    if not path.exists():
+        render(cid.replace("__", "#"))
+    return Response(path.read_bytes(), media_type="image/png")
 
 
 @app.get("/next")
@@ -168,6 +195,15 @@ def page() -> str:
 
 
 if __name__ == "__main__":
+    import sys
+
     import uvicorn
+
+    if "--prewarm" in sys.argv:  # render every crop once, before labelling
+        for i, c in enumerate(sample()):
+            if not (CROP_DIR / f"{c['id'].replace('#', '__')}_crop.png").exists():
+                render(c["id"])
+            print(f"{i + 1}/{len(sample())}", flush=True)
+        sys.exit(0)
 
     uvicorn.run(app, host="127.0.0.1", port=8001)  # loopback only: never expose dataset images
