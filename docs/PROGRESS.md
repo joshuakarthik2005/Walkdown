@@ -24,3 +24,12 @@ Task reports, appended after every task.
 - Cause of the 401: a stale `MODEL_API_KEY` in the shell environment took precedence over `.env`. Fixed with `load_dotenv(..., override=True)`.
 - Run 1 authenticated, but the reply was empty: reasoning used all 200 output tokens. Run 2 used `reasoning.effort=minimal` and `max_output_tokens=500`, and the reply was "Walkdown smoke test OK" (input 17, output 75 of which 61 were reasoning).
 - Spend: $0.001211 total.
+
+## 2026-10-27 — Phase 1.1: planner data model, config, time grid
+- Status: DONE. Commit e288f61. Tests: 8 passed.
+- Pydantic models for scenario, plan, explanation and change types; `PlannerConfig` holds all weights and solver settings. Time grid uses 1-hour slots (see DECISIONS.md).
+
+## 2026-10-27 — Phase 1.2: scenario generator, plan evaluator and validator
+- Status: DONE. Tests: 12 passed (4 new).
+- `generator.py`: seeded synthetic scenarios (5 defect types mapped to skills/permits, permit types with lead times and concurrency caps, shutdown windows, crews covering every skill).
+- `metrics.py`: `evaluate` (shared objective for every solver), `validate` (independent constraint checker), `crew_utilisation`, `moved_jobs`, `critical_unscheduled`.
