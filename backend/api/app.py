@@ -38,8 +38,9 @@ from backend.clients.cost import CostLedger
 from backend.planner.models import ServiceType
 
 app = FastAPI(title="Walkdown API", version="0.1.0")
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3000"], allow_methods=["*"],
-                   allow_headers=["*"])
+# Local UI only: any port on localhost / 127.0.0.1.
+app.add_middleware(CORSMiddleware, allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
+                   allow_methods=["*"], allow_headers=["*"])
 
 MAX_UPLOAD_MB = 500
 
@@ -184,6 +185,7 @@ def post_change(run_id: str, req: ChangeRequest) -> dict:
         raise HTTPException(409, "no plan yet")
     message = (f"Constraint change at hour {req.now_hour}: {json.dumps(req.change)}. Replan with epsilon "
                f"{req.epsilon} and explain what changed.")
+    st.status = "running"  # before the thread starts, so a poll right after this call cannot see "done"
     threading.Thread(target=st.turn, args=(message,), daemon=True).start()
     return dict(run_id=run_id, status="running")
 

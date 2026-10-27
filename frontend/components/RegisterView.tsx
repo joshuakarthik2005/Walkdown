@@ -2,6 +2,9 @@ import type { FrameInfo, Register } from "@/lib/types";
 import { frameUrl } from "@/lib/api";
 import { SEVERITY_COLOUR } from "@/lib/format";
 
+// The verifier sees the candidate outlined in cyan and sometimes says so; that detail means nothing here.
+const cleanCue = (s: string) => s.replace(/\s*(inside|within) (the )?(cyan )?outline/gi, "").trim();
+
 /** Verified defect register: frames with masks drawn by the backend, plus one row per defect. */
 export function RegisterView({ runId, register, frames }: { runId: string; register: Register; frames: FrameInfo[] }) {
   return (
@@ -11,8 +14,8 @@ export function RegisterView({ runId, register, frames }: { runId: string; regis
           <figure key={f.frame}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={frameUrl(runId, f.frame)} alt={`Frame ${f.frame} with ${f.detections.length} defects outlined`} />
-            <figcaption>
-              frame {f.frame} · {f.detections.map((d) => d.defect_id).join(", ")}
+            <figcaption title={f.detections.map((d) => d.defect_id).join(", ")}>
+              frame {f.frame} · {f.detections.length} defect{f.detections.length === 1 ? "" : "s"}
             </figcaption>
           </figure>
         ))}
@@ -40,7 +43,7 @@ export function RegisterView({ runId, register, frames }: { runId: string; regis
               </td>
               <td>{e.grade.defect_type.replaceAll("_", " ")}</td>
               <td className="muted">
-                {e.grade.evidence.visual_cues.slice(0, 2).join("; ")}
+                {e.grade.evidence.visual_cues.slice(0, 2).map(cleanCue).join("; ")}
                 <div>{e.grade.evidence.location}</div>
               </td>
               <td>{e.grade.recommended_action.replaceAll("_", " ")}</td>

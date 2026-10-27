@@ -37,9 +37,12 @@ def _capacity_detail(scenario: Scenario, plan: Plan, defect, eligible, release: 
                 skilled_crew_hours_free=available - booked,
                 unscheduled_same_skill_hours=sum(x.repair_hours for x in scenario.defects
                                                  if x.id in unscheduled and x.skill == defect.skill),
-                summary=f"not enough {defect.skill} crew hours in the horizon: "
-                        f"{available - booked} of {available} skilled hours are left after higher-risk work, "
-                        f"in gaps too short or too late for this {defect.repair_hours} h job")
+                summary=(f"not enough {defect.skill} crew hours in the horizon: all {available} {defect.skill} crew hours "
+                         f"from release to the horizon end are booked with higher-risk work"
+                         if available - booked <= 0 else
+                         f"not enough {defect.skill} crew hours in the horizon: only {available - booked} of {available} "
+                         f"{defect.skill} crew hours are free, in gaps too short or too late for this "
+                         f"{defect.repair_hours} h job"))
 
 
 def explain(scenario: Scenario, plan: Plan, *, fixed_ids: set[str] | None = None,

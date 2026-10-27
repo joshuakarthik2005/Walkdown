@@ -1,7 +1,10 @@
 // Thin client for the Walkdown FastAPI backend.
 import type { FrameInfo, PlanResponse, Register, RunStatus, TraceEvent } from "./types";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Default: the API on port 8000 of the host serving this page (avoids localhost vs 127.0.0.1 mismatches).
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:8000` : "http://127.0.0.1:8000");
 
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {

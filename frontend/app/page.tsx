@@ -50,6 +50,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const cursor = useRef(0);
+  const [pollKey, setPollKey] = useState(0); // bumped to (re)start polling after a run or a change
 
   const running = status?.status === "running";
 
@@ -91,7 +92,7 @@ export default function Home() {
     return () => {
       stop = true;
     };
-  }, [runId, status?.answers.length, refreshResults]);
+  }, [runId, pollKey, refreshResults]);
 
   async function upload() {
     setError(null);
@@ -116,6 +117,7 @@ export default function Home() {
       const r = await api.startRun(clipId, live);
       setStatus(null);
       setRunId(r.run_id);
+      setPollKey((k) => k + 1);
     } catch (e) {
       setError(String(e));
     }
@@ -127,6 +129,7 @@ export default function Home() {
     try {
       await api.postChange(runId, c, now, epsilon);
       setStatus((s) => (s ? { ...s, status: "running" } : s));
+      setPollKey((k) => k + 1);
     } catch (e) {
       setError(String(e));
     }

@@ -10,6 +10,9 @@ const STEP: Record<string, { title: string; what: string }> = {
   explain_plan: { title: "Reads the planner's reasons", what: "structured reason codes, nothing invented" },
 };
 
+// Tools that call a Meta model; the others (register, CP-SAT, explanations) run locally.
+const API_TOOLS = new Set(["segment_frames", "verify_candidate"]);
+
 /** The agent's decision flow: each tool call as a step, with what it decided. Model turns are folded in. */
 export function AgentTrail({ events, running }: { events: TraceEvent[]; running: boolean }) {
   const total = events.reduce((s, e) => s + e.usd, 0);
@@ -30,7 +33,9 @@ export function AgentTrail({ events, running }: { events: TraceEvent[]; running:
             <li key={e.step} className={e.error ? "step failed" : "step"}>
               <div className="step-head">
                 <span className="step-title">{s?.title ?? e.name}</span>
-                <span className="meta">{e.duration_s.toFixed(1)} s · {e.usd > 0 ? usd(e.usd) : "cached"}</span>
+                <span className="meta">
+                  {e.duration_s.toFixed(1)} s · {e.usd > 0 ? usd(e.usd) : API_TOOLS.has(e.name) ? "cached" : "local"}
+                </span>
               </div>
               <div className="muted small">{s?.what}{argText ? ` · ${argText}` : ""}</div>
               <div className={e.error ? "error-box" : "decision"}>{e.error ? `Tool error, the agent retried: ${e.error.slice(0, 140)}` : e.summary}</div>
