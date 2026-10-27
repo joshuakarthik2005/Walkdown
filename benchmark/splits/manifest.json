@@ -1,0 +1,22 @@
+{
+ "dataset": "Roboflow Universe computervision-adpf6/corrosion-segmentation-xybsj v1 (coco-segmentation)",
+ "source_url": "https://universe.roboflow.com/computervision-adpf6/corrosion-segmentation-xybsj",
+ "licence_listed": "Public Domain",
+ "seed": 20261027,
+ "hash_threshold_bits": 10,
+ "images_in_valid_and_test": 2050,
+ "excluded_stock_style_names": 215,
+ "after_exclusion": 1835,
+ "near_duplicate_clusters": 1494,
+ "zero_annotation_images_available": 0,
+ "dev": {
+  "images": 50,
+  "negatives": 0,
+  "instances": 320
+ },
+ "test": {
+  "images": 1444,
+  "negatives": 0,
+  "instances": 9812
+ }
+}

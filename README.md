@@ -19,7 +19,13 @@ All code in this repository was written during the building period. A full break
 
 ## Third-party libraries, models and datasets
 
-To be completed. Every dataset licence will be recorded here.
+### Datasets
+
+| Dataset | Source | Licence | How it is used |
+|---|---|---|---|
+| Corrosion Segmentation v1 (Roboflow Universe, workspace `computervision-adpf6`), COCO-segmentation export | https://universe.roboflow.com/computervision-adpf6/corrosion-segmentation-xybsj | **Public Domain**, as listed by the uploader on Roboflow Universe and in the export's README | Evaluation only. Only the dataset's `valid` and `test` folders are used (2,050 images; `train` holds augmented copies). Near-duplicates are removed, and images with commercial-stock-style filenames are excluded, because the uploader's licence label may not cover them. File lists are in `benchmark/splits/`. Images are not redistributed in this repo. |
+
+Libraries and models will be listed here as they are added.
 
 ## Licence
 

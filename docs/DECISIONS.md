@@ -67,3 +67,12 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - Instance-level matching: greedy and one-to-one, in descending prediction score, at IoU ≥ 0.5 (configurable). Mask IoU via pycocotools RLE. Precision, recall and F1 are computed over all instances in the split. Mean IoU is over matched pairs only.
 - Negative images (no ground-truth instance) are counted separately: the share of negatives with any false positive, and the total false positives on negatives. These are the main numbers for the verifier, whose job is to reject false positives.
 - Splits: one fixed seed (20261027). The dev split (~50 images) is for dry runs and prompt tuning; the held-out test split (1,000–2,000) is never used for tuning. Both are stratified by positive/negative, disjoint, and saved as sorted text lists in `benchmark/splits/`.
+
+## 2026-10-27 — Dataset, storage and splits
+- Dataset: Roboflow `computervision-adpf6/corrosion-segmentation-xybsj` v1. The Roboflow API and the export README both say "License: Public Domain". Annotations are instance polygons: 13,193 in valid+test, all polygons, one class.
+- Raw data lives **outside the repo** at `WALKDOWN_DATA_DIR`, default `G:/walkdown-data`. Drive C: filled up during the first extraction; the partial copy was deleted with the builder's approval and the data moved to G: at the builder's request.
+- Only `valid` (1,024) and `test` (1,026) are used. `train` (14,214) contains Roboflow augmentations of 6,788 source images, and near-duplicates would leak into evaluation.
+- Near-duplicates: valid+test are themselves merged from several sources. Of 2,050 images, 1,807 are distinct at an exact difference hash, and 1,664 at ≤10 differing bits. Filenames are not usable for dedup: generic names like `000226_jpg` collide across sources while the images differ. Splits are built over dHash clusters (≤10 bits), one image per cluster, so dev and test never share a near-duplicate.
+- Rights: 215 images have commercial-stock-style original filenames (Adobe Stock `1000_F_<id>`, `istockphoto-…`, Alamy-style ids). The uploader's Public Domain label may not cover them, so they are excluded from both splits and never sent to an API.
+- **No negatives**: 0 of 2,050 images have zero annotations. The test split is 100% positive. Negatives were not invented; the builder decides where they come from.
+- Result: dev 50 images (320 instances), test 1,444 images (9,812 instances), seed 20261027. `benchmark/splits/manifest.json` has every count.

@@ -91,3 +91,8 @@ Task reports, appended after every task.
     - tight_capacity: 15/16/3 for crew out, 18/13/2 for window cancelled, 12/15/0 for new critical
   - Finding: under tight capacity, CP-SAT replanning moves about as many jobs as re-running from scratch, far more than the baseline patch. The move penalty (200) is too weak there. A decision on this is needed.
 - Not re-run: the session's rule is not to restart a job killed for memory pressure without being asked.
+
+## 2026-10-27 — Phase 2.1/2.2: dataset download and splits
+- Status: DONE, with a blocker on negatives. The dataset was downloaded via the Roboflow API (key from .env, never printed). valid/test are on G:. Licence and source are recorded in the README.
+- Polygons confirmed. **Zero-annotation images: 0**, so negatives are 0% of test, below the 20% target. Reported, not invented.
+- dev 50 / test 1,444, built over near-duplicate clusters with stock-style filenames excluded (215). See DECISIONS.md.
