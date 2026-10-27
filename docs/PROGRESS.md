@@ -33,3 +33,8 @@ Task reports, appended after every task.
 - Status: DONE. Tests: 12 passed (4 new).
 - `generator.py`: seeded synthetic scenarios (5 defect types mapped to skills/permits, permit types with lead times and concurrency caps, shutdown windows, crews covering every skill).
 - `metrics.py`: `evaluate` (shared objective for every solver), `validate` (independent constraint checker), `crew_utilisation`, `moved_jobs`, `critical_unscheduled`.
+
+## 2026-10-27 — Phase 1.3: CP-SAT solver
+- Status: DONE. Tests: 18 passed.
+- `cpsat.py`: optional intervals with element-constrained ends, crew no-overlap, permit cumulative caps, critical penalty, stability penalty for replanning, and fixed in-progress jobs. Time limit (default 10 s); reports status, objective, best bound, gap and wall time. The baseline is the default warm start, with an honest UNKNOWN fallback (see DECISIONS.md).
+- `explain.py` (structured reasons) and `baseline.py` (priority sort, needed as the warm start) landed in the same commit; their own tests come in later tasks.

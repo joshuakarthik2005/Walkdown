@@ -172,6 +172,7 @@ class SolveStats(BaseModel):
     best_bound: float | None = None
     gap: float | None = None
     wall_time_s: float = 0.0
+    fallback: str | None = Field(default=None, description="Set when the solver found nothing and the warm start was returned.")
 
     @property
     def is_optimal(self) -> bool:
