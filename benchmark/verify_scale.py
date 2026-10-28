@@ -1,4 +1,5 @@
-"""Verify every SAM candidate on a split with hosted Muse Spark, low memory and resumable in chunks.
+"""Verify every SAM candidate on a split with hosted Muse Spark (or Muse Spark Open on Baseten, ``--provider
+baseten``), low memory and resumable in chunks.
 
 Streams one image at a time (masks are never all held in memory), runs at most
 ``--workers`` images in parallel worker processes, caches every verdict on WALKDOWN_DATA_DIR
@@ -38,8 +39,9 @@ RESULTS_DIR = Path(__file__).parent / "results"
 CALLS_PER_PROCESS = 2  # with 4 processes: 8 concurrent calls; more concurrency only raised server latency
 
 
-def journal_path(split: str, effort: str) -> Path:
-    return DATA_DIR / "runs" / f"verify_scale_{split}_{effort}_journal.jsonl"
+def journal_path(split: str, effort: str, provider: str = "meta") -> Path:
+    tag = effort if provider == "meta" else f"{provider}_{effort}"
+    return DATA_DIR / "runs" / f"verify_scale_{split}_{tag}_journal.jsonl"
 
 
 def read_journal(path: Path) -> dict[str, list[dict]]:
@@ -52,7 +54,8 @@ def read_journal(path: Path) -> dict[str, list[dict]]:
     return done
 
 
-def summarise(split: str, effort: str, images: list[str], done: dict[str, list[dict]], extra: dict) -> dict:
+def summarise(split: str, effort: str, images: list[str], done: dict[str, list[dict]], extra: dict,
+              provider: str = "meta") -> dict:
     """Statistics over every journaled image."""
     rows = [r for rel in images if rel in done for r in done[rel]]
     tps = [r for r in rows if r["label"] == "TP"]
@@ -60,7 +63,7 @@ def summarise(split: str, effort: str, images: list[str], done: dict[str, list[d
     valid = [r for r in rows if r["valid"]]
     paid = [r for r in rows if r["usd"] > 0]
     return dict(
-        split=split, provider="meta", effort=effort, images=len(images),
+        split=split, provider=provider, effort=effort, images=len(images),
         images_done=sum(rel in done for rel in images), candidates=len(rows),
         complete=all(rel in done for rel in images),
         label_counts={k: sum(r["label"] == k for r in rows) for k in ("TP", "FP", "ambiguous")},
@@ -78,7 +81,8 @@ def summarise(split: str, effort: str, images: list[str], done: dict[str, list[d
     )
 
 
-def process_image(rel: str, effort: str) -> tuple[str, list[dict] | None, float, int, str | None]:
+def process_image(rel: str, effort: str, provider: str = "meta",
+                  calls_per_process: int = CALLS_PER_PROCESS) -> tuple[str, list[dict] | None, float, int, str | None]:
     """Verify every candidate on one image (runs in a worker process)."""
     ledger = CostLedger(DATA_DIR / "runs" / "cost_ledger.jsonl")
     sam_path = SAM_DIR / "rust" / (Path(rel).stem + ".txt")
@@ -94,11 +98,11 @@ def process_image(rel: str, effort: str) -> tuple[str, list[dict] | None, float,
         # Exceptions must not escape a worker process: some (e.g. openai.APIConnectionError) cannot be
         # pickled back to the parent and would break the whole pool. Failed candidates are retried later.
         try:
-            return _cached_verify(c, "meta", effort, ledger)
+            return _cached_verify(c, provider, effort, ledger)
         except Exception as err:  # noqa: BLE001
             return f"{type(err).__name__}: {str(err)[:200]}"
 
-    with ThreadPoolExecutor(max_workers=CALLS_PER_PROCESS) as pool:
+    with ThreadPoolExecutor(max_workers=calls_per_process) as pool:
         verdicts = list(pool.map(safe, cands))
     errors = [v for v in verdicts if isinstance(v, str)]
     if errors:  # not journaled: the image is retried in a later chunk (finished verdicts are cached)
@@ -117,6 +121,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("split")
     ap.add_argument("--effort", default="low")
+    ap.add_argument("--provider", choices=("meta", "baseten"), default="meta")
+    ap.add_argument("--calls-per-process", type=int, default=CALLS_PER_PROCESS)
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--max-usd", type=float, required=True, help="cap on new spend in this chunk")
     ap.add_argument("--max-minutes", type=float, default=None)
@@ -124,7 +130,7 @@ def main() -> int:
     workers = min(args.workers, 20)
 
     images = load_split(args.split)
-    journal = journal_path(args.split, args.effort)
+    journal = journal_path(args.split, args.effort, args.provider)
     done = read_journal(journal)
     todo = [rel for rel in images if rel not in done]
     print(f"{len(done)} images already done, {len(todo)} to go", flush=True)
@@ -140,7 +146,7 @@ def main() -> int:
         def submit_next() -> None:
             rel = next(queue, None)
             if rel is not None:
-                pending[pool.submit(process_image, rel, args.effort)] = rel
+                pending[pool.submit(process_image, rel, args.effort, args.provider, args.calls_per_process)] = rel
 
         for _ in range(workers):
             submit_next()
@@ -168,9 +174,9 @@ def main() -> int:
 
     result = summarise(args.split, args.effort, images, read_journal(journal), dict(
         last_chunk=dict(wall_s=wall, workers=workers, images=finished, new_calls=calls, usd=spent,
-                        new_calls_per_min=60 * calls / wall if wall else None)))
+                        new_calls_per_min=60 * calls / wall if wall else None)), provider=args.provider)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    out = RESULTS_DIR / f"verify_scale_{args.split}_meta_{args.effort}.json"
+    out = RESULTS_DIR / f"verify_scale_{args.split}_{args.provider}_{args.effort}.json"
     out.write_text(json.dumps(result, indent=1) + "\n", encoding="utf-8")
     print(json.dumps({k: result[k] for k in ("images_done", "images", "candidates", "complete", "tp_retention",
                                               "invalid_reply_rate", "cost", "last_chunk")}, indent=1))

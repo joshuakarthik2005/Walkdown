@@ -256,7 +256,7 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - **Muse Spark Open (Muse Model License, Oct 15, 2026).** The builder confirmed the licence. Its grant includes "distill", and "Derivatives" covers any model trained on its outputs. Obligations met: the copyright notice, licence and Usage Policy are reproduced verbatim in `THIRD_PARTY_NOTICES.md`; "Built with Muse Spark Open" is shown in the README and the UI footer (and will be on the On-prem mode screen).
 - **Teacher for the Glimmer verifier distillation:** Muse Spark Open verdicts (Baseten), human GT-coverage labels, the builder's audited labels and negatives. **Hosted Muse Spark (Meta Model API) outputs are never used for training**: Meta Model API Terms section 10.1(ix) bars using Outputs to train, fine-tune or distil a competing model, and only evaluation/benchmarking use is carved out. Training images come only from near-duplicate clusters disjoint from dev and test.
 - **Critical infrastructure (Usage Policy 2.4: "Operation of critical infrastructure ...").** Walkdown is decision support only. It never operates or controls plant equipment; it proposes a register and a plan, and every maintenance action requires approval by a qualified person. Stated in the README, here and on screen.
-- **Disclosure of known dangers (Usage Policy 4).** README "Limitations and safe use" and a visible UI notice (every mode) state measured recall (37–87% of annotated corrosion area on the test split, depending on pipeline), that false alarms occur, that severity is consistency-checked but not accuracy-validated, that it does not replace API 570/510/653 or RBI programmes, and that human approval is required.
+- **Disclosure of known dangers (Usage Policy 4).** README "Limitations and safe use" and a visible UI notice (every mode) state measured recall (default pipeline: corrosion found on 98% of positive test images, 84% of annotated area, 30% of individual patches), that false alarms occur, that severity is consistency-checked but not accuracy-validated, that it does not replace API 570/510/653 or RBI programmes, and that human approval is required.
 - **Muse Glimmer** is Apache 2.0 with its own Usage Policy (same critical-infrastructure clause); a fine-tune on Muse Spark Open outputs is also a Muse Spark Open Derivative. Fine-tuned weights are never published.
 
 ## Training pool from the dataset's train split (2026-10-28)
@@ -265,3 +265,23 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - Finding: 11,022 of the 14,214 train images (78%) are augmented copies of valid/test images (same source filename and within 90 dHash bits under some flip/rotation). The original Roboflow split leaks heavily; this confirms the Phase 2 decision to evaluate only on deduplicated valid/test.
 - Source filenames are generic and reused by unrelated images, so a filename match alone is not treated as a copy. The thresholds come from a measured null: 159,797 unrelated train/test pairs have a minimum dHash distance (over 8 flips/rotations) above 74 bits in 99.9% of cases, median 112. Rules: same name and ≤ 90 bits = copy; any name and ≤ 40 bits = duplicate; stock-style names excluded; at most 3 augmented copies per source.
 - Result: 585 images from 212 sources, all with annotations (no negatives). The distillation teacher set is therefore about 2,000 candidates rather than the 3,500 planned; the builder's negatives and labelled synthetic hard negatives (F6) add to it.
+
+## Default perception pipeline: text + boxes + verifier (2026-10-28)
+
+- **Decision.** The agent's `segment_frames` now runs SAM 3.1 "rust" and Muse Spark box proposals (minimal reasoning) in parallel on each frame, segments the boxes with SAM 3.1, merges the masks by overlap, and verifies every merged candidate. `AgentSession.box_proposals=False` restores text only.
+- **Why.** On the 1,444-image test split (benchmark/RESULTS.md section 4), compared with text only + verifier:
+  - image detection rises from 64.9% to 97.9%
+  - pixel IoU rises from 0.35 to 0.67
+  - instance F1 rises from 0.34 to 0.37 at IoU 0.5, and from 0.38 to 0.44 at IoU 0.3
+- **Verifier's role.**
+  - Box proposals alone cut instance precision from 0.51 to 0.38; verification brings it back to 0.47.
+  - It keeps 89.9% of box candidates that lie mostly inside annotated corrosion.
+- **Cost and latency.**
+  - About $0.038 per image instead of $0.018 for text only + verifier, an upper bound.
+  - On the 6-frame devdemo clip the box path adds a median 2.5 s per frame over text SAM alone (range 1.5 to 8.7 s), because the box proposal and the box SAM call run one after the other while text SAM runs alongside.
+  - Verification of the extra candidates comes on top of that.
+- **Cost to demo quality.**
+  - More candidates mean a larger register: the 6-photo devdemo clip went from 27 to 31 walkdown defects.
+  - devdemo was already far above the demo sizing rule (at most 6 register defects); its plan stays FEASIBLE, gap 40%, at the 30 s limit.
+  - The public demo clip (the builder's footage) needs a check against the sizing rule in "Demo plan quality" above.
+- Verdicts are reused across pipelines: a merged candidate with mask IoU ≥ 0.9 to a text candidate keeps that candidate's id and verdict.

@@ -91,3 +91,34 @@ What happened:
 - **The prompt union is marginal.** It gains +2 points of image detection (1 image of 50) and +0.017 pixel recall at 3× the cost. That is within what 50 images can resolve, not a clear improvement.
 
 Decision: no variant clearly improves recall without hurting precision or tripling cost, so **nothing was frozen and nothing was run on the test split**. Walkdown keeps full-frame "rust". The ~1/3 of images with no detection stay a known limit of SAM 3.1 zero-shot on this dataset. Cost of the experiment: $0.625.
+
+## 4. Box proposals + verification: text-only vs text + boxes vs text + boxes + verifier (test split)
+
+**Setup**
+- **Text only:** SAM 3.1, concept prompt "rust" (§1).
+- **Text + boxes:** Muse Spark (`muse-spark-1.3`, reasoning effort **minimal**, strict JSON) looks at the full frame and lists up to 16 boxes around visible rust. SAM 3.1 segments each box (object prompts), and box masks are merged with the text masks (overlap merge, `backend/perception/tiling.py`). Designed on the dev split (`benchmark/box_prompt.py`), then run once on test.
+- **+ verifier:** every merged candidate is verified by Muse Spark at low effort, exactly as in §2. A merged candidate that overlaps a text candidate at IoU ≥ 0.9 reuses that verdict; the **5,385 new candidates** were verified for this run (`benchmark/box_verify.py`). Rejected candidates are dropped before scoring.
+- Same 1,444 images and 9,812 annotated instances as §1. Result files: `results/box_prompt_test.json`, `results/box_verify_test.json`.
+
+| Pipeline (test, 1,444 images) | Image detection | Pixel P / R / IoU | Instance P / R / F1 @ IoU 0.5 | Instance P / R / F1 @ IoU 0.3 | Candidates / image | Cost / image |
+|---|---|---|---|---|---|---|
+| Text only | 65.6% | 0.92 / 0.36 / 0.35 | 0.51 / 0.26 / 0.34 | 0.56 / 0.29 / 0.38 | 3.5 | $0.0025 |
+| Text only + verifier | 64.9% | 0.93 / 0.36 / 0.35 | 0.54 / 0.25 / 0.34 | 0.60 / 0.28 / 0.38 | 3.2 | $0.0176 |
+| Text + boxes | **99.7%** | 0.75 / **0.87** / **0.67** | 0.38 / **0.32** / 0.35 | 0.46 / **0.38** / 0.42 | 5.6 | $0.0070 |
+| **Text + boxes + verifier** | 97.9% | 0.77 / 0.84 / **0.67** | 0.47 / 0.30 / **0.37** | 0.56 / 0.36 / **0.44** | 4.3 | $0.038 |
+
+Cost per image:
+- SAM text call $0.0025.
+- Box proposals: $0.0025 per image (Muse Spark, minimal effort).
+- SAM box calls: $0.0020 per image on average (only images with boxes are sent).
+- Verification: $0.0151 per image for text candidates, plus $0.0159 per image for the new box candidates.
+  - That is $0.0043 per candidate.
+  - Upper bound: verdicts of text candidates that were merged away are counted too.
+
+**Does the verifier restore precision?** Mostly, at the instance level. Box proposals cost 12 points of instance precision at IoU 0.5 (0.51 to 0.38); the verifier wins back 9 of them (0.47). At IoU 0.3 it wins back nearly all of the 10-point loss (0.46 to 0.56; text only 0.56). Pixel precision recovers only slightly (0.75 to 0.77; text only 0.92): the box masks are larger and less tight than text masks, and the verifier accepts or rejects a candidate, it does not tighten its mask.
+- Recall cost of verification: image detection 99.7% to 97.9%, instance recall 0.32 to 0.30. Among the new box candidates mostly inside annotated corrosion (coverage ≥ 0.5, n = 2,859), the verifier keeps **89.9%**; over all merged candidates 91.8%. That is lower than for text candidates (95.5%, §2): box candidates are more often borderline.
+- Invalid replies on the 5,385 new candidates: **0**. Median latency per verification call 6.0 s. The verifier accepted 72.6% of new candidates (89.8% of text candidates).
+- **Text + boxes + verifier has the best instance F1 at both thresholds and the best pixel IoU, and finds corrosion on 98% of positive images instead of 66%.** It is the default pipeline (see `docs/DECISIONS.md`).
+- The same caveat as §2 applies: precision here is measured against dataset labels that leave real rust unannotated, so measured precision is a lower bound and FP rejection is not measured. False alarms on clean surfaces are still unmeasured (no negative images in the dataset; pending the builder's negative footage).
+
+Cost of this experiment: box proposals and box masks $6.50, verification of new candidates $23.02.

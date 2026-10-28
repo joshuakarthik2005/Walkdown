@@ -188,6 +188,10 @@ def perception() -> str:
     test_box = RESULTS / "box_prompt_test.json"
     if test_box.exists():
         add("+ Muse Spark boxes (test)", json.loads(test_box.read_text(encoding="utf-8"))["variants"]["text_plus_boxes"])
+    verified = RESULTS / "box_verify_test.json"
+    if verified.exists():
+        add("+ boxes + verifier (test)",
+            json.loads(verified.read_text(encoding="utf-8"))["variants"]["text_plus_boxes_verified"])
     w, left, top, bar_h, gap = 720, 200, 78, 12, 2
     group = 2 * (bar_h + gap) + 14
     scale = (w - left - 120)
@@ -207,8 +211,8 @@ def perception() -> str:
                         f'<text class="m" x="{left + val * scale + 6}" y="{y + bar_h - 2}">{val:.2f}'
                         f'{f"  [{100 * det:.0f}%]" if j == 1 else ""}</text>')
     return svg(w, int(h), "Finding the rust: SAM 3.1 variants", body,
-               "Muse Spark box proposals fed to SAM 3.1 raise pixel recall sharply at a moderate precision cost; "
-               "tiling and prompt unions do not.")
+               "Muse Spark box proposals fed to SAM 3.1 raise pixel recall sharply at a moderate precision cost, "
+               "and verification recovers part of the precision; tiling and prompt unions do not help.")
 
 
 def main() -> int:

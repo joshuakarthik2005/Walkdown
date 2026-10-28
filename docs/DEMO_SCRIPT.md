@@ -42,7 +42,7 @@ Demo prerequisites (all **[BUILT]**):
 | Time | On screen | Voice-over | Source |
 |---|---|---|---|
 | 2:30–2:45 | Two numbers on cards (charts in RESULTS.md): **verifier keeps 95.5% of annotated corrosion, 0 malformed replies over 5,066 checks**; **CP-SAT never worse than the priority-sort baseline across 60 scenarios; median improvement 1–7.5% by regime** | "We measured it honestly. The verifier rarely drops real corrosion. The planner beats a severity-sort baseline, most in permit-constrained plants." | RESULTS.md §2; PLANNER_RESULTS.md |
-| 2:45–2:52 | Card: "Assists inspectors, does not replace them." plus the measured recall line from RESULTS.md §4 (fill in when final; e.g. text prompt alone covers 37% of annotated corrosion area, text + Muse Spark boxes 87%). | "It doesn't replace inspectors; it makes their walkdown count." | RESULTS.md §1, §4 |
+| 2:45–2:52 | Card: "Assists inspectors, does not replace them." plus the measured recall line from RESULTS.md §4 (measured: SAM text prompt alone finds corrosion on 66% of test images; text + Muse Spark boxes + verification 98%, covering 84% of annotated area). | "It doesn't replace inspectors; it makes their walkdown count." | RESULTS.md §1, §4 |
 | 2:52–2:56 | Flip the **Cloud / On-prem** switch. Card: "On-prem mode: the same agent and verifier on Muse Spark Open (open weights) · Built with Muse Spark Open" plus the hosted-vs-open agreement figure from RESULTS.md (fill in when measured). | "And it runs on open weights too, for plants that can't send footage to the cloud." | On-prem mode **[BUILT]** · Muse Spark Open via Baseten **[META, open weights]** |
 | 2:56–3:00 | Card: "Walkdown · plant walkdowns → verified register → optimal plan · github.com/joshuakarthik2005/Walkdown" | "Walkdown." | |
 

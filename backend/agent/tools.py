@@ -9,12 +9,14 @@ demo run makes no SAM or verifier calls; ``live=True`` ignores the cache.
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from backend.agent.clip import Clip
 from backend.agent.register import Detection, RegisterEntry, build_register, to_planner_defect
 from backend.clients.cost import CostLedger
+from backend.perception.boxes import box_masks, merge_with_text, parse_box_output, propose_boxes
 from backend.perception.sam import Instance, parse_output, segment_image, segment_video
 from backend.planner.cpsat import solve
 from backend.planner.generator import load_scenario
@@ -44,6 +46,7 @@ class AgentSession:
     ledger: CostLedger
     live: bool = False
     verify_effort: str = "low"
+    box_proposals: bool = True  # text + boxes + verifier is the default pipeline (benchmark/RESULTS.md section 4)
     provider: str = "meta"  # "meta" (hosted Muse Spark) or "baseten" (open-weight Muse Spark Open)
     senior_review: bool = True  # escalate severe/uncertain grades to Muse Wonder (Cloud mode only)
     # Demo path: 30 s per solve (status and gap are always reported; FEASIBLE is shown as such).
@@ -64,32 +67,64 @@ class AgentSession:
 
 # ---- tool implementations ---------------------------------------------------
 
+def _text_instances(s: AgentSession, f) -> list[Instance]:
+    """SAM 3.1 'rust' instances on one frame (cached)."""
+    cache = s.clip.dir / "sam" / f"{f.path.stem}.txt"
+    if cache.exists() and not s.live:
+        img = f.image()
+        return parse_output(cache.read_text(encoding="utf-8"), img.shape[1], img.shape[0])
+    res = segment_image(f.path, PROMPT, ledger=s.ledger, job="agent-sam")
+    cache.parent.mkdir(exist_ok=True)
+    cache.write_text(res.raw_output, encoding="utf-8")
+    return res.instances
+
+
+def _box_instances(s: AgentSession, f) -> list[Instance]:
+    """Box-prompted SAM 3.1 instances on one frame: Muse Spark boxes (minimal effort), then SAM (cached)."""
+    img = f.image()
+    h, w = img.shape[:2]
+    box_cache = s.clip.dir / "boxes" / f"{f.path.stem}.json"
+    sam_cache = s.clip.dir / "sam_boxes" / f"{f.path.stem}.txt"
+    if sam_cache.exists() and not s.live:
+        return parse_box_output(sam_cache.read_text(encoding="utf-8"), w, h)
+    if box_cache.exists() and not s.live:
+        boxes = [tuple(b) for b in json.loads(box_cache.read_text(encoding="utf-8"))]
+    else:
+        boxes = propose_boxes(f.path, w, h, ledger=s.ledger, job="agent-box-propose")
+        box_cache.parent.mkdir(exist_ok=True)
+        box_cache.write_text(json.dumps(boxes), encoding="utf-8")
+    raw = box_masks(f.path, boxes, w, h, ledger=s.ledger, job="agent-box-sam")
+    sam_cache.parent.mkdir(exist_ok=True)
+    sam_cache.write_text(raw, encoding="utf-8")
+    return parse_box_output(raw, w, h)
+
+
 def segment_frames(s: AgentSession, start_s: float = 0.0, end_s: float | None = None, fps: float = 1.0) -> dict:
-    """Run SAM ('rust') on frames sampled from the clip; returns new candidates."""
+    """Run SAM ('rust') plus Muse Spark box proposals on frames sampled from the clip; returns new candidates.
+
+    Text and box perception for a frame run in parallel; their masks are merged by overlap (text + boxes,
+    the default pipeline; ``s.box_proposals=False`` gives text only).
+    """
     fps = max(0.2, min(fps, 4.0))
     frames = s.clip.frames(start_s, end_s, fps)
     new = []
-    for f in frames:
-        s.frame_paths[f.index] = f.path
-        cache = s.clip.dir / "sam" / f"{f.path.stem}.txt"
-        if cache.exists() and not s.live:
-            text = cache.read_text(encoding="utf-8")
-            img = f.image()
-            instances = parse_output(text, img.shape[1], img.shape[0])
-        else:
-            res = segment_image(f.path, PROMPT, ledger=s.ledger, job="agent-sam")
-            cache.parent.mkdir(exist_ok=True)
-            cache.write_text(res.raw_output, encoding="utf-8")
-            instances = res.instances
-        h, w = (instances[0].mask.shape if instances else (1, 1))
-        for inst in instances:
-            cid = f"F{f.index:05d}-{inst.object_id}"
-            if cid in s.candidates:
-                continue
-            s.candidates[cid] = (f.index, inst)
-            new.append(dict(id=cid, frame=f.index, time_s=round(f.time_s, 1), box=list(inst.box),
-                            area_pct=round(100 * inst.area / (h * w), 2),
-                            sam_confidence=round(inst.confidence or 0, 2)))
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        for f in frames:
+            s.frame_paths[f.index] = f.path
+            text_job = pool.submit(_text_instances, s, f)
+            box_job = pool.submit(_box_instances, s, f) if s.box_proposals else None
+            text = text_job.result()
+            merged = merge_with_text(text, box_job.result()) if box_job else [(i.object_id, i) for i in text]
+            for obj, inst in merged:
+                h, w = inst.mask.shape
+                cid = f"F{f.index:05d}-{obj}"
+                if cid in s.candidates:
+                    continue
+                s.candidates[cid] = (f.index, inst)
+                new.append(dict(id=cid, frame=f.index, time_s=round(f.time_s, 1), box=list(inst.box),
+                                area_pct=round(100 * inst.area / (h * w), 2),
+                                sam_confidence=round(inst.confidence or 0, 2),
+                                source="text" if not obj.startswith("b") else "box"))
     return dict(frames_segmented=len(frames), new_candidates=len(new), total_candidates=len(s.candidates),
                 candidates=new[:40], truncated=len(new) > 40)
 
@@ -330,7 +365,8 @@ CHANGE_SCHEMA = {
 }
 
 TOOL_SCHEMAS = [
-    _fn("segment_frames", "Sample frames from the walkdown clip and run SAM 3.1 ('rust') on them. Start coarse "
+    _fn("segment_frames", "Sample frames from the walkdown clip and run SAM 3.1 ('rust') plus Muse Spark box proposals "
+        "(segmented by SAM 3.1) on them; masks are merged per frame. Start coarse "
         "(fps 0.5-1 over the whole clip); call again with a higher fps on time ranges that need a closer look.",
         {"start_s": {"type": "number"}, "end_s": {"type": "number"}, "fps": {"type": "number"}}, []),
     _fn("track_video", "Video clips only: track corrosion through the whole clip with SAM 3.1 video tracking. "
