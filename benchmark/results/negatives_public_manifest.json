@@ -1,0 +1,977 @@
+{
+ "summary": {
+  "downloaded": {
+   "corrosion-detection-sd/non-corroded-pipe": 268,
+   "corrosion-detection-sd/corrosion-detection-1": 306
+  },
+  "unique_source_names": {
+   "corrosion-detection-sd/non-corroded-pipe": 107,
+   "corrosion-detection-sd/corrosion-detection-1": 124
+  },
+  "kept_after_dedup": {
+   "corrosion-detection-sd/non-corroded-pipe": 70,
+   "corrosion-detection-sd/corrosion-detection-1": 121
+  },
+  "total_downloaded": 574,
+  "total_kept": 191,
+  "dedup_threshold_bits": 40,
+  "licence": "CC BY 4.0 (both projects, as reported by the Roboflow API)"
+ },
+ "images": [
+  {
+   "file": "neg0000.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "109636921-tubos-de-pvc-apilados-en-almacC3A9n-fondo-de-tubos-de-pvc-azul-con-luz-solar2_jpg.rf.a2dcc635a2da4a9a82f69f52eaa8a5ef.jpg"
+  },
+  {
+   "file": "neg0001.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "10_jpg.rf.53f41360083a76945989aad56e174346.jpg"
+  },
+  {
+   "file": "neg0002.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "11_jpg.rf.0968fe68bf4cf80b8f8dc0d87e447b37.jpg"
+  },
+  {
+   "file": "neg0003.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "14_jpg.rf.3804f8750bf7bf3d1d2e8b48b56e6421.jpg"
+  },
+  {
+   "file": "neg0004.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "199060_1_jpg.rf.5f5a2dd1425bf95f837501a2d00c5ed1.jpg"
+  },
+  {
+   "file": "neg0005.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "26_jpg.rf.2054bc5f4d117dfd3c05c93b29bd00ac.jpg"
+  },
+  {
+   "file": "neg0006.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "29_jpg.rf.18fc0f7f0752e3bef045207386f43f69.jpg"
+  },
+  {
+   "file": "neg0007.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "3-2-_jpg.rf.d1d592534b36bc003baf5751d04076c3.jpg"
+  },
+  {
+   "file": "neg0008.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "31_jpg.rf.2e15129682193b4255bb17af928239c9.jpg"
+  },
+  {
+   "file": "neg0009.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "33_jpg.rf.0b9f3aa6db3e3ee7912423156416f782.jpg"
+  },
+  {
+   "file": "neg0010.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "35_jpg.rf.0f254ead636b5d3ed299bebe74d01358.jpg"
+  },
+  {
+   "file": "neg0011.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "36_jpg.rf.560e3df6f7d2e242a922fcc70a86b77d.jpg"
+  },
+  {
+   "file": "neg0012.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "61012350-tubos-de-pvc-apiladas-en-el-almacC3A9n_jpg.rf.62f8f738e98eb6b131f2053305cdbbb7.jpg"
+  },
+  {
+   "file": "neg0013.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "61986802-tubos-de-pvc-apiladas-en-el-almacC3A9n_jpg.rf.32570397ba8ef1f811e01c4be8a0030f.jpg"
+  },
+  {
+   "file": "neg0014.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "6_jpg.rf.8b65c7821697e93802312a5f37822b12.jpg"
+  },
+  {
+   "file": "neg0015.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "Corrosion2_jpg.rf.0c2f0283bdb022c99d2013a7b9810b11.jpg"
+  },
+  {
+   "file": "neg0016.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3142_webp.rf.719ac9613fe5977bfc5fe6400f76a7d2.jpg"
+  },
+  {
+   "file": "neg0017.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3144_jpeg.rf.4364a8631c0b09e6810adc3b5ad15855.jpg"
+  },
+  {
+   "file": "neg0018.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3145_jpeg.rf.d8a546f671352070a5edfe71e9ef4a55.jpg"
+  },
+  {
+   "file": "neg0019.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3146_jpeg.rf.a2d8af1dc53a1d7cb8ae00ff8e60a11c.jpg"
+  },
+  {
+   "file": "neg0020.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3147_jpeg.rf.c1c0e6210a07071f46e09c6f0b165b48.jpg"
+  },
+  {
+   "file": "neg0021.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3148_jpeg.rf.2d9f24bc889bf3e1a30f096c76db5e98.jpg"
+  },
+  {
+   "file": "neg0022.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3149_jpeg.rf.fbe9dc3ffa296ace78aa43b2565cdd2b.jpg"
+  },
+  {
+   "file": "neg0023.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3151_jpeg.rf.4c476c5c0a7ec46444fd44d76a574b22.jpg"
+  },
+  {
+   "file": "neg0024.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3152_jpeg.rf.c63db9ec32a91a4a02b7f8b271fdbf53.jpg"
+  },
+  {
+   "file": "neg0025.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3153_jpeg.rf.f3a01ac8903c7ec8a7f75b0ad6e0c2a9.jpg"
+  },
+  {
+   "file": "neg0026.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3154_jpeg.rf.c94cd77909c0df6a6ea973c336c4c173.jpg"
+  },
+  {
+   "file": "neg0027.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3155-1-_jpeg.rf.b7a368afec5531677bdcc176ecc850c0.jpg"
+  },
+  {
+   "file": "neg0028.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3157-1-_jpeg.rf.294a8ac535507a3a6bca1ff6ae3feca9.jpg"
+  },
+  {
+   "file": "neg0029.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3158_jpeg.rf.30269c9fc94a21ce4da8b7ffd3dbb45d.jpg"
+  },
+  {
+   "file": "neg0030.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3159_jpeg.rf.44a1bef5165ecbfb7c2b07d1afb1eb96.jpg"
+  },
+  {
+   "file": "neg0031.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3160_jpeg.rf.eafe6d76f50226eda7e5bdfd214ced5c.jpg"
+  },
+  {
+   "file": "neg0032.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3161_jpeg.rf.af57e0976959bac10694faf8d8fa777f.jpg"
+  },
+  {
+   "file": "neg0033.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3162_jpeg.rf.2ef260edbd83d05a1545fd93e740be1f.jpg"
+  },
+  {
+   "file": "neg0034.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3163_jpeg.rf.492650e5d22100f8967a50663b65b476.jpg"
+  },
+  {
+   "file": "neg0035.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3165_jpeg.rf.776e5836a553370298a838795ecdd985.jpg"
+  },
+  {
+   "file": "neg0036.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3166_jpeg.rf.963a3290c615e15f9094bebac38af4d4.jpg"
+  },
+  {
+   "file": "neg0037.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3167_jpeg.rf.814e398ea224a4acb206e9fbcb86ea73.jpg"
+  },
+  {
+   "file": "neg0038.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3168_jpeg.rf.719913b79a549db48cfcc1e2f05f9fa6.jpg"
+  },
+  {
+   "file": "neg0039.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3169_jpeg.rf.2bbd93a0b26cd28eab844b4a83fd1d82.jpg"
+  },
+  {
+   "file": "neg0040.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3173_jpeg.rf.8c98593cc6803cc9bf248a04f5ff3d53.jpg"
+  },
+  {
+   "file": "neg0041.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3174_jpeg.rf.8703c7f543bab3d5e897ea3d9d56a797.jpg"
+  },
+  {
+   "file": "neg0042.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3175_jpeg.rf.2a2755a12fb896e294e26859dc79a2d1.jpg"
+  },
+  {
+   "file": "neg0043.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3176_jpeg.rf.1a8d93e1ba819d9ead5ffa5fba4fefc1.jpg"
+  },
+  {
+   "file": "neg0044.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3177_jpeg.rf.1c7e50e0a82e042eadd1ce456eba4d86.jpg"
+  },
+  {
+   "file": "neg0045.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3178_jpeg.rf.cb7d11f58968920ec60f4f5c8eb30b12.jpg"
+  },
+  {
+   "file": "neg0046.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "IMG_3179_jpeg.rf.0917a4d5dc9a11dafaa032cb37090aa6.jpg"
+  },
+  {
+   "file": "neg0047.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "Spain-LNG-regasification-terminal-GettyImages-1239593179_webp_jpg.rf.99d6277370786112f36d47e4c4decb00.jpg"
+  },
+  {
+   "file": "neg0048.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "Tubo-PVC-p-1-12-5m_jpg.rf.633e18b67a909042a38cdac5ecaaf9e8.jpg"
+  },
+  {
+   "file": "neg0049.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "Tuboplast-Tubo-12-x-5-m-SP-PVC_jpg.rf.6764fd3729bf8b320f95556cef9550a5.jpg"
+  },
+  {
+   "file": "neg0050.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "Tuboplast-Tubo-DesagC3BCe-2-x-3-m-PVC_jpg.rf.4225594d66e30580d91c6e13f4cbcd05.jpg"
+  },
+  {
+   "file": "neg0051.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "WhatsApp-Image-2025-03-19-at-12-51-11-AM_jpeg.rf.3721e5205468b028a1bf360fb839300f.jpg"
+  },
+  {
+   "file": "neg0052.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "WhatsApp-Image-2025-03-19-at-12-51-12-AM-2-_jpeg.rf.f3ee70ba1736eb3aa7b0af50497e0be7.jpg"
+  },
+  {
+   "file": "neg0053.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "WhatsApp-Image-2025-03-19-at-12-51-13-AM-2-_jpeg.rf.02dec92614bf85e892e2ed9749a6fb9b.jpg"
+  },
+  {
+   "file": "neg0054.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "cleaaaan_jpg.rf.494469506ad9e138305852aa028e95ee.jpg"
+  },
+  {
+   "file": "neg0055.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "cleaan-pipe_jpg.rf.11149a3e29b5a7ca4a59e5717fe9aa09.jpg"
+  },
+  {
+   "file": "neg0056.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "clean-pipe-1_jpg.rf.891390a153a2c1037d7f14dd73d9f948.jpg"
+  },
+  {
+   "file": "neg0057.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "clean-pipe_jpg.rf.0e17df432d7a2a44c5fe197051532cbc.jpg"
+  },
+  {
+   "file": "neg0058.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "clean_jpg.rf.ffc46d2596dfc8e63b371789826e8a8f.jpg"
+  },
+  {
+   "file": "neg0059.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "corrosion-non-uniform-_avif.rf.1df085eed6eddb7d3f420e3f83d10f94.jpg"
+  },
+  {
+   "file": "neg0060.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "depositphotos_386366090-stock-photo-selective-to-blue-plastic-pipe_jpg.rf.25f2b113d0b8f417edc38b32c10d817b.jpg"
+  },
+  {
+   "file": "neg0061.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "depositphotos_387769764-stock-photo-pvc-pipes-stacked-in-warehouse_jpg.rf.860df84f2b64792a5c05173be9b4c72d.jpg"
+  },
+  {
+   "file": "neg0062.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "download-1-_jpg.rf.1463fad9a849585ccb0078bb1e2f1e5b.jpg"
+  },
+  {
+   "file": "neg0063.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "download-2-_jpg.rf.f46e7eac8ad39272294ce32e6f224581.jpg"
+  },
+  {
+   "file": "neg0064.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "download-3-_jpg.rf.1780ed10783be321387dc74420c4c37b.jpg"
+  },
+  {
+   "file": "neg0065.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "download-4-_jpg.rf.021af83e00a20b29b25935a508e548c4.jpg"
+  },
+  {
+   "file": "neg0066.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "download-5-_jpg.rf.0a15f371a43474ffbb62f3b04b66b235.jpg"
+  },
+  {
+   "file": "neg0067.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "download-6-_jpg.rf.05d2ea5407597c30bb275c790c7f9c91.jpg"
+  },
+  {
+   "file": "neg0068.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "download_jpg.rf.069a3cd176438983b1c017db7a7ba5d9.jpg"
+  },
+  {
+   "file": "neg0069.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "filliform-corrosion-1_jpg.rf.cecd6f350a8af60434c03963155a19e1.jpg"
+  },
+  {
+   "file": "neg0070.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "filliform-pipe-_jpg.rf.0dabbffc3c55464534973c10ac052f4c.jpg"
+  },
+  {
+   "file": "neg0071.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "image14_jpeg_jpg.rf.04d4a81a60ece5262b12cd8ebc0a9787.jpg"
+  },
+  {
+   "file": "neg0072.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "image19_jpeg_jpg.rf.1d491feba3f97aa8530290fa6cbcccdb.jpg"
+  },
+  {
+   "file": "neg0073.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "image25_jpeg_jpg.rf.35dbd53de295a4e224bb9d0e011f17ca.jpg"
+  },
+  {
+   "file": "neg0074.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-1-_jpg.rf.030c887d43ef349e29a36eddcfa860c3.jpg"
+  },
+  {
+   "file": "neg0075.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-10-_jpg.rf.0e3840e9c976ef621dcddedd91b6a4c9.jpg"
+  },
+  {
+   "file": "neg0076.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-11-_jpg.rf.14cdbd3654826a15c2046418606a7ca6.jpg"
+  },
+  {
+   "file": "neg0077.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-12-_jpg.rf.1546352e4bf85759ca82e96821fe1b43.jpg"
+  },
+  {
+   "file": "neg0078.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-13-_jpg.rf.49758943eb5d749be878e0703b4f82a3.jpg"
+  },
+  {
+   "file": "neg0079.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-14-_jpg.rf.4eb0625e133aef8609058d982b3c3318.jpg"
+  },
+  {
+   "file": "neg0080.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-15-_jpg.rf.76008f24ae8695ef4051d0341ab6f3d4.jpg"
+  },
+  {
+   "file": "neg0081.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-16-_jpg.rf.3df94e1078b7126744fcaa2c11e4b6cb.jpg"
+  },
+  {
+   "file": "neg0082.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-19-_jpg.rf.2e0bdf0165b5199a0a3659cf2064c61d.jpg"
+  },
+  {
+   "file": "neg0083.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-2-_jpg.rf.3883c7c6244e8d78e831b5efcac85366.jpg"
+  },
+  {
+   "file": "neg0084.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-21-_jpg.rf.10323f96af08f690d835394ec6640fc9.jpg"
+  },
+  {
+   "file": "neg0085.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-3-_jpg.rf.8c94c6e2d549ac78a4aa53194aa5daa0.jpg"
+  },
+  {
+   "file": "neg0086.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-4-_jpg.rf.73805702ec8e92c4747043883e9ab781.jpg"
+  },
+  {
+   "file": "neg0087.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-5-_jpg.rf.3afd1d1b445d1465e6b9dcd889517e5e.jpg"
+  },
+  {
+   "file": "neg0088.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-6-_jpg.rf.214e61bc120e7342c2a608354f688a43.jpg"
+  },
+  {
+   "file": "neg0089.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-7-_jpg.rf.30ca62c28c4ed71db6361d68f19d4ed4.jpg"
+  },
+  {
+   "file": "neg0090.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-8-_jpg.rf.21aacf37ea03588ecc1222d95ca8c3d6.jpg"
+  },
+  {
+   "file": "neg0091.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images-9-_jpg.rf.51359f0827438cace3427c14f9cd6299.jpg"
+  },
+  {
+   "file": "neg0092.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images13_jpg.rf.5a746cec0b3ba11e9b076989c8d5b2af.jpg"
+  },
+  {
+   "file": "neg0093.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images19_jpg.rf.423301c5fd1ab169934660fdb0eb360f.jpg"
+  },
+  {
+   "file": "neg0094.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images2_jpg.rf.3948860e99c7bba70290935b59c85a54.jpg"
+  },
+  {
+   "file": "neg0095.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images5_jpg.rf.38c8453d7ab1c2c32c72b41e046907cb.jpg"
+  },
+  {
+   "file": "neg0096.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images7_jpg.rf.3b8745b3e9aa23b3dde401e56685ee01.jpg"
+  },
+  {
+   "file": "neg0097.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "images_jpg.rf.95e144a1f703121ea616f49aa9eabd0c.jpg"
+  },
+  {
+   "file": "neg0098.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "istockphoto-1071805388-612x612_jpg.rf.4e5eef2694a2b99d87ae75a39629eabb.jpg"
+  },
+  {
+   "file": "neg0099.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "istockphoto-119260022-612x612_jpg.rf.7dc202ea0805513e751d6e4b58fb25df.jpg"
+  },
+  {
+   "file": "neg0100.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "istockphoto-1391407477-612x612_jpg.rf.51240f4b092ae863c1fe290f9e83c322.jpg"
+  },
+  {
+   "file": "neg0101.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "istockphoto-521713479-612x612_jpg.rf.f8fca0cfddf4c2d1aeeecea6e7b27ce0.jpg"
+  },
+  {
+   "file": "neg0102.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "istockphoto-645257820-612x612_jpg.rf.42464a31370b40ac5325f3bc9ef50deb.jpg"
+  },
+  {
+   "file": "neg0103.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "istockphoto-966263184-612x612_jpg.rf.30bf95fdba90456f1ee5b9454b64fe1d.jpg"
+  },
+  {
+   "file": "neg0104.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "istockphoto-992317522-612x612_jpg.rf.0b5fa9c878a35573612cd08386d7dd1d.jpg"
+  },
+  {
+   "file": "neg0105.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "large-pipes-piled-up-on-a-construction-site-free-photo_jpg.rf.6fa0409fc982d270b79eb99d3c5148d7.jpg"
+  },
+  {
+   "file": "neg0106.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "non-corroded-pipe_avif.rf.3fb0309750c1f4774bd2e5e39cd362ca.jpg"
+  },
+  {
+   "file": "neg0107.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "non-corroded_jpg.rf.75b04258a342e23016ffd9d447586f31.jpg"
+  },
+  {
+   "file": "neg0108.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "pipeee-clean_jpg.rf.171527f42f6d5923a19bcf850c1d1473.jpg"
+  },
+  {
+   "file": "neg0109.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "pipeliins_jpg.rf.5eedaef65008a2bca5c1a8092700cf89.jpg"
+  },
+  {
+   "file": "neg0110.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "pipeline-1264084_1280_jpg.rf.2116239f701bd969aad1e0b671bd3b22.jpg"
+  },
+  {
+   "file": "neg0111.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "pipeline_jpg.rf.3ea7a6926046b6f87970a54db07f7556.jpg"
+  },
+  {
+   "file": "neg0112.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "pippppw_jpg.rf.9473af3bea86a3930af7c873716e8eb8.jpg"
+  },
+  {
+   "file": "neg0113.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "telechargement-3-_jpg.rf.9fbcfa8cef3375c9ede819084c8074c5.jpg"
+  },
+  {
+   "file": "neg0114.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "tubo-pvc-desaguee-2-x-3-m-pavco_jpg.rf.055f489eaecd584d0bf2fbb26e1da3ac.jpg"
+  },
+  {
+   "file": "neg0115.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "tubos-de-pvc-apilados-en-tierra-en-el-sitio-de-construccion-3d-renderizado-2j1hmf5_jpg.rf.397e334e660385d556500bcde906fe75.jpg"
+  },
+  {
+   "file": "neg0116.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "tubos-del-pvc-apilados-en-almacC3A9n-75272153_jpg.rf.7ff9ab01ae4724166a2f1ed045f85959.jpg"
+  },
+  {
+   "file": "neg0117.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "tubos-del-pvc-apilados-en-emplazamiento-de-la-obra-30266107_jpg.rf.f8c053a07211c9b7d87dc6650e71c041.jpg"
+  },
+  {
+   "file": "neg0118.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "tubos-pvc-apilados-almacen-render-3d-tubos-pvc-tubos_394271-135_jpg.rf.59d20fa6fd302e53ccad858b583a648a.jpg"
+  },
+  {
+   "file": "neg0119.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "tubos-pvc-grises-de-plC3A1stico-apilados-en-filas-con-luz-que-brilla-175105382_jpg.rf.e10a90f009cfbb6bc77fa0a0d4385d3a.jpg"
+  },
+  {
+   "file": "neg0120.jpg",
+   "project": "corrosion-detection-sd/corrosion-detection-1",
+   "source_file": "water-pipe-51760_1280_jpg.rf.7571be4131b4464d0378064ceb4a625a.jpg"
+  },
+  {
+   "file": "neg0121.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "10_jpg.rf.7ebdafed6df822153c7432e50b24f8ef.jpg"
+  },
+  {
+   "file": "neg0122.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "11_jpg.rf.0eea60d99e3cb65b09f276d53e523e7b.jpg"
+  },
+  {
+   "file": "neg0123.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "17_jpg.rf.243929801f20486862e393971af8aeaf.jpg"
+  },
+  {
+   "file": "neg0124.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "19_jpg.rf.124703263f935f25e5bdcaf7a5c21711.jpg"
+  },
+  {
+   "file": "neg0125.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "26_jpg.rf.19a9c7f2aafe605ac6f88780463d606b.jpg"
+  },
+  {
+   "file": "neg0126.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "3-2-_jpg.rf.081db8aea8bbad501a4ea4f6ef696b24.jpg"
+  },
+  {
+   "file": "neg0127.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "36_jpg.rf.337aaab71fef4d36c5ada2265351c7ef.jpg"
+  },
+  {
+   "file": "neg0128.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3142_webp.rf.6b1ad59232deef4003ed9e79d93231ed.jpg"
+  },
+  {
+   "file": "neg0129.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3143_jpeg.rf.2a3f7e852feaf88e0534027023517e95.jpg"
+  },
+  {
+   "file": "neg0130.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3144_jpeg.rf.2a2129f8814ab535bae9430fce7ff3f7.jpg"
+  },
+  {
+   "file": "neg0131.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3146_jpeg.rf.6f65f7c4aa1c6db10cccfc88ddc2fb95.jpg"
+  },
+  {
+   "file": "neg0132.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3147_jpeg.rf.469ee74962f9885e8524bb27e87c9d26.jpg"
+  },
+  {
+   "file": "neg0133.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3149_jpeg.rf.3b1a7da2a9ed848673a73dd142a5f225.jpg"
+  },
+  {
+   "file": "neg0134.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3150_jpeg.rf.2220e4d23cb1e5259263e6fef65c1597.jpg"
+  },
+  {
+   "file": "neg0135.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3151_jpeg.rf.3ea81f798fc7d058fc40d91fbe4ff4ea.jpg"
+  },
+  {
+   "file": "neg0136.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3152_jpeg.rf.5e93afe96c9d5bc87f31f88aa5b93cec.jpg"
+  },
+  {
+   "file": "neg0137.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3154_jpeg.rf.4fb50afb6f434039e7bb65141b7f03f9.jpg"
+  },
+  {
+   "file": "neg0138.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3156-1-_jpeg.rf.24f6678835038f43d1555091ca22d6a3.jpg"
+  },
+  {
+   "file": "neg0139.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3157-1-_jpeg.rf.0140d11d92b8731f36eeedc57ecfb401.jpg"
+  },
+  {
+   "file": "neg0140.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3158_jpeg.rf.2206ce66d1ba84e9bb9886ccefd41248.jpg"
+  },
+  {
+   "file": "neg0141.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3159_jpeg.rf.20c029babaa92308a2f552257fc55494.jpg"
+  },
+  {
+   "file": "neg0142.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3161_jpeg.rf.64d7ffc9de9cbb98e2ca78457ef319e5.jpg"
+  },
+  {
+   "file": "neg0143.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3162_jpeg.rf.ac7598561932c77bc1705747d8c90f85.jpg"
+  },
+  {
+   "file": "neg0144.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3164_jpeg.rf.56dec9ebb7c3d27c0d4de07d7c24161f.jpg"
+  },
+  {
+   "file": "neg0145.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3165_jpeg.rf.522a52e1752bd452e0ca691220149f9f.jpg"
+  },
+  {
+   "file": "neg0146.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3169_jpeg.rf.341d3e22b22203b08b2711ff664eaf6d.jpg"
+  },
+  {
+   "file": "neg0147.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3173_jpeg.rf.c25148b2dcafc212f41aa9c2442be33d.jpg"
+  },
+  {
+   "file": "neg0148.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3174_jpeg.rf.be1d948edacef1a7b83fb1454265cf35.jpg"
+  },
+  {
+   "file": "neg0149.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3176_jpeg.rf.879b5df5a452c86062bc1f553df08915.jpg"
+  },
+  {
+   "file": "neg0150.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "IMG_3177_jpeg.rf.0d263ad4cab03864e9c94958f639fec2.jpg"
+  },
+  {
+   "file": "neg0151.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "WhatsApp-Image-2025-03-19-at-12-51-11-AM_jpeg.rf.4587a51eae96c39ff52a2575cfb90c1d.jpg"
+  },
+  {
+   "file": "neg0152.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "WhatsApp-Image-2025-03-19-at-12-51-12-AM_jpeg.rf.af2330a7044dd39c0e80693e0e94791b.jpg"
+  },
+  {
+   "file": "neg0153.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "cleaaaan_jpg.rf.08ab1fbbbf141645e25820f02813335c.jpg"
+  },
+  {
+   "file": "neg0154.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "clean-pipe-1_jpg.rf.0e720cbc4bcf928a9f05bd957dfcc1f4.jpg"
+  },
+  {
+   "file": "neg0155.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "clean-pipe_jpg.rf.1891ecf1247486ce7b9288dfc776ec42.jpg"
+  },
+  {
+   "file": "neg0156.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "download-1-_jpg.rf.2926e750169fca8062181fb3d140c480.jpg"
+  },
+  {
+   "file": "neg0157.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "download-3-_jpg.rf.68f762d7567b8f11ad13f21879f2f859.jpg"
+  },
+  {
+   "file": "neg0158.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "download-5-_jpg.rf.70075f9e20859ad595afcd57b92af7ec.jpg"
+  },
+  {
+   "file": "neg0159.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "download-6-_jpg.rf.1c44a15e03b81e794a7252b1f72f5f92.jpg"
+  },
+  {
+   "file": "neg0160.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-10-_jpg.rf.d6843eeca255430071c96b76685858ca.jpg"
+  },
+  {
+   "file": "neg0161.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-11-_jpg.rf.7957d495dd4650c4e9fd045ba8c474e3.jpg"
+  },
+  {
+   "file": "neg0162.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-13-_jpg.rf.2e615c5e75e55256fb8c4e756db3883a.jpg"
+  },
+  {
+   "file": "neg0163.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-14-_jpg.rf.5158043a7b3b73e850b9e438beb58a3c.jpg"
+  },
+  {
+   "file": "neg0164.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-19-_jpg.rf.0ad8c246c72fb86616e701834d39fed5.jpg"
+  },
+  {
+   "file": "neg0165.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-2-_jpg.rf.f8fa56e323757c9658f9361a3b32e96e.jpg"
+  },
+  {
+   "file": "neg0166.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-21-_jpg.rf.2a82a6dabb033623e30847049e8ea788.jpg"
+  },
+  {
+   "file": "neg0167.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-3-_jpg.rf.06e44a52442dc83f51fbb5d5c22b22f7.jpg"
+  },
+  {
+   "file": "neg0168.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-5-_jpg.rf.06b9dd3f560e658b201fd192d5ba760d.jpg"
+  },
+  {
+   "file": "neg0169.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-6-_jpg.rf.1d7665469b65c2b91114b03de51d584f.jpg"
+  },
+  {
+   "file": "neg0170.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-7-_jpg.rf.68e0d6d9c5d4ec67492ea11ed23d79e9.jpg"
+  },
+  {
+   "file": "neg0171.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images-8-_jpg.rf.080119f279d4b85b40cbe7a17d4f6f4e.jpg"
+  },
+  {
+   "file": "neg0172.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "images_jpg.rf.0230ed2bb34383bf3890cbe65a28fc0f.jpg"
+  },
+  {
+   "file": "neg0173.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "istockphoto-1071805388-612x612_jpg.rf.0847114245b691721c91c6f191f89bb1.jpg"
+  },
+  {
+   "file": "neg0174.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "istockphoto-119260022-612x612_jpg.rf.a06b2b7c52d062a5a594d666d709e722.jpg"
+  },
+  {
+   "file": "neg0175.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "istockphoto-1295256068-612x612_jpg.rf.1ce261b4683bfc7ca3b5f7cf3682fe42.jpg"
+  },
+  {
+   "file": "neg0176.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "istockphoto-1391407477-612x612_jpg.rf.f1915cf979224f0318c693e43c4e1340.jpg"
+  },
+  {
+   "file": "neg0177.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "istockphoto-470802352-612x612_jpg.rf.0b763d9c5f30a7f4b30a2a754d5448bb.jpg"
+  },
+  {
+   "file": "neg0178.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "istockphoto-645257820-612x612_jpg.rf.b69552378dfe48f37a419858fa92f297.jpg"
+  },
+  {
+   "file": "neg0179.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "istockphoto-966263184-612x612_jpg.rf.000bedcb74751d3528d3c81f32c1e17e.jpg"
+  },
+  {
+   "file": "neg0180.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "istockphoto-992317522-612x612_jpg.rf.4c3f60602e3d3885705f5ea5913e57d1.jpg"
+  },
+  {
+   "file": "neg0181.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "non-corroded-pipe_avif.rf.41b126f20523b0f57c97712b261a2d8b.jpg"
+  },
+  {
+   "file": "neg0182.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "piiiiipline_png_jpg.rf.953171a93cd5fe652a1cbaa3cec818a6.jpg"
+  },
+  {
+   "file": "neg0183.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "pipeee-clean_jpg.rf.03f04d40714bb94fa1eeebea949c15dc.jpg"
+  },
+  {
+   "file": "neg0184.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "pipeeee-clean_jpg.rf.1bef88184211cc7080644dbda812af9c.jpg"
+  },
+  {
+   "file": "neg0185.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "pipeeeeeeee-clean_jpg.rf.b664e0c962d15a081424b2e78191a7a2.jpg"
+  },
+  {
+   "file": "neg0186.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "pipeliiiine_jpg.rf.e77959b4171269917279b1c81d1a5685.jpg"
+  },
+  {
+   "file": "neg0187.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "pipeline-1264084_1280_jpg.rf.26cf1da8b8eb4bf56cfbe7b9cb17dc3c.jpg"
+  },
+  {
+   "file": "neg0188.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "telechargement-3-_jpg.rf.3a821dd563745b2f850223cb0870634f.jpg"
+  },
+  {
+   "file": "neg0189.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "telechargement_jpg.rf.1c84c938e99c014ff60cfe92ab70b22d.jpg"
+  },
+  {
+   "file": "neg0190.jpg",
+   "project": "corrosion-detection-sd/non-corroded-pipe",
+   "source_file": "water-pipe-51760_1280_jpg.rf.24c1d05e85976cc25787aa3abcb469fb.jpg"
+  }
+ ]
+}

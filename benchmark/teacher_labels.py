@@ -127,8 +127,7 @@ def run_verify(images: list[str], ledger: CostLedger, max_usd: float) -> None:
                 print(f"{rel}: {rows}; retry later", flush=True)
                 return
             with JOURNAL.open("a", encoding="utf-8") as f:
-                f.write(json.dumps(dict(image=rel, rows=rows)) + "
-")
+                f.write(json.dumps(dict(image=rel, rows=rows)) + "\n")
             finished[0] += 1
             if finished[0] % 20 == 0:
                 print(f"{finished[0]}/{len(todo)} images, new spend ${ledger.total() - start:.2f}", flush=True)
