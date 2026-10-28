@@ -25,12 +25,14 @@ export async function uploadClip(files: File[], asset: { asset_id: string; asset
   return json<{ clip_id: string; duration_s: number }>(await fetch(`${API_URL}/clips`, { method: "POST", body: form }));
 }
 
-export async function startRun(clip_id: string, live: boolean) {
+export type Mode = "cloud" | "onprem";
+
+export async function startRun(clip_id: string, live: boolean, mode: Mode = "cloud") {
   return json<{ run_id: string }>(
     await fetch(`${API_URL}/runs`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clip_id, live }),
+      body: JSON.stringify({ clip_id, live, provider: mode === "onprem" ? "baseten" : "meta" }),
     }),
   );
 }

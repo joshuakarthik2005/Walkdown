@@ -44,6 +44,7 @@ export default function Home() {
   const [files, setFiles] = useState<File[]>([]);
   const [asset, setAsset] = useState({ asset_id: "UNIT2-LPG-RACK", asset_type: "pipe", pressurised: true, location: "", service: "lpg" });
   const [live, setLive] = useState(false);
+  const [mode, setMode] = useState<api.Mode>("cloud");
   const [runId, setRunId] = useState<string | null>(null);
   const [status, setStatus] = useState<RunStatus | null>(null);
   const [events, setEvents] = useState<TraceEvent[]>([]);
@@ -117,7 +118,7 @@ export default function Home() {
     setFrames([]);
     cursor.current = 0;
     try {
-      const r = await api.startRun(clipId, live);
+      const r = await api.startRun(clipId, live, mode);
       setStatus(null);
       setRunId(r.run_id);
       setPollKey((k) => k + 1);
@@ -206,6 +207,15 @@ export default function Home() {
               <input style={{ flex: 1 }} value={clipId} onChange={(e) => setClipId(e.target.value)} placeholder="or paste a clip id" />
             </div>
             <label className="row"><input type="checkbox" checked={live} onChange={(e) => setLive(e.target.checked)} /> live (skip cached perception and verification)</label>
+            <div className="mode-switch" role="radiogroup" aria-label="Model mode">
+              <button className={mode === "cloud" ? "" : "ghost"} onClick={() => setMode("cloud")} disabled={running}>Cloud</button>
+              <button className={mode === "onprem" ? "" : "ghost"} onClick={() => setMode("onprem")} disabled={running}>On-prem</button>
+            </div>
+            <div className="muted mode-note">
+              {mode === "cloud"
+                ? "Hosted Meta models: SAM 3.1, Muse Spark (agent, verifier), Muse Wonder (senior review)."
+                : "Open weights: agent and verifier on Muse Spark Open. Built with Muse Spark Open. SAM 3.1 open weights run on a GPU endpoint when one is configured; until then segmentation uses hosted SAM 3.1. No Muse Wonder senior review."}
+            </div>
             <div className="row" style={{ marginTop: 10 }}>
               <button onClick={run} disabled={!clipId || running}>Run the agent</button>
             </div>
