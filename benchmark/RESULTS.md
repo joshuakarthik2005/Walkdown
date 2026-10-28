@@ -150,24 +150,37 @@ What this shows:
   - For severity changes, Muse Wonder's grade stays final; the first-pass severity is shown next to it.
 - With this rule, senior review loses no recall. What it adds is a disagreement signal on about 1% of candidates (54 of 5,066), sent to a human. It also gives a second severity opinion on the severe ones.
 
-## 6. Open weights: Muse Spark Open (Baseten) on the same candidates (test split, partial)
+## 6. Open weights: Muse Spark Open (Baseten) vs hosted Muse Spark on all 5,066 candidates (test split)
 
 **Setup**
-- Same text-only candidates, prompt and images as §2, verified by **`meta-models/muse-spark-open-1026`** on Baseten.
-- Baseten does not offer structured outputs, so the schema is given in the prompt, and the reply is parsed and validated with one retry. Script: `benchmark/verify_scale.py --provider baseten`.
-- **Partial run.** The local memory guard stopped it at **1,169 of 1,444 images (3,784 of 5,066 candidates)**. All numbers below are on those 3,784 candidates, compared with hosted Muse Spark on exactly the same candidates.
+- The same 5,066 text-only test candidates, prompt and images as §2, verified by **`meta-models/muse-spark-open-1026`** on Baseten.
+- Baseten does not offer structured outputs, so the JSON schema is in the prompt, and each reply is parsed and validated (one automatic re-ask on a malformed reply).
+- **Same conditions as the hosted run:** every candidate was verified with **max_tokens = 4,000**.
+  - The run was resumed after the local memory guard stopped it.
+  - 55 images had briefly run at 8,000 tokens. Their verdicts were set aside and redone at 4,000 so all candidates share one setting.
+- **Retry setting.** Only the candidates whose reply was still invalid at 4,000 tokens were re-verified at **max_tokens = 8,000** (`benchmark/verify_retry.py`). The product's On-prem verifier now uses 8,000 by default.
+- Files:
+  - `results/verify_scale_test_baseten_low.json` (the 4,000-token run)
+  - `results/verify_retry_test_baseten_low.json` (the retry)
+  - the hosted run is §2.
 
-| Metric (3,784 candidates) | Muse Spark Open (Baseten) | Hosted Muse Spark (§2) |
-|---|---|---|
-| Same accept/reject decision as hosted | **93.3%** | – |
-| Severity, both accepted (n = 3,253): exact / within ±1 | 67.8% / **99.1%** | – |
-| TP retention (coverage ≥ 0.5, n = 2,708) | **96.5%** | 95.2% |
-| Accepted share | 91.8% | – |
-| Invalid replies (no valid grade after retry) | **1.8%** (69); some calls hit the 4,000-token output limit (0.5–4% of calls per batch) | 0% (strict schema) |
-| Reasoning tokens per call (mean) | 1,675 | 754 |
-| Cost per candidate (listed $1.25 / $0.15 / $4.25 per 1M) | $0.0084 | $0.0043 |
-| Latency per call (median) | 11.1 s | 5.9 s |
+| Metric (5,066 candidates) | Muse Spark Open, 4,000 tokens | **+ retry of invalid replies at 8,000** | Hosted Muse Spark (§2) |
+|---|---|---|---|
+| Invalid replies | 92 (1.82%) | **0 (0.00%)**: all 92 recovered | 0 (strict schema) |
+| Same accept/reject decision as hosted | 93.3% | **93.4%** | – |
+| Severity when both accept: exact / within ±1 | 68.2% / 99.2% (n = 4,367) | **68.1% / 99.1%** (n = 4,418) | – |
+| TP retention (coverage ≥ 0.5, n = 3,616) | 96.7%* | **96.4%** | 95.5% |
+| Accepted share | 91.8%* | 91.3% | 89.8% |
+| Reasoning tokens per call (mean) | 1,668 | – | 754 |
+| Cost per candidate | $0.0083 | retry: $0.0115 per retried candidate | $0.0043 |
+| Latency per call: median / p90 | 10.9 s / 15.8 s | retry median 13.9 s | 5.3 s / 25.6 s |
+| Total cost | $42.27 | + $1.05 | $21.78 |
 
-- **Open weights are a usable on-prem verifier.** It keeps slightly more annotated corrosion than the hosted model, and its severities are almost always within one grade of hosted.
-- Costs: about twice the tokens, because it reasons longer; twice the latency; and a 1.8% invalid-reply rate, because without strict decoding a long reasoning trace can run out of output budget. Invalid replies are sent to human review, never dropped.
-- Cost of the partial run: $31.79 (Baseten credits).
+\* Invalid replies count as accepted (fail open: they go to human review). That is why the 4,000-token column is slightly higher.
+
+- **Open weights are a usable on-prem verifier.**
+  - It agrees with hosted Muse Spark on 93.4% of decisions, and severities are within one grade 99.1% of the time.
+  - It keeps slightly more annotated corrosion (96.4% vs 95.5%).
+- **The 1.8% invalid replies were an output budget problem, not a model failure.** Muse Spark Open reasons for about twice as many tokens, and without strict decoding a long reasoning trace can use up 4,000 tokens before the JSON. At 8,000 tokens every one of them returned a valid grade. Of the 92: 65 accepted, 27 rejected; labels 47 TP, 41 FP, 4 ambiguous.
+- **The cost of open weights here** is about 2× tokens per candidate and about 2× median latency. (Its p90 latency is lower than the hosted run's, which had a slow phase; see §2's throughput note.)
+- Job cost: $47.15 of Baseten credit in total. That is the 4,000-token run ($42.27), the set-aside 8,000-token verdicts ($3.84) and the retry ($1.05).

@@ -1,0 +1,43 @@
+{
+ "split": "test",
+ "provider": "baseten",
+ "effort": "low",
+ "images": 1444,
+ "images_done": 1444,
+ "candidates": 5066,
+ "complete": true,
+ "label_counts": {
+  "TP": 3616,
+  "FP": 1325,
+  "ambiguous": 125
+ },
+ "tp_retention": 0.9665376106194691,
+ "accepted_share": 0.9180813264903277,
+ "fp_rejection_vs_dataset_labels_NOT_RELIABLE": 0.21056603773584906,
+ "invalid_reply_rate": 0.018160284247927372,
+ "severity_histogram": {
+  "1": 5,
+  "2": 1798,
+  "3": 2130,
+  "4": 575,
+  "5": 51
+ },
+ "flags": {
+  "no_valid_grade": 92,
+  "poor_mask_fit": 4
+ },
+ "cost": {
+  "usd_all_candidates": 42.2727525,
+  "usd_per_candidate_mean": 0.008344404362416107,
+  "reasoning_tokens_mean": 1668.1111330438216
+ },
+ "latency_s_median": 10.915543049999542,
+ "last_chunk": {
+  "wall_s": 1947.156745500004,
+  "workers": 2,
+  "images": 275,
+  "new_calls": 1281,
+  "usd": 10.478671550000005,
+  "new_calls_per_min": 39.472939288338274
+ }
+}

@@ -1,0 +1,392 @@
+{
+ "split": "test",
+ "provider": "baseten",
+ "effort": "low",
+ "max_tokens": 8000,
+ "candidates": 5066,
+ "invalid_before": 92,
+ "invalid_rate_before": 0.018160284247927358,
+ "retried": 92,
+ "fixed": 92,
+ "invalid_after": 0,
+ "invalid_rate_after": 0.0,
+ "fixed_accepted": 65,
+ "fixed_label_counts": {
+  "TP": 47,
+  "FP": 41,
+  "ambiguous": 4
+ },
+ "usd": 1.05370125,
+ "usd_per_retry": 0.01145327445652174,
+ "latency_s_median": 13.850597949996882,
+ "per_candidate": {
+  "000140_jpg.rf.15cf8ed313514ead1e97698b8bc7c617#1": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000150_jpg.rf.cbd042fa342ccedee13d06deb7484a9f#0": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000185_jpg.rf.d0983783a6c0e092a2d1cfe7e1f6a51e#2": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000185_jpg.rf.d0983783a6c0e092a2d1cfe7e1f6a51e#5": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000185_jpg.rf.d0983783a6c0e092a2d1cfe7e1f6a51e#11": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000185_jpg.rf.bea3441b0a2507691c00fff79b7ecaaa#0": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000185_jpg.rf.ddb602d519b82565769388a260854433#5": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000185_jpg.rf.ddb602d519b82565769388a260854433#12": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000185_jpg.rf.ddb602d519b82565769388a260854433#13": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000351_png_jpg.rf.dfdb9c3022d62c8f1b87baca1bd18bad#0": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000353_jpg.rf.aa2827e79d4dcdd1b99fb7f8a73b76d5#0": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000481_jpg.rf.17b4f763ca49355c6c3d11f24e54fb96#0": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000542_jpg.rf.9d9e15ffd1a5b40a88938e38bafc343f#1": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000555_jpg.rf.491979e7bea0bd024ad32c816a39ef0c#1": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "33_jpg.rf.3cee6a2101766aa6bb4c7e54c5056747#0": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "CL21_png_jpg.rf.cad9f20f64b6464e909d69579fbba03c#1": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "CL9_jpg.rf.a238c728d5140f3d50bea1249160fa32#5": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "CM2_jpg.rf.5f0035d4551e679c4c74b1e849060db4#2": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "CM3_jpg.rf.35f7645c0069544bd517b13990740978#4": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "Captura-de-Tela-2023-01-25-a-s-10-28-27_png_jpg.rf.73b170e344d0aabc051e152e7185b747#3": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "Captura-de-Tela-2023-01-25-a-s-18-19-34_png_jpg.rf.9b0d0a7d8b66374071216deebd0922be#0": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "GEN_349_jpg.rf.21da77f2223aab721abb9303d5d124bd#0": {
+   "is_defect": true,
+   "severity": 4
+  },
+  "GEN_59_jpg.rf.489bbc0e28d88e345a5adf975705a428#4": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "L25_jpg.rf.b6aaadbdfb604e63e54f7a20a825e772#23": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "L30_jpg.rf.3609bd5339075d369de2182a45116489#2": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "L36_jpg.rf.a0f8a9bcfd9463bd9a1774344df68111#0": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "M11_jpg.rf.97412c910c49faa9fcd3ecb75d59ec5e#11": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "M1_jpg.rf.ea165b7e3ab2cef927821048b24fb99d#2": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "M1_jpg.rf.ea165b7e3ab2cef927821048b24fb99d#3": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "M1_jpg.rf.ea165b7e3ab2cef927821048b24fb99d#4": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "S24_jpg.rf.581eb660d9aa388d7824b3d1d3909099#6": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "S8_jpg.rf.9557fbec1959fc6224c912113aa14f59#15": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "S8_jpg.rf.9557fbec1959fc6224c912113aa14f59#21": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "S8_jpg.rf.9557fbec1959fc6224c912113aa14f59#28": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "corosion_jpg.rf.ed89d751f6a61ff63ae73341c3dc3649#13": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "deborah-l-carlson-06Wg3ZQfQCg-unsplash_jpg.rf.85190c46f4de6ec0f5f40af3b56b160e#2": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "deborah-l-carlson-06Wg3ZQfQCg-unsplash_jpg.rf.85190c46f4de6ec0f5f40af3b56b160e#3": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "flange-leak_jpg.rf.8a23960bdb908a65b2fcfcec0e2dbda3#1": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "img121_jpg.rf.7a2f12c993d646f803b3da06871ea901#8": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "img158_jpg.rf.d0c4d0329b39ea05abfc693b39df4152#8": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "img146_jpg.rf.d4cb6a45a4b5770aa0f0cc6caa129b11#4": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "img146_jpg.rf.d4cb6a45a4b5770aa0f0cc6caa129b11#7": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "rust-15_jpg.rf.1bf0819b3b0398ed141f1897276b425f#9": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "rust-32_jpg.rf.4099ca99cadb13a52afc984886d2e93a#3": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "rust-32_jpg.rf.4099ca99cadb13a52afc984886d2e93a#5": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "rust-32_jpg.rf.4099ca99cadb13a52afc984886d2e93a#12": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "rust-32_jpg.rf.6e1229ad6bbd8d49da23f2d8d3953790#8": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "rust-32_jpg.rf.6e1229ad6bbd8d49da23f2d8d3953790#9": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "rust-32_jpg.rf.6e1229ad6bbd8d49da23f2d8d3953790#12": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "rust-32_jpg.rf.6e1229ad6bbd8d49da23f2d8d3953790#13": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "rust-59_jpg.rf.be09f54e7a9ac41bc736619127bd52c9#29": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000021_jpg.rf.e0c3e5c0d0cc0f52616f5b70444e6bea#0": {
+   "is_defect": true,
+   "severity": 4
+  },
+  "000150_jpg.rf.747d5acdbd7398b92efb92189ea18d43#0": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000178_jpg.rf.5551eb42b891644d57333f7d9b3bced6#0": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000185_png_jpg.rf.35e813057cfe259b7a5fe9ce318a5088#0": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000185_png_jpg.rf.35e813057cfe259b7a5fe9ce318a5088#11": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000185_png_jpg.rf.20f8adea687570ae6198a4fe2f0f7628#0": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000185_png_jpg.rf.20f8adea687570ae6198a4fe2f0f7628#6": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000185_png_jpg.rf.20f8adea687570ae6198a4fe2f0f7628#11": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000185_png_jpg.rf.20f8adea687570ae6198a4fe2f0f7628#22": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "000226_jpg.rf.f115eb9fdcbcbf097e7447fcd42efce1#6": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "000408_jpg.rf.3a8712e768e597ff4bfed02876a03932#4": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "0758_jpg.rf.49abe7e54ffa1a35244e0888b7509a33#5": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "1200px-Corrosion_Under_Paint_01_jpeg_jpg.rf.27bfcb46fee03ba68fafd717c846722f#3": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "14_jpg.rf.600e1280fb456824c9d53d5603cede18#3": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "CL9_jpg.rf.ae1d8d87a6d252896d7b31b64bc03f61#5": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "CM3_jpg.rf.d52b4d8acfeb905c37e3dd3cf4f8e136#7": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "Captura-de-Tela-2023-01-25-a-s-10-36-34_png_jpg.rf.17ef08805581ffc27ac71687583027a8#2": {
+   "is_defect": true,
+   "severity": 4
+  },
+  "GEN_157_jpg.rf.8a0997509a5c25d48a643322d34af7a6#1": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "L27_jpg.rf.0718c6b1d33a7995de921abaac1d11dd#3": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "L5_jpg.rf.a09552c8a74527ec039033764a1669e0#0": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "L9_jpg.rf.105a90a06953666120f64e6e124a84df#4": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "M15_jpg.rf.13aa4c12df932985cc336ab0e689a91f#1": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "M1_jpg.rf.0817e08b0e99d9fae36e3f44575f7c2b#0": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "M1_jpg.rf.e67a49ab9ba07de15113fba0369154ab#5": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "M5_jpg.rf.4f9e1bda81332e2089cc44654e871717#1": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "M5_jpg.rf.c613cc70d9d74a587a5e355dc429a7d6#1": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "M5_jpg.rf.c613cc70d9d74a587a5e355dc429a7d6#3": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "S24_jpg.rf.f66fc326162097cd03b082e71cd3555d#2": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "S24_jpg.rf.f66fc326162097cd03b082e71cd3555d#4": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "S8_jpg.rf.68eda7ca4115da89845731624a14e246#19": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "S8_jpg.rf.caf98786c7c649a8334a7547a3af7d9f#12": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "img146_jpg.rf.f48e70546da4b2686e70853b92d1192a#0": {
+   "is_defect": false,
+   "severity": 1
+  },
+  "img146_jpg.rf.f48e70546da4b2686e70853b92d1192a#8": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "img146_jpg.rf.f48e70546da4b2686e70853b92d1192a#14": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "img229_jpg.rf.8fdfd89c478b821b7def1217eff91d9d#3": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "k-adams-dI4BNzIn6w8-unsplash_jpg.rf.0795fcb3944ec842b7aa5f948857217b#0": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "rust-59_jpg.rf.3c3b93958137b1ae5fcbadd3447df936#10": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "rust-59_jpg.rf.3c3b93958137b1ae5fcbadd3447df936#11": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "rust-6_jpg.rf.e2b7962284b27c68e730a8257b559613#2": {
+   "is_defect": true,
+   "severity": 2
+  },
+  "rustimg_123_png_jpg.rf.f173172d9aae23802d64315f289dd515#4": {
+   "is_defect": true,
+   "severity": 3
+  },
+  "rustimg_171_png_jpg.rf.1b325d1311ac443631b66b0e8c4c5f79#1": {
+   "is_defect": true,
+   "severity": 3
+  }
+ }
+}
