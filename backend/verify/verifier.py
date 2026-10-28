@@ -185,7 +185,8 @@ def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low
         if not model:
             raise ValueError("provider 'fireworks' needs model=<deployment path>")
         client = fireworks_client()
-        messages = [{"role": "system", "content": f"Reasoning strength: {reasoning_effort}\n\n" + system + JSON_INSTRUCTION},
+        prefix = f"Reasoning strength: {reasoning_effort}\n\n" if "glimmer" in model.lower() or "/deployments/" in model else ""
+        messages = [{"role": "system", "content": prefix + system + JSON_INSTRUCTION},
                     {"role": "user", "content": content}]
         extra = {}
     else:

@@ -185,6 +185,25 @@ What this shows:
 - **The cost of open weights here** is about 2× tokens per candidate and about 2× median latency. (Its p90 latency is lower than the hosted run's, which had a slow phase; see §2's throughput note.)
 - Job cost: $47.15 of Baseten credit in total. That is the 4,000-token run ($42.27), the set-aside 8,000-token verdicts ($3.84) and the retry ($1.05).
 
+### Muse Spark Open on a second host: Fireworks serverless vs Baseten (100 test candidates)
+
+- **Setup.** Every 50th text-prompt test candidate (100 in all). Same prompt, images and JSON-in-prompt handling.
+  - Fireworks serverless `accounts/fireworks/models/muse-spark-open` at max_tokens 8,000.
+  - The cached Baseten verdicts from this section.
+  - Script: `benchmark/fireworks_spark_open.py`; result: `results/fireworks_vs_baseten_spark_open.json`.
+
+| | Fireworks serverless | Baseten |
+|---|---|---|
+| Invalid replies | 1 of 100 | 0 of 100 |
+| Same accept/reject decision | 97.0% (96 of 99 valid pairs) | – |
+| Severity exact / within one grade | 72.7% / 99.0% | – |
+| Median latency | 28.1 s | 11.1 s |
+| Cost per candidate (list price) | $0.0090 | $0.0083 |
+
+- The same open model on two hosts agrees on 97% of decisions. That is about as close as repeat runs on one host, since sampling is not deterministic.
+- On-prem mode is therefore not tied to one provider.
+- Fireworks was 2.5× slower tonight (shared serverless capacity, at night IST).
+
 ## 7. Cloud vs On-prem mode, end to end (F2)
 
 **Setup**

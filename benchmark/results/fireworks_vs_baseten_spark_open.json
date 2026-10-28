@@ -1,0 +1,14 @@
+{
+ "n": 100,
+ "model": "accounts/fireworks/models/muse-spark-open",
+ "fireworks_invalid": 1,
+ "baseten_invalid": 0,
+ "decision_agreement": 0.9696969696969697,
+ "severity_exact": 0.7272727272727273,
+ "severity_within_1": 0.98989898989899,
+ "fireworks_accept_share": 0.89,
+ "fireworks_latency_s_median": 28.063767599996936,
+ "baseten_latency_s_median": 11.055107550000685,
+ "fireworks_usd_per_candidate": 0.0090049685,
+ "baseten_usd_per_candidate": 0.008334135
+}
