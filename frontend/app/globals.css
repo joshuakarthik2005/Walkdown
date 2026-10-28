@@ -92,3 +92,5 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; }
 .copilot-src { font-size: 11px; margin-top: 3px; }
 .voice { margin-top: 12px; font-size: 13px; }
 .voice-note { border-left: 3px solid var(--line); padding-left: 8px; margin-bottom: 8px; }
+.exports { gap: 14px; margin-top: 10px; font-size: 13px; flex-wrap: wrap; }
+.exports a { color: var(--text); }

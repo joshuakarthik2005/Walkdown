@@ -235,6 +235,12 @@ export default function Home() {
           </h2>
           <RegisterView runId={runId} register={register} frames={frames} />
           <VoiceNotes runId={runId} notes={register.voice_notes ?? []} onAdded={() => refreshResults(runId)} />
+          <div className="row exports">
+            <a href={`${api.API_URL}/runs/${runId}/report.pdf`}>Inspection report (PDF)</a>
+            <a href={`${api.API_URL}/runs/${runId}/work_orders.csv`}>Work orders (CSV)</a>
+            <a href={`${api.API_URL}/runs/${runId}/work_orders.json`}>Work orders (JSON)</a>
+            <span className="muted">CMMS-compatible format, not a certified integration · approval required</span>
+          </div>
         </section>
       )}
 

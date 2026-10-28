@@ -10,6 +10,7 @@ Endpoints:
   POST /runs/{id}/changes        constraint change + epsilon; the agent replans and explains
   POST /runs/{id}/ask            inspector copilot: question about the register and plan (read-only tools)
   POST /runs/{id}/voice          inspector voice note (WAV): transcribed and structured, attached to the run
+  GET  /runs/{id}/report.pdf     inspection report; /work_orders.csv and .json: CMMS-style work orders
 
 Runs live in memory (one process); caches and clips are on WALKDOWN_DATA_DIR.
 
@@ -233,9 +234,6 @@ def ask(run_id: str, req: AskRequest) -> dict:
                 tool_calls=[dict(name=e.name, args=e.args, summary=e.summary) for e in events if e.kind == "tool"])
 
 
-SEVERITY_BGR = {1: (120, 200, 120), 2: (60, 200, 230), 3: (40, 160, 255), 4: (40, 90, 255), 5: (60, 40, 230)}
-
-
 @app.get("/runs/{run_id}/frames")
 def run_frames(run_id: str) -> dict:
     """Frames that have register detections, with the detections on each."""
@@ -251,27 +249,43 @@ def run_frames(run_id: str) -> dict:
 @app.get("/runs/{run_id}/frames/{frame}.jpg")
 def run_frame_image(run_id: str, frame: int) -> Response:
     """One frame with every register detection outlined, coloured by severity, and labelled."""
-    import cv2
+    from backend.reports.export import render_frame
 
     s = _run(run_id).agent.s
     if frame not in s.frame_paths:
         raise HTTPException(404, "unknown frame")
-    img = cv2.imread(str(s.frame_paths[frame]), cv2.IMREAD_COLOR)
-    for e in s.register:
-        for d in e.detections:
-            if d.frame != frame:
-                continue
-            _, inst = s.candidates[d.candidate_id]
-            colour = SEVERITY_BGR[d.grade.severity]
-            contours, _ = cv2.findContours(inst.mask.astype("uint8"), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            overlay = img.copy()
-            cv2.drawContours(overlay, contours, -1, colour, -1)
-            img = cv2.addWeighted(overlay, 0.25, img, 0.75, 0)
-            cv2.drawContours(img, contours, -1, colour, 2)
-            l, t = d.box[0], max(14, d.box[1] - 4)
-            cv2.putText(img, f"{e.defect_id} S{d.grade.severity}", (l, t), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colour, 2)
-    ok, buf = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 88])
-    return Response(buf.tobytes(), media_type="image/jpeg")
+    return Response(render_frame(s, frame), media_type="image/jpeg")
+
+
+def _plan_start(plan_start: str | None):
+    from datetime import datetime
+    try:
+        return datetime.fromisoformat(plan_start) if plan_start else datetime.now().replace(
+            hour=0, minute=0, second=0, microsecond=0)
+    except ValueError:
+        raise HTTPException(400, "plan_start must be an ISO date-time") from None
+
+
+@app.get("/runs/{run_id}/report.pdf")
+def run_report(run_id: str, plan_start: str | None = None) -> Response:
+    """Inspection report PDF (register, frames, proposed work orders, planner reasons, safe-use notice)."""
+    from backend.reports.export import pdf_report
+    s = _run(run_id).agent.s
+    if not s.register:
+        raise HTTPException(409, "no register yet")
+    return Response(pdf_report(s, _plan_start(plan_start)), media_type="application/pdf", headers={
+        "Content-Disposition": f'attachment; filename="walkdown-{s.clip.asset.asset_id}.pdf"'})
+
+
+@app.get("/runs/{run_id}/work_orders.{fmt}")
+def run_work_orders(run_id: str, fmt: Literal["csv", "json"], plan_start: str | None = None) -> Response:
+    """Proposed work orders in a CMMS-compatible flat format (not a certified integration)."""
+    from backend.reports.export import to_csv, to_json, work_orders
+    s = _run(run_id).agent.s
+    rows = work_orders(s, _plan_start(plan_start))
+    body, media = (to_csv(rows), "text/csv") if fmt == "csv" else (to_json(rows, s), "application/json")
+    return Response(body, media_type=media, headers={
+        "Content-Disposition": f'attachment; filename="walkdown-{s.clip.asset.asset_id}-work-orders.{fmt}"'})
 
 
 @app.get("/health")
