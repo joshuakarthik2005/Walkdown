@@ -122,6 +122,19 @@ def baseten_client() -> OpenAI:
     return OpenAI(base_url=BASETEN_URL, api_key=key, max_retries=0, timeout=180)
 
 
+FIREWORKS_URL = "https://api.fireworks.ai/inference/v1"
+
+
+@lru_cache(maxsize=1)
+def fireworks_client() -> OpenAI:
+    """OpenAI-compatible client for Fireworks inference (key from .env, never printed)."""
+    load_dotenv(PROJECT_ROOT / ".env", override=True)
+    key = os.environ.get("FIREWORKS_API_KEY")
+    if not key:
+        raise BillingError("FIREWORKS_API_KEY missing from .env")
+    return OpenAI(base_url=FIREWORKS_URL, api_key=key, max_retries=0, timeout=300)
+
+
 def _user_content(c: Candidate, prompt_version: str = PROMPT_VERSION) -> list[dict]:
     crop, thumb = verifier_images(c.image, c.mask, c.box)
     h, w = c.mask.shape
@@ -146,7 +159,8 @@ def _extract_json(text: str) -> str:
 
 
 def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low", max_tokens: int | None = None,
-           ledger: CostLedger | None = None, job: str = "verify", prompt_version: str | None = None) -> Verdict:
+           ledger: CostLedger | None = None, job: str = "verify", prompt_version: str | None = None,
+           model: str | None = None) -> Verdict:
     """Verify and grade one candidate. Never raises on a bad reply; the Verdict carries the error."""
     prompt_version = prompt_version or PROMPT_VERSION
     system = PROMPTS[prompt_version]
@@ -154,7 +168,7 @@ def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low
     if max_tokens is None:
         # Muse Spark Open reasons about twice as long and has no strict decoding; at 4,000 tokens 1.8% of replies
         # were cut off before the JSON (benchmark/RESULTS.md section 6).
-        max_tokens = BASETEN_MAX_TOKENS if provider == "baseten" else 4000
+        max_tokens = BASETEN_MAX_TOKENS if provider in ("baseten", "fireworks") else 4000
     if provider in ("meta", "wonder"):
         client, model = meta_client(), META_MODEL if provider == "meta" else WONDER_MODEL
         messages = [{"role": "system", "content": system}, {"role": "user", "content": content}]
@@ -164,6 +178,15 @@ def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low
     elif provider == "baseten":
         client, model = baseten_client(), BASETEN_MODEL
         messages = [{"role": "system", "content": system + JSON_INSTRUCTION}, {"role": "user", "content": content}]
+        extra = {}
+    elif provider == "fireworks":
+        # Muse Glimmer on a Fireworks on-demand deployment (``model`` = the deployment path). Same prompt and
+        # JSON-in-prompt handling as Muse Spark Open; Glimmer's reasoning strength is set in the system prompt.
+        if not model:
+            raise ValueError("provider 'fireworks' needs model=<deployment path>")
+        client = fireworks_client()
+        messages = [{"role": "system", "content": f"Reasoning strength: {reasoning_effort}\n\n" + system + JSON_INSTRUCTION},
+                    {"role": "user", "content": content}]
         extra = {}
     else:
         raise ValueError(f"unknown provider {provider!r}")
@@ -190,8 +213,10 @@ def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low
             if finish == "length":
                 break  # a retry with the same budget would truncate again
     latency = time.perf_counter() - t0
-    # Baseten lists Muse Spark Open at the same per-token price as hosted Muse Spark (docs/COST_LOG.md).
-    usd = (wonder_cost if provider == "wonder" else muse_cost)(tokens["input"], tokens["output"], tokens["cached"])
+    # Baseten lists Muse Spark Open at the same per-token price as hosted Muse Spark (docs/COST_LOG.md). A Fireworks
+    # on-demand deployment bills per GPU hour, recorded by the caller, so per-call cost is 0 here.
+    usd = 0.0 if provider == "fireworks" else (wonder_cost if provider == "wonder" else muse_cost)(
+        tokens["input"], tokens["output"], tokens["cached"])
     if ledger is not None:
         ledger.add(CostEntry(job=job, model=model, usd=usd or 0.0, input_tokens=tokens["input"],
                              cached_tokens=tokens["cached"], output_tokens=tokens["output"],

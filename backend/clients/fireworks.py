@@ -83,16 +83,32 @@ def assert_no_deployments() -> None:
 
 
 @contextmanager
-def deployment(model: str, *, max_hours: float = 2.0, deployment_id: str | None = None):
-    """Create an on-demand deployment (min replicas 0), yield its name, always delete it afterwards.
-
-    The caller must stop work once ``deadline`` (seconds since the epoch, yielded) is passed.
+def deployment(model: str, *, max_hours: float = 2.0, deployment_id: str | None = None,
+               accelerator: str = "NVIDIA_H200_141GB", enable_addons: bool = False, ready_timeout_s: float = 3600):
+    """Create an on-demand deployment (min replicas 0, max 1), wait until READY, yield (name, deadline), and
+    ALWAYS delete it afterwards (also on errors and interrupts). ``deadline`` (epoch seconds) is ``max_hours``
+    after creation; the caller must stop sending work by then.
     """
     dep_id = deployment_id or f"walkdown-{uuid.uuid4().hex[:8]}"
-    dep = request("POST", f"{ACCOUNT}/deployments?deploymentId={dep_id}", {
-        "baseModel": model, "minReplicaCount": 0, "maxReplicaCount": 1, "autoscalingPolicy": {"scaleToZeroWindow": "300s"}})
+    body = {"baseModel": model, "minReplicaCount": 0, "maxReplicaCount": 1, "acceleratorType": accelerator,
+            "acceleratorCount": 1, "autoscalingPolicy": {"scaleToZeroWindow": "300s"}}
+    if enable_addons:
+        body["enableAddons"] = True
+    created = time.time()
+    dep = request("POST", f"{ACCOUNT}/deployments?deploymentId={dep_id}", body)
     name = dep.get("name", f"{ACCOUNT}/deployments/{dep_id}")
     try:
-        yield name, time.time() + 3600 * max_hours
+        while True:
+            state = request("GET", name).get("state")
+            if state == "READY":
+                break
+            if state in ("FAILED", "DELETED", "DELETING") or time.time() - created > ready_timeout_s:
+                raise RuntimeError(f"deployment {dep_id} not ready: {state}")
+            time.sleep(20)
+        yield name, created + 3600 * max_hours
     finally:
-        request("DELETE", name.split("/v1/")[-1] if name.startswith("http") else name)
+        request("DELETE", name)
+
+
+def deployment_hours(created: float, deleted: float | None = None) -> float:
+    return ((deleted or time.time()) - created) / 3600
