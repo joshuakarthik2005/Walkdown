@@ -8,6 +8,7 @@ Endpoints:
   GET  /runs/{id}/register       verified defect register
   GET  /runs/{id}/plan           current maintenance plan (assignments, stats, explanations)
   POST /runs/{id}/changes        constraint change + epsilon; the agent replans and explains
+  POST /runs/{id}/ask            inspector copilot: question about the register and plan (read-only tools)
 
 Runs live in memory (one process); caches and clips are on WALKDOWN_DATA_DIR.
 
@@ -32,6 +33,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from backend.agent.clip import CLIPS_DIR, Clip, create_clip
+from backend.agent.copilot import copilot
 from backend.agent.loop import TraceEvent, WalkdownAgent
 from backend.agent.tools import AgentSession
 from backend.clients.cost import CostLedger
@@ -56,6 +58,7 @@ class RunState:
         self.error: str | None = None
         self.started_at = time.time()
         self.lock = threading.Lock()
+        self.copilot: WalkdownAgent | None = None  # created on the first question
 
     def turn(self, message: str) -> None:
         with self.lock:
@@ -190,6 +193,28 @@ def post_change(run_id: str, req: ChangeRequest) -> dict:
     st.status = "running"  # before the thread starts, so a poll right after this call cannot see "done"
     threading.Thread(target=st.turn, args=(message,), daemon=True).start()
     return dict(run_id=run_id, status="running")
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=1000)
+
+
+@app.post("/runs/{run_id}/ask")
+def ask(run_id: str, req: AskRequest) -> dict:
+    """Inspector copilot: answers from the register, plan and planner reasons only (read-only tools)."""
+    st = _run(run_id)
+    if st.status == "running":
+        raise HTTPException(409, "run is busy")
+    if not st.agent.s.register and st.agent.s.plan is None:
+        raise HTTPException(409, "nothing to ask about yet")
+    with st.lock:
+        if st.copilot is None:
+            st.copilot = copilot(st.agent.s, reasoning_effort="low")
+        spent, start = st.agent.s.ledger.total(), len(st.copilot.trace)
+        answer = st.copilot.run(req.question)
+        events = st.copilot.trace[start:]
+    return dict(answer=answer, usd=st.agent.s.ledger.total() - spent,
+                tool_calls=[dict(name=e.name, args=e.args, summary=e.summary) for e in events if e.kind == "tool"])
 
 
 SEVERITY_BGR = {1: (120, 200, 120), 2: (60, 200, 230), 3: (40, 160, 255), 4: (40, 90, 255), 5: (60, 40, 230)}

@@ -52,3 +52,19 @@ export async function postChange(id: string, change: Record<string, unknown>, no
     }),
   );
 }
+
+export interface CopilotReply {
+  answer: string;
+  usd: number;
+  tool_calls: { name: string; args: Record<string, unknown>; summary: string }[];
+}
+
+export async function ask(id: string, question: string) {
+  return json<CopilotReply>(
+    await fetch(`${API_URL}/runs/${id}/ask`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    }),
+  );
+}

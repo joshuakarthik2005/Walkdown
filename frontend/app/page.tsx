@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentTrail } from "@/components/AgentTrail";
 import { ChangePanel } from "@/components/ChangePanel";
+import { Copilot } from "@/components/Copilot";
 import { Gantt } from "@/components/Gantt";
 import { RegisterView } from "@/components/RegisterView";
 import { Attribution, SafetyNotice } from "@/components/SafetyNotice";
@@ -213,6 +214,13 @@ export default function Home() {
             <div className="panel">
               <h2>Something changed on site?</h2>
               <ChangePanel scenario={plan.scenario} nowHour={plan.plan.now} busy={running} onSubmit={change} />
+            </div>
+          )}
+
+          {plan && runId && (
+            <div className="panel">
+              <h2>Ask about the register or plan</h2>
+              <Copilot runId={runId} busy={running} />
             </div>
           )}
         </aside>

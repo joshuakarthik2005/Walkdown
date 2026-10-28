@@ -90,13 +90,18 @@ class WalkdownAgent:
     """Runs the tool-calling loop over an AgentSession and keeps the message history for follow-ups."""
 
     def __init__(self, session: AgentSession, *, reasoning_effort: str = "low", max_steps: int = 25,
-                 on_event: Callable[[TraceEvent], None] | None = None) -> None:
+                 on_event: Callable[[TraceEvent], None] | None = None, tools: dict | None = None,
+                 tool_schemas: list[dict] | None = None, system_prompt: str = SYSTEM_PROMPT,
+                 cache_key: str = "walkdown-agent-v1") -> None:
         self.s = session
         self.effort = reasoning_effort
         self.max_steps = max_steps
         self.on_event = on_event
         self.trace: list[TraceEvent] = []
-        self.messages: list[dict] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        self.cache_key = cache_key
+        self.tools = TOOLS if tools is None else tools
+        self.tool_schemas = TOOL_SCHEMAS if tool_schemas is None else tool_schemas
+        self.messages: list[dict] = [{"role": "system", "content": system_prompt}]
         self.provider = getattr(session, "provider", "meta")
         self.model = MODEL if self.provider == "meta" else BASETEN_MODEL
 
@@ -105,10 +110,10 @@ class WalkdownAgent:
         prompt-cache keys are Meta Model API parameters and are not sent to it."""
         if self.provider == "meta":
             return meta_client().chat.completions.create(
-                model=MODEL, messages=self.messages, tools=TOOL_SCHEMAS, reasoning_effort=self.effort,
-                max_tokens=6000, prompt_cache_key="walkdown-agent-v1")
+                model=MODEL, messages=self.messages, tools=self.tool_schemas, reasoning_effort=self.effort,
+                max_tokens=6000, prompt_cache_key=self.cache_key)
         return baseten_client().chat.completions.create(
-            model=BASETEN_MODEL, messages=self.messages, tools=TOOL_SCHEMAS, max_tokens=6000)
+            model=BASETEN_MODEL, messages=self.messages, tools=self.tool_schemas, max_tokens=6000)
 
     def _emit(self, ev: TraceEvent) -> None:
         self.trace.append(ev)
@@ -156,9 +161,9 @@ class WalkdownAgent:
         spent_before = self.s.ledger.total()
         try:
             args = json.loads(arguments or "{}")
-            if name not in TOOLS:
+            if name not in self.tools:
                 raise ValueError(f"unknown tool {name!r}")
-            result = TOOLS[name](self.s, **args)
+            result = self.tools[name](self.s, **args)
             error = result.get("error")
         except Exception as err:  # the model gets the error and can recover; the trace records it
             args = args if isinstance(locals().get("args"), dict) else {"raw": arguments}

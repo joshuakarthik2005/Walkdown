@@ -86,3 +86,7 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; }
 .footer { color: var(--muted); font-size: 12px; margin-top: 10px; padding-bottom: 16px; }
 .attribution { color: var(--text); font-weight: 600; }
 .badge.senior { border-color: var(--accent, #3987e5); color: var(--text); margin-top: 3px; }
+.copilot-turn { margin-bottom: 10px; }
+.copilot-q { font-weight: 600; font-size: 13px; }
+.copilot-a { font-size: 13px; line-height: 1.45; margin-top: 3px; white-space: pre-wrap; }
+.copilot-src { font-size: 11px; margin-top: 3px; }
