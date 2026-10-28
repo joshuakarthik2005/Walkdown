@@ -35,7 +35,11 @@ from backend.verify.schema import Grade
 from backend.verify.verifier import Candidate, Verdict, verify
 from benchmark.download_dataset import DATA_DIR
 
-SETS = {"public": DATA_DIR / "negatives_public" / "images", "builder": DATA_DIR / "negatives" / "frames"}
+SETS = {"public": DATA_DIR / "negatives_public" / "images", "builder": DATA_DIR / "negatives" / "frames",
+        # Muse Image stress test: hosted outputs, evaluation only (Meta Model API terms 10.1(ix)), never trained on
+        "synthetic_muse": DATA_DIR / "synthetic" / "muse_eval"}
+# --all-verifiers (Cloud candidates): the same merged candidates also judged by these verifiers
+EXTRA_VERIFIERS = {"meta_low": ("meta", "low"), "baseten": ("baseten", "low")}
 RESULTS = Path(__file__).parent / "results"
 LEDGER = DATA_DIR / "runs" / "cost_ledger.jsonl"
 THREADS = 8
@@ -64,7 +68,8 @@ def _verdict(path: Path, cand: Candidate, provider: str, effort: str, ledger: Co
     return Grade.model_validate(g).is_defect if g else True
 
 
-def run(images: list[Path], mode: str, cache: Path, ledger: CostLedger, max_usd: float) -> list[dict]:
+def run(images: list[Path], mode: str, cache: Path, ledger: CostLedger, max_usd: float,
+        all_verifiers: bool = False) -> list[dict]:
     over = lambda: ledger.total() > max_usd  # noqa: E731
     sizes = {p: cv2.imread(str(p)).shape[:2] for p in images}
     if mode == "on-prem":  # batch the Modal calls
@@ -121,26 +126,48 @@ def run(images: list[Path], mode: str, cache: Path, ledger: CostLedger, max_usd:
         merged = merge_with_text(text, box)
         img = cv2.imread(str(p), cv2.IMREAD_COLOR)
         accepted = 0
+        extra = {k: 0 for k in EXTRA_VERIFIERS} if all_verifiers and mode == "cloud" else {}
         for obj, inst in merged:
             path = cache / "verify" / f"{p.stem}__{obj}.json"
             if not path.exists() and over():
                 return None
-            accepted += _verdict(path, Candidate(f"{p.stem}#{obj}", img, inst.mask, inst.box, inst.confidence),
-                                 provider, effort, ledger)
-        return dict(image=p.name, text=len(text), merged=len(merged), accepted=accepted)
+            cand = Candidate(f"{p.stem}#{obj}", img, inst.mask, inst.box, inst.confidence)
+            accepted += _verdict(path, cand, provider, effort, ledger)
+            for k, (prov, eff) in EXTRA_VERIFIERS.items():
+                if k in extra:
+                    xpath = cache / f"verify_{k}" / f"{p.stem}__{obj}.json"
+                    if not xpath.exists() and over():
+                        return None
+                    extra[k] += _verdict(xpath, cand, prov, eff, ledger)
+        return dict(image=p.name, text=len(text), merged=len(merged), accepted=accepted,
+                    **{f"accepted_{k}": v for k, v in extra.items()})
 
     with ThreadPoolExecutor(max_workers=THREADS) as pool:
         return [r for r in pool.map(one, ready) if r is not None]
 
 
 def summarise(rows: list[dict]) -> dict:
+    from benchmark.audit_eval import wilson
     n = len(rows)
     share = lambda k: sum(r[k] > 0 for r in rows) / n if n else None  # noqa: E731
     mean = lambda k: sum(r[k] for r in rows) / n if n else None  # noqa: E731
-    return dict(images=n, images_with_alarm=dict(text_only=share("text"), text_plus_boxes=share("merged"),
-                                                 text_plus_boxes_verified=share("accepted")),
-                candidates_per_image=dict(text_only=mean("text"), text_plus_boxes=mean("merged"),
-                                          accepted=mean("accepted")))
+    keys = ["text", "merged", "accepted"] + sorted(k for k in (rows[0] if rows else {}) if k.startswith("accepted_"))
+    return dict(images=n, images_with_alarm={k: share(k) for k in keys},
+                images_with_alarm_ci={k: wilson(sum(r[k] > 0 for r in rows), n) for k in keys},
+                candidates_per_image={k: mean(k) for k in keys})
+
+
+def by_category(rows: list[dict], folder: Path) -> dict | None:
+    """Alarm rates per look-alike category (synthetic sets with a manifest)."""
+    man = folder / "manifest.jsonl"
+    if not man.exists():
+        return None
+    cat = {json.loads(l)["file"]: json.loads(l)["lookalike"] for l in man.read_text(encoding="utf-8").splitlines()}
+    out = {}
+    for c in sorted(set(cat.values())):
+        rs = [r for r in rows if cat.get(r["image"]) == c]
+        out[c] = summarise(rs)["images_with_alarm"] | {"n": len(rs)}
+    return out
 
 
 def main() -> int:
@@ -149,12 +176,14 @@ def main() -> int:
     ap.add_argument("--mode", choices=("cloud", "on-prem"), required=True)
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--max-usd", type=float, required=True)
+    ap.add_argument("--all-verifiers", action="store_true", help="cloud: also judge with hosted low and Muse Spark Open")
     args = ap.parse_args()
     images = sorted(p for p in SETS[args.set].iterdir() if p.suffix.lower() in (".jpg", ".jpeg", ".png"))[:args.limit]
     ledger = CostLedger(LEDGER)
-    rows = run(images, args.mode, DATA_DIR / "runs" / "negatives_fp" / args.set / args.mode, ledger, args.max_usd)
+    rows = run(images, args.mode, DATA_DIR / "runs" / "negatives_fp" / args.set / args.mode, ledger, args.max_usd,
+               args.all_verifiers)
     out = dict(set=args.set, mode=args.mode, images_requested=len(images), new_usd=ledger.total(),
-               **summarise(rows), rows=rows)
+               **summarise(rows), by_lookalike=by_category(rows, SETS[args.set]), rows=rows)
     RESULTS.mkdir(exist_ok=True)
     (RESULTS / f"negatives_fp_{args.set}_{args.mode}.json").write_text(json.dumps(out, indent=1) + "\n",
                                                                        encoding="utf-8")

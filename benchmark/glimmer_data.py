@@ -1,0 +1,143 @@
+"""Training data for the Muse Glimmer verifier distillation (open-weights data only; see docs/GLIMMER_PLAN.md).
+
+Each example is exactly the production verifier request (Muse Spark Open variant: SYSTEM_PROMPT + JSON
+instruction, the candidate text line, the cyan-outlined crop and the frame thumbnail) and a target grade JSON.
+Images are re-encoded as JPEG (q 90) to keep the file small.
+
+Sources:
+1. **Teacher labels** on the clean train pool: SAM 3.1 open-weights candidates graded by Muse Spark Open
+   (``benchmark.teacher_labels``). Target = the teacher's grade.
+2. **Synthetic hard negatives** (F6): FLUX.1-schnell images of intact plant metal with rust look-alikes
+   (``benchmark.synthetic_negatives flux``), candidates from SAM 3.1 open weights (``--synthetic-candidates``).
+   Target = a constructed rejection (is_defect false, severity 1, no_action) naming the look-alike. Categories a
+   person could read as real rust staining (water stains, paint drips, oil smudges, mud) are left out.
+Never included: hosted Meta model outputs, dev/test images, audit labels, public Roboflow negatives.
+
+Split: 10% of the train pool's source clusters (Roboflow source name) are held out for evaluation and early
+stopping; synthetic images are split 90/10 by image. The training split is balanced: accepts are capped at the
+number of rejects (seeded).
+
+    .venv\\Scripts\\python.exe -m benchmark.glimmer_data
+"""
+
+from __future__ import annotations
+
+import base64
+import io
+import json
+import random
+import sys
+from pathlib import Path
+
+import cv2
+import numpy as np
+from PIL import Image
+
+from backend.perception.sam_open import to_instances
+from backend.verify.verifier import JSON_INSTRUCTION, SYSTEM_PROMPT, Candidate, _user_content
+from benchmark.download_dataset import DATA_DIR, RAW_DIR
+
+OUT = DATA_DIR / "glimmer" / "data"
+JOURNAL = DATA_DIR / "runs" / "teacher_train_pool_journal.jsonl"
+SAM_TEXT = DATA_DIR / "runs" / "sam_open" / "rust"
+FLUX_DIR = DATA_DIR / "synthetic" / "flux_train"
+FLUX_SAM = DATA_DIR / "runs" / "sam_open" / "flux_train"
+HELDOUT_SHARE = 0.10
+SEED = 20261028
+AMBIGUOUS_LOOKALIKES = {"dark water stains running down the surface", "brown paint drips", "brown oil smudges",
+                        "dried mud splashes"}
+
+
+def _jpeg(data_url: str) -> str:
+    img = Image.open(io.BytesIO(base64.b64decode(data_url.split(",", 1)[1]))).convert("RGB")
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=90)
+    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+
+
+def _example(cid: str, image: np.ndarray, inst, target: dict, **meta) -> dict:
+    content = _user_content(Candidate(cid, image, inst.mask, inst.box, inst.confidence))
+    for part in content:
+        if part["type"] == "image_url":
+            part["image_url"]["url"] = _jpeg(part["image_url"]["url"])
+    return dict(id=cid, accept=bool(target["is_defect"]), target=json.dumps(target),
+                messages=[{"role": "system", "content": SYSTEM_PROMPT + JSON_INSTRUCTION},
+                          {"role": "user", "content": content}], **meta)
+
+
+def teacher_examples() -> list[dict]:
+    out = []
+    for line in JOURNAL.read_text(encoding="utf-8").splitlines():
+        r = json.loads(line)
+        rel = r["image"]
+        insts = {i.object_id: i for i in to_instances(json.loads((SAM_TEXT / (Path(rel).stem + ".json"))
+                                                                 .read_text(encoding="utf-8")), frame=0)}
+        image = cv2.imread(str(RAW_DIR / rel), cv2.IMREAD_COLOR)
+        for row in r["rows"]:
+            if not row["grade"] or row["object_id"] not in insts:
+                continue
+            out.append(_example(row["id"], image, insts[row["object_id"]], row["grade"], source="teacher",
+                                cluster=Path(rel).name.split(".rf.")[0]))
+    return out
+
+
+def synthetic_examples() -> list[dict]:
+    """Constructed rejections on FLUX hard negatives (empty until those images and their candidates exist)."""
+    man = FLUX_DIR / "manifest.jsonl"
+    if not man.exists() or not FLUX_SAM.exists():
+        return []
+    out = []
+    for line in man.read_text(encoding="utf-8").splitlines():
+        m = json.loads(line)
+        if m["lookalike"] in AMBIGUOUS_LOOKALIKES:
+            continue
+        sam = FLUX_SAM / (Path(m["file"]).stem + ".json")
+        if not sam.exists():
+            continue
+        image = cv2.imread(str(FLUX_DIR / m["file"]), cv2.IMREAD_COLOR)
+        h, w = image.shape[:2]
+        for inst in to_instances(json.loads(sam.read_text(encoding="utf-8")), frame=0):
+            pct = 100 * inst.mask.sum() / (h * w)
+            target = {"is_defect": False, "defect_type": "none", "severity": 1, "confidence": 0.9,
+                      "evidence": {"visual_cues": [f"{m['lookalike']} on intact metal, not corrosion",
+                                                   "no orange-brown granular oxide, scale, pitting, flaking or "
+                                                   "section loss inside the outline"],
+                                   "location": m["subject"], "extent": f"region covers {pct:.2f}% of the frame; "
+                                   "no material loss", "mask_fit": "good"},
+                      "recommended_action": "no_action"}
+            out.append(_example(f"{Path(m['file']).stem}#{inst.object_id}", image, inst, target, source="synthetic",
+                                cluster=m["file"], lookalike=m["lookalike"]))
+    return out
+
+
+def main() -> int:
+    rng = random.Random(SEED)
+    teacher, synth = teacher_examples(), synthetic_examples()
+    clusters = sorted({e["cluster"] for e in teacher})
+    held = set(rng.sample(clusters, max(1, round(HELDOUT_SHARE * len(clusters)))))
+    s_clusters = sorted({e["cluster"] for e in synth})
+    held |= set(rng.sample(s_clusters, round(HELDOUT_SHARE * len(s_clusters)))) if s_clusters else set()
+    heldout = [e for e in teacher + synth if e["cluster"] in held]
+    train = [e for e in teacher + synth if e["cluster"] not in held]
+    acc, rej = [e for e in train if e["accept"]], [e for e in train if not e["accept"]]
+    rng.shuffle(acc)
+    balanced = rej + acc[:len(rej)] if rej else acc
+    rng.shuffle(balanced)
+    OUT.mkdir(parents=True, exist_ok=True)
+    for name, rows in (("train", balanced), ("heldout", heldout)):
+        with (OUT / f"{name}.jsonl").open("w", encoding="utf-8") as f:
+            for e in rows:
+                f.write(json.dumps(e) + "\n")
+    summary = dict(teacher=len(teacher), synthetic=len(synth), heldout=len(heldout),
+                   heldout_accept=sum(e["accept"] for e in heldout),
+                   train_before_balance=dict(accept=len(acc), reject=len(rej),
+                                             synthetic_reject=sum(e["source"] == "synthetic" for e in rej)),
+                   train=len(balanced), train_accept=sum(e["accept"] for e in balanced),
+                   mb={n: round((OUT / f"{n}.jsonl").stat().st_size / 1e6, 1) for n in ("train", "heldout")})
+    (OUT / "summary.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
+    print(json.dumps(summary, indent=1))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

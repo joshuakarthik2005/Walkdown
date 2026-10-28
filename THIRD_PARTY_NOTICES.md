@@ -112,3 +112,17 @@ License; its text ships with the package (`licenses/` in the installed distribut
 Muse Spark (`muse-spark-1.3`), SAM 3.1 (`sam-3.1`) and other hosted models are used under the Meta Model API Terms
 of Service (https://dev.meta.ai/legal/terms-of-service). Following section 10.1(ix), outputs of the hosted models
 are never used to train or fine-tune any model; they are used only for evaluation and benchmarking.
+
+## FLUX.1-schnell (Black Forest Labs) — Apache License 2.0
+
+`black-forest-labs/FLUX.1-schnell` (https://huggingface.co/black-forest-labs/FLUX.1-schnell) is used under the Apache
+License 2.0 to generate synthetic hard-negative images (intact plant metal with rust look-alikes) on a Modal GPU
+(`modal_apps/flux_negatives.py`). The images are training data only for the Glimmer verifier and the SAM LoRA,
+are labelled synthetic in their manifest, are never part of any test set and are not redistributed. The weights
+are kept in a private Modal volume and are not redistributed.
+
+## Muse Image (`muse-image-1.0`, Meta Model API) — evaluation only
+
+Muse Image generates a separate set of 300 synthetic hard negatives used **only for evaluation** (false-alarm stress
+test), as section 10.1(ix) of the Meta Model API Terms allows for evaluation of one's own systems. These images are
+never used for training and are not published.
