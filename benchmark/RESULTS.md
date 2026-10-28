@@ -264,3 +264,59 @@ What it shows:
 - The differences between the verifiers are within the confidence intervals: low vs minimal recall intervals overlap. Treat them as indicative.
 - **Senior review.** 13 of the 89 were escalated; Muse Wonder agreed with the first pass on all 13, so on this sample it **overturned nothing**. Whether its overturned verdicts match a human therefore **cannot be assessed from this audit**. The §5 statement stands: it is a second opinion that surfaces disputes, with no measured accuracy gain.
 - **Not measured here:** false-positive rejection (needs many more not-rust candidates: the builder's negatives footage and public negatives sets), box-only candidates, severity accuracy.
+
+### Box-only candidates (second audit, n = 50)
+
+- **Sample.** 50 box-only candidates from the test split: merged text + boxes candidates that are new, not a reused text-prompt candidate. Stratified by dataset label: 20 "TP", 20 "FP", 10 "ambiguous" (`benchmark.label_app --set boxes`, seeded, same blind protocol).
+- **Labels:** 31 rust, 13 not rust, 6 unsure. Reweighting uses the 5,385 new box candidates (2,859 TP / 1,852 FP / 674 ambiguous).
+- Script: `benchmark/audit_boxes_eval.py`; result: `results/audit_boxes_eval.json`. Cost: $0.52 (hosted minimal and Muse Spark Open verdicts for the 50; Muse Spark Open at the product setting, max_tokens 8,000).
+
+| Dataset label | Human: rust | not rust | unsure |
+|---|---|---|---|
+| "TP" (20) | 14 | 4 | 2 |
+| "FP" (20) | 9 | 8 | 3 |
+| "ambiguous" (10) | 8 | 1 | 1 |
+
+**Do box proposals add false alarms? Yes.**
+
+| Candidates | Real rust (human) | 95% CI |
+|---|---|---|
+| Text-prompt (first audit) | 92.1% (82 of 89) | 84.6–96.1% |
+| Box-only (this audit) | **70.5%** (31 of 44); reweighted 70.6% | 55.8–81.8% |
+| Difference (box − text) | −21.7 points | −36.9 to −8.1 (Newcombe) |
+
+- **About 3 in 10 box-only candidates are not rust**, against 1 in 13 for text-prompt candidates.
+- Box proposals buy recall (§4), and the verifier must remove the extra look-alikes.
+- Dataset "FP" box candidates are about half rust (9 of 17), so the annotation gap shows up here too.
+
+**Verifiers on box-only candidates (44 sure labels):**
+
+| Verifier | TP | FP | FN | TN | Precision (sample, 95% CI) | Recall (sample, 95% CI) | Not-rust rejected | Reweighted P / R |
+|---|---|---|---|---|---|---|---|---|
+| Hosted Muse Spark, low | 30 | 4 | 1 | 9 | 88.2% (73.4–95.3) | 96.8% (83.8–99.4) | **9 of 13** | 87.3% / 97.1% |
+| Hosted Muse Spark, minimal | 31 | 5 | 0 | 8 | 86.1% (71.3–93.9) | 100% (89.0–100) | 8 of 13 | 85.5% / 100% |
+| Muse Spark Open (Baseten) | 31 | 5 | 0 | 8 | 86.1% (71.3–93.9) | 100% (89.0–100) | 8 of 13 | 86.2% / 100% |
+
+- On box candidates the verifier does real work: it raises precision from 70% to 86–88% and rejects 8 or 9 of the 13 not-rust candidates.
+- It still lets about a third of box look-alikes through.
+
+### Combined audit (text-prompt + box-only, n = 133 sure labels)
+
+Reweighted over six strata (source × dataset label) to the default pipeline's candidate mix. This is approximated as all 5,066 text-prompt candidates plus all 5,385 new box candidates.
+
+- **Real rust among all candidates:** 85.0% in the sample (113 of 133; 95% CI 77.9–90.0%); **81.8% reweighted**.
+- **Not-rust candidates rejected** (20 not-rust in total):
+  - low: 14 of 20 (95% CI 48–86%);
+  - Muse Spark Open: 13 of 20 (43–82%);
+  - minimal: 12 of 20 (39–78%).
+
+| Verifier (combined, reweighted) | Precision (95% bootstrap CI) | Recall (95% CI) | Accuracy (95% CI) |
+|---|---|---|---|
+| Hosted Muse Spark, low | 92.6% (85.9–97.9) | 93.2% (88.1–97.2) | 88.3% (81.8–93.9) |
+| Hosted Muse Spark, minimal | 91.4% (85.1–97.0) | **98.3%** (95.6–100) | **91.1%** (85.0–96.4) |
+| Muse Spark Open (Baseten) | 92.1% (85.6–97.5) | 96.9% (93.4–99.1) | 90.6% (84.4–95.7) |
+
+- **What this means for the default pipeline.** About 8% of what the register shows is not rust.
+- The verifier rejects about two thirds of the look-alikes, and drops 2–7% of real rust, depending on the verifier.
+- The three verifiers' intervals overlap. Low effort trades a few more rejected look-alikes for more missed rust.
+- Still not measured: false alarms on clean surfaces with no rust at all (the negatives sets).
