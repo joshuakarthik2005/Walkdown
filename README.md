@@ -20,7 +20,7 @@ Entry in the Meta Global AI Developer Hackathon (Indie Developer track, theme: P
 An agent (Muse Spark with tool calling) runs the whole loop and decides what to do next:
 
 1. **Perceive.** SAM 3.1 (Meta Model API) segments candidate corrosion on sampled frames from a text prompt ("rust"). The agent starts with a coarse pass and looks again at stretches that need it.
-2. **Verify and grade.** Muse Spark looks at each candidate (a crop with the mask outlined, plus the full frame), rejects false positives, and returns a schema-validated grade: defect type, severity 1–5, confidence, evidence, recommended action. Rule-based checks flag contradictory grades for human review.
+2. **Verify and grade.** Muse Spark looks at each candidate (a crop with the mask outlined, plus the full frame), rejects false positives, and returns a schema-validated grade: defect type, severity 1–5, confidence, evidence, recommended action. Rule-based checks flag contradictory grades for human review. Severe or uncertain grades get a second opinion from Muse Wonder. It does not make grades more accurate (label agreement 73.5% before, 72.7% after; [`benchmark/RESULTS.md`](benchmark/RESULTS.md) section 5); its job is to surface disagreements: a defect Muse Wonder disputes stays in the register, marked "needs human review".
 3. **Register.** Repeat sightings are merged into one entry per defect. The asset's line service (LPG, hydrogen, crude, steam, cooling water, …) sets a consequence factor.
 4. **Plan.** An OR-Tools CP-SAT model schedules repairs across crews, skills, shift hours, permits (lead times, concurrency limits) and shutdown windows. It minimises risk-weighted exposure: likelihood × consequence × hours unrepaired.
 5. **Replan.** When a crew drops out, a shutdown window moves or a new defect is found, a two-stage replan keeps started work fixed, finds the lowest-risk plan, then moves as few jobs as possible within a chosen "stability vs risk" tolerance.
@@ -53,7 +53,9 @@ All code in this repository was written during the building period. A full break
 | Component | Licence / terms | Use |
 |---|---|---|
 | SAM 3.1 (`sam-3.1`), Meta Model API | Meta Model API terms | Candidate segmentation |
-| Muse Spark (`muse-spark-1.3`), Meta Model API | Meta Model API terms | Verification, grading, agent tool calling |
+| Muse Spark (`muse-spark-1.3`), Meta Model API | Meta Model API terms | Verification, grading, box proposals, agent tool calling |
+| SAM 3.1 open weights (`facebook/sam3.1`, code `facebookresearch/sam3`) on a Modal GPU | SAM License; Modal terms | On-prem mode: candidate segmentation without a hosted model |
+| Muse Wonder (`muse-wonder-1.0`), Meta Model API | Meta Model API terms | Second opinion on severe or uncertain grades; disagreements go to a person |
 | Muse Spark Open (`meta-models/muse-spark-open-1026`) on Baseten | Muse Model License (Muse Spark Open, Oct 15, 2026) and its Usage Policy; Baseten Model API terms | Open-weights mode: verifier and agent; teacher for the verifier distillation |
 
 ### Libraries

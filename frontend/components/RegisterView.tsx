@@ -67,8 +67,8 @@ function SeniorBadge({ entry }: { entry: Register["entries"][number] }) {
   const r = reviews[0];
   const what = r.changed_decision ? (r.first_is_defect ? "disputed: needs human review" : "accepted a first-pass rejection") : r.changed_severity ? `severity ${r.first_severity} → ${entry.grade.severity}` : "confirmed";
   return (
-    <div className="badge senior" title={`Escalated (${r.reason}); Muse Wonder ${what}`}>
-      senior review{r.changed_decision || r.changed_severity ? " ✎" : ""}
+    <div className="badge senior" title={`Second opinion from Muse Wonder (${r.reason}): ${what}. A second opinion surfaces disagreements for a person to resolve; it is not a more accurate grade.`}>
+      {r.changed_decision && r.first_is_defect ? "disputed: needs human review" : `second opinion${r.changed_decision || r.changed_severity ? " ✎" : ""}`}
     </div>
   );
 }

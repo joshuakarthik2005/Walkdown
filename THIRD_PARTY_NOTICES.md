@@ -102,7 +102,9 @@ Muse Spark Open outputs, the Muse Model License above also applies to it. Fine-t
 
 ## SAM 3.1 and meta-sam-parser (Meta) — SAM License
 
-SAM 3.1 is called through the Meta Model API (Meta Model API terms). `meta-sam-parser` 0.1.0 is used under the SAM
+SAM 3.1 is called through the Meta Model API (Meta Model API terms). In On-prem mode the SAM 3.1 open weights
+(`facebook/sam3.1`, gated, SAM License) run with the official `facebookresearch/sam3` code on a Modal GPU; the
+checkpoint is kept in a private Modal volume and is not redistributed. `meta-sam-parser` 0.1.0 is used under the SAM
 License; its text ships with the package (`licenses/` in the installed distribution).
 
 ## Hosted Meta models (Meta Model API)
