@@ -481,3 +481,35 @@ What it shows:
 - **Low effort gives slightly cleaner boxes:** pixel precision +3.8 points, instance F1 +1.5 points. Pixel recall is the same and image detection is equal.
 - It costs 1.7× more per proposal and is slower.
 - **The effect is small, with no verification on top.** Low-effort proposals are a reasonable option only if box false alarms (§9, §10) are the priority. **Not switched.**
+
+## 14. Muse Glimmer 30B as the verifier: zero-shot vs QLoRA-distilled on Modal (overnight items 5 and 7)
+
+- **Training (stage 3).** QLoRA r = 16 on attention and MLP; the vision path stays BF16. One H100, 2 epochs, 76 min, 884 tokens/s, ≈ $5.04; loss 1.64 → 0.39.
+- **Training data: open-weights outputs only** (`benchmark/glimmer_data.py`), balanced 827 / 827:
+  - Muse Spark Open teacher labels on SAM 3.1 open-weights candidates from the 585-image clean train pool;
+  - 741 constructed rejections of FLUX.1-schnell look-alike masks (FLUX-train subset);
+  - 86 real teacher rejections.
+- **Evaluation on Modal** (`modal_apps/glimmer.py::evaluate`, batched, greedy, reasoning strength low; scored by `benchmark/glimmer_eval_score.py`, `results/glimmer_eval.json`).
+  - Identical production prompts and images to the other verifiers, on 1,227 candidates: the audits (133), real public negatives (185 Cloud candidates), the Muse Image set (486) and every 12th text-prompt test candidate (423).
+  - None of these were trained on.
+  - The Fireworks on-demand evaluation was blocked ("payment method is required"), so both models were evaluated on Modal.
+
+| Verifier | Audited recall (113 rust; 95% CI) | Audited not-rust rejected | Real negatives: accepted / 185 | Muse Image: accepted / 486 | Test: TP retention | Agreement with Muse Spark Open / hosted low | Cost per candidate |
+|---|---|---|---|---|---|---|---|
+| Glimmer 30B zero-shot | 85.0% (77.2–90.4) | 16 / 20 | 31 | 158 | 83.9% | 79.4% / 80.4% | ≈ $0.0036 (H100, 3.25 s) |
+| **Glimmer 30B tuned (v1)** | **99.1%** (95.2–99.8) | 10 / 20 | 53 | 219 | **99.3%** | **93.4% / 93.9%** | **≈ $0.0014** (H100, 1.29 s) |
+| Muse Spark Open (teacher) | 95.6% (90.1–98.1) | 13 / 20 | 12 | – | 96.4% (§6) | – | $0.0083 |
+| Hosted Muse Spark, low | 90.3% (83.4–94.5) | 14 / 20 | 22 (§9) | – | 96.7% (§12) | – | $0.0043 |
+| Hosted Muse Spark, minimal | 97.3% (92.5–99.1) | 12 / 20 | 41 (§9) | 281 | – | – | ≈ $0.002 |
+
+- **Distillation worked for agreement and recall.**
+  - Tuned Glimmer agrees with its teacher on 93% of test decisions, against 79% zero-shot.
+  - It keeps 99% of real rust in the audits.
+  - It is about 6× cheaper per candidate than Muse Spark Open on Baseten, on one GPU we control.
+- **It did not learn to reject real-world look-alikes.**
+  - On the real clean-pipe negatives it accepts 53 of 185 candidates: more than zero-shot (31), more than the teacher (12), more than minimal (41). It also rejects only 10 of 20 audited not-rust candidates.
+  - The training rejections were mostly synthetic. Their look-alikes were clean (orange paint, tape, arrows, copper) and easy, while the real false alarms are stains and dirt on real pipes.
+  - Together with the teacher's 92% accept rate, the student learned "accept unless obviously paint".
+- **Verdict.** v1 is a strong high-recall, low-cost filter. It is **not** a drop-in replacement where false alarms matter.
+- **Fix to try next.** The obvious lever is real hard negatives in training: the builder's own negatives footage, and teacher-rejected real candidates from the train pool's box proposals. It is not run tonight.
+- **Weights:** private Modal volume only, never published.
