@@ -265,6 +265,30 @@ What it shows:
 - **Senior review.** 13 of the 89 were escalated; Muse Wonder agreed with the first pass on all 13, so on this sample it **overturned nothing**. Whether its overturned verdicts match a human therefore **cannot be assessed from this audit**. The §5 statement stands: it is a second opinion that surfaces disputes, with no measured accuracy gain.
 - **Not measured here:** false-positive rejection (needs many more not-rust candidates: the builder's negatives footage and public negatives sets), box-only candidates, severity accuracy.
 
+### On-prem box proposals: dev check (50 dev images)
+
+- **Pipeline.** Same as Cloud's second perception path, open weights only. Muse Spark Open (Baseten) proposes rust boxes on the full frame, using the Cloud prompt with JSON parsed from text. SAM 3.1 open weights then segment them on Modal.
+- **Why exemplars.** The open-weights multiplex model has no per-object box prompt, so the boxes go in as visual exemplars and each box keeps its best-overlapping detection (box IoU ≥ 0.3).
+- **Threshold change.** The open-weights single-image detection threshold is now 0.5, the floor the hosted SAM returns; the video default is 0.65.
+- Script: `benchmark/open_boxes.py`; result: `results/open_boxes_dev.json`. Candidates are unverified, scored against the dataset masks.
+
+| dev, 50 images | Image detection | Pixel recall | Pixel precision | Instance P / R / F1 @0.5 | Candidates / image |
+|---|---|---|---|---|---|
+| On-prem text only (open weights) | 68% | 33.6% | 92.4% | 0.51 / 0.33 / 0.40 | 4.1 |
+| On-prem boxes only | 90% | 49.6% | 68.7% | 0.21 / 0.09 / 0.13 | 2.9 |
+| **On-prem text + boxes** | **100%** | **65.0%** | 72.8% | 0.37 / 0.33 / 0.35 | 5.6 |
+| Cloud text only (hosted) | 68% | 35.1% | 92.1% | 0.45 / 0.33 / 0.38 | 4.7 |
+| Cloud text + boxes (hosted) | 100% | 90.3% | 82.0% | 0.44 / 0.40 / 0.42 | 5.8 |
+
+- **Box proposals close the image-detection gap.** On-prem now finds corrosion on every annotated dev image, as Cloud does.
+- **Area covered roughly doubles,** from 34% to 65% of the annotated pixels. That is still well below Cloud's 90%.
+  - 146 of the 183 proposed boxes got an open-weights mask; the rest had no overlapping detection.
+  - Exemplar masks match the box less tightly than hosted per-box prompts.
+- Box proposals also lower pixel precision, as in Cloud (§4 and the box audit below), so the verifier matters more.
+- **Cost:** box proposals $0.012 per image (Muse Spark Open; median latency 20.9 s per call, in parallel across frames); Modal $0.001 per image.
+- **Decision (builder, 2026-10-28): On-prem mode is now text + boxes + verifier.**
+- **Test split: not run yet.** The full 1,444 images with verification would cost ≈ $35 on Baseten (≈ $17 proposals + ≈ $18 verifying the new candidates), which would cross the $90 Baseten stop. Options are in the checkpoint report.
+
 ### Box-only candidates (second audit, n = 50)
 
 - **Sample.** 50 box-only candidates from the test split: merged text + boxes candidates that are new, not a reused text-prompt candidate. Stratified by dataset label: 20 "TP", 20 "FP", 10 "ambiguous" (`benchmark.label_app --set boxes`, seeded, same blind protocol).

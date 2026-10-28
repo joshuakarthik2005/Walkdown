@@ -134,10 +134,9 @@ def start_run(req: RunRequest) -> dict:
     run_id = f"run-{uuid.uuid4().hex[:10]}"
     session = AgentSession(clip=clip, ledger=CostLedger(clip.dir / "cost_ledger.jsonl"), live=req.live,
                            verify_effort=req.verify_effort, provider=req.provider,
-                           # On-prem mode uses open weights only: SAM 3.1 open weights on Modal, no hosted box
-                           # proposals (Muse Spark) and no senior review (Muse Wonder).
-                           sam_backend="modal" if req.provider == "baseten" else "meta",
-                           box_proposals=req.provider == "meta")
+                           # On-prem mode uses open weights only: SAM 3.1 open weights on Modal, box proposals from
+                           # Muse Spark Open, and no senior review (Muse Wonder).
+                           sam_backend="modal" if req.provider == "baseten" else "meta")
     state = RunState(run_id, WalkdownAgent(session, reasoning_effort=req.agent_effort))
     RUNS[run_id] = state
     message = req.message or (f"New walkdown clip of {clip.asset.asset_id}"

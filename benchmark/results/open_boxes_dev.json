@@ -1,0 +1,95 @@
+{
+ "split": "dev",
+ "images": 50,
+ "propose_latency_s_median": 20.90898980000202,
+ "new_proposals": 50,
+ "usd": {
+  "propose": 0.6011846,
+  "modal": 0.04870722496250164
+ },
+ "images_scored": 50,
+ "boxes_proposed": 183,
+ "boxes_with_open_mask": 146,
+ "variants": {
+  "open_text": {
+   "image_detection": 0.68,
+   "false_alarm_on_negatives": null,
+   "pixel_recall": 0.33602015211101083,
+   "pixel_precision": 0.9241934498766908,
+   "instance_iou05": {
+    "precision": 0.5048543689320388,
+    "recall": 0.325,
+    "f1": 0.39543726235741444,
+    "tp": 104,
+    "fp": 102,
+    "fn": 216,
+    "mean_matched_iou": 0.8211637439102641
+   },
+   "predictions_per_image": 4.12
+  },
+  "open_boxes": {
+   "image_detection": 0.9,
+   "false_alarm_on_negatives": null,
+   "pixel_recall": 0.49645593892447765,
+   "pixel_precision": 0.6869879042170558,
+   "instance_iou05": {
+    "precision": 0.2054794520547945,
+    "recall": 0.09375,
+    "f1": 0.12875536480686697,
+    "tp": 30,
+    "fp": 116,
+    "fn": 290,
+    "mean_matched_iou": 0.7746831214182415
+   },
+   "predictions_per_image": 2.92
+  },
+  "open_text_plus_boxes": {
+   "image_detection": 1.0,
+   "false_alarm_on_negatives": null,
+   "pixel_recall": 0.6496225036505651,
+   "pixel_precision": 0.7281751704161399,
+   "instance_iou05": {
+    "precision": 0.3723404255319149,
+    "recall": 0.328125,
+    "f1": 0.34883720930232553,
+    "tp": 105,
+    "fp": 177,
+    "fn": 215,
+    "mean_matched_iou": 0.8032080343078806
+   },
+   "predictions_per_image": 5.64
+  },
+  "cloud_text": {
+   "image_detection": 0.68,
+   "false_alarm_on_negatives": null,
+   "pixel_recall": 0.35099647006040763,
+   "pixel_precision": 0.9213720904962626,
+   "instance_iou05": {
+    "precision": 0.45064377682403434,
+    "recall": 0.328125,
+    "f1": 0.37974683544303794,
+    "tp": 105,
+    "fp": 128,
+    "fn": 215,
+    "mean_matched_iou": 0.8225271748526757
+   },
+   "predictions_per_image": 4.66
+  },
+  "cloud_text_plus_boxes": {
+   "image_detection": 1.0,
+   "false_alarm_on_negatives": null,
+   "pixel_recall": 0.9029948970781034,
+   "pixel_precision": 0.8195556957448041,
+   "instance_iou05": {
+    "precision": 0.4383561643835616,
+    "recall": 0.4,
+    "f1": 0.41830065359477125,
+    "tp": 128,
+    "fp": 164,
+    "fn": 192,
+    "mean_matched_iou": 0.7975224461979997
+   },
+   "predictions_per_image": 5.84
+  }
+ }
+}

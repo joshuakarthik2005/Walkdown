@@ -337,3 +337,13 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - Check on cached devdemo (38 register defects after the F2 run renumbered one box candidate): individual FEASIBLE, gap 65%, 857,922 exposure, 22 defects unscheduled; grouped OPTIMAL in 2.7 s, 18 jobs, 932,948 exposure (+8.7%), 13 unscheduled, 32 setup hours saved. The agent uses grouped. On the 25-job demo scenario the individual plan is OPTIMAL, so the agent keeps individual defects.
   - Tests: `test_adaptive_rule_groups_only_when_individual_plan_is_not_proven`, `test_session_solves_both_plans_and_replans_both`.
 - The builder's public demo clip still needs the same check once it exists.
+
+## On-prem box proposals from open weights (2026-10-28, builder decision)
+
+- **What changed.** On-prem mode now runs the same pipeline shape as Cloud: text + boxes + verifier, open weights only.
+  - Muse Spark Open (Baseten) proposes the boxes.
+  - SAM 3.1 open weights on Modal segment them as visual exemplars, and each box keeps its best-overlapping detection.
+- **Why exemplars.** The multiplex model accepts no point prompts, and its box prompts are concept exemplars rather than per-object prompts.
+- **Detection threshold.** The single-image threshold is now 0.5 instead of the video builder's 0.65, matching the lowest score hosted SAM returns. At 0.65 the open weights missed every candidate in the 0.5–0.65 band; on devdemo frame 0 that was 10 candidates against hosted SAM's 18.
+- **Dev check (RESULTS §7):** image detection 68% → 100%, pixel recall 34% → 65% (Cloud 90%).
+- **Cost and speed.** Box proposals are batched across frames: parallel Baseten calls, then one Modal call. A frame-by-frame call costs about 21 s per frame.

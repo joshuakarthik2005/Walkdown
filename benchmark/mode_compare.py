@@ -1,7 +1,7 @@
 """F2: Cloud vs On-prem mode, end to end on one clip with every model call live (no perception/verdict cache).
 
 Cloud:   hosted SAM 3.1 (text + Muse Spark box proposals), Muse Spark verifier and agent, Muse Wonder senior review.
-On-prem: SAM 3.1 open weights on Modal (one L40S, scale to zero; text prompt only), Muse Spark Open on Baseten
+On-prem: SAM 3.1 open weights on Modal (one L40S, scale to zero; text prompt + Muse Spark Open box proposals), Muse Spark Open on Baseten
          for verifier and agent. No hosted model is called.
 
 Reports wall time, cost by job, candidates, register entries, walkdown jobs, plan status and gap, and how many
@@ -24,7 +24,7 @@ from backend.clients.cost import CostLedger
 
 RESULTS = Path(__file__).parent / "results"
 MODES = {"cloud": dict(provider="meta", sam_backend="meta", box_proposals=True),
-         "on-prem": dict(provider="baseten", sam_backend="modal", box_proposals=False)}
+         "on-prem": dict(provider="baseten", sam_backend="modal", box_proposals=True)}
 
 
 def run(clip_id: str, mode: str) -> dict:
