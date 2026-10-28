@@ -122,3 +122,52 @@ Cost per image:
 - The same caveat as §2 applies: precision here is measured against dataset labels that leave real rust unannotated, so measured precision is a lower bound and FP rejection is not measured. False alarms on clean surfaces are still unmeasured (no negative images in the dataset; pending the builder's negative footage).
 
 Cost of this experiment: box proposals and box masks $6.50, verification of new candidates $23.02.
+
+## 5. Senior review (F1): Muse Wonder on escalated grades (test split)
+
+**Setup**
+- Every text-only test candidate (§2) whose first-pass grade (hosted Muse Spark, low effort) either accepts a defect at severity ≥ 4 or has confidence below 0.6 goes to **`muse-wonder-1.0`**. Muse Wonder gets the same prompt, images and strict schema, at low effort.
+- Result file: `results/senior_eval_test_low.json` (50-item dry run: `results/senior_eval_test_low_n50.json`). Script: `benchmark/senior_eval.py`.
+
+| Metric | Value |
+|---|---|
+| Escalated | **528 of 5,066** (10.4%): 324 for severity ≥ 4, 204 for confidence < 0.6 |
+| Invalid senior replies | 0 |
+| Decision changed | 54 (10.2%), **all accept → reject**; none reject → accept |
+| Severity changed (both accepted, n = 473) | 179 (38%); mean change −0.14 (slightly milder) |
+| Agreement with coverage labels (TP/FP, n = 517) | first pass 73.5%, after senior review 72.7% |
+| Annotated-corrosion candidates kept (TP, n = 379) | first pass 100%, senior 92.3% (29 rejected) |
+| "FP" candidates rejected (n = 138; labels NOT reliable, §2) | first pass 0.7%, senior 18.8% (26) |
+| Cost | $8.32 total, **$0.0158 per review**; ≈ $0.0016 per verified candidate on average (+38% over first pass) |
+| Latency | median 7.8 s, p90 10.8 s per review (added only for escalated candidates) |
+
+What this shows:
+- Muse Wonder is a **more conservative second opinion**. It rejects about one in ten escalated accepts and grades severity a little lower.
+- Against the dataset labels it is **not more accurate** (72.7% vs 73.5%). It rejected 29 annotated-corrosion candidates and 26 candidates labelled FP, and the FP labels are known to miss real rust.
+- **Product rule changed because of this measurement (fail-safe).**
+  - A defect the first pass accepted and Muse Wonder rejects is no longer dropped.
+  - It stays in the register with the first-pass grade, flagged `senior_disputed`, and goes to human review.
+  - For severity changes, Muse Wonder's grade stays final; the first-pass severity is shown next to it.
+- With this rule, senior review loses no recall. What it adds is a disagreement signal on about 1% of candidates (54 of 5,066), sent to a human. It also gives a second severity opinion on the severe ones.
+
+## 6. Open weights: Muse Spark Open (Baseten) on the same candidates (test split, partial)
+
+**Setup**
+- Same text-only candidates, prompt and images as §2, verified by **`meta-models/muse-spark-open-1026`** on Baseten.
+- Baseten does not offer structured outputs, so the schema is given in the prompt, and the reply is parsed and validated with one retry. Script: `benchmark/verify_scale.py --provider baseten`.
+- **Partial run.** The local memory guard stopped it at **1,169 of 1,444 images (3,784 of 5,066 candidates)**. All numbers below are on those 3,784 candidates, compared with hosted Muse Spark on exactly the same candidates.
+
+| Metric (3,784 candidates) | Muse Spark Open (Baseten) | Hosted Muse Spark (§2) |
+|---|---|---|
+| Same accept/reject decision as hosted | **93.3%** | – |
+| Severity, both accepted (n = 3,253): exact / within ±1 | 67.8% / **99.1%** | – |
+| TP retention (coverage ≥ 0.5, n = 2,708) | **96.5%** | 95.2% |
+| Accepted share | 91.8% | – |
+| Invalid replies (no valid grade after retry) | **1.8%** (69); some calls hit the 4,000-token output limit (0.5–4% of calls per batch) | 0% (strict schema) |
+| Reasoning tokens per call (mean) | 1,675 | 754 |
+| Cost per candidate (listed $1.25 / $0.15 / $4.25 per 1M) | $0.0084 | $0.0043 |
+| Latency per call (median) | 11.1 s | 5.9 s |
+
+- **Open weights are a usable on-prem verifier.** It keeps slightly more annotated corrosion than the hosted model, and its severities are almost always within one grade of hosted.
+- Costs: about twice the tokens, because it reasons longer; twice the latency; and a 1.8% invalid-reply rate, because without strict decoding a long reasoning trace can run out of output budget. Invalid replies are sent to human review, never dropped.
+- Cost of the partial run: $31.79 (Baseten credits).

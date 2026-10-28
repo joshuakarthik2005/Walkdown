@@ -61,7 +61,7 @@ function SeniorBadge({ entry }: { entry: Register["entries"][number] }) {
   const reviews = entry.detections.map((d) => d.senior).filter((r): r is NonNullable<typeof r> => r !== null);
   if (!reviews.length) return null;
   const r = reviews[0];
-  const what = r.changed_decision ? "changed the decision" : r.changed_severity ? `severity ${r.first_severity} → ${entry.grade.severity}` : "confirmed";
+  const what = r.changed_decision ? (r.first_is_defect ? "disputed: needs human review" : "accepted a first-pass rejection") : r.changed_severity ? `severity ${r.first_severity} → ${entry.grade.severity}` : "confirmed";
   return (
     <div className="badge senior" title={`Escalated (${r.reason}); Muse Wonder ${what}`}>
       senior review{r.changed_decision || r.changed_severity ? " ✎" : ""}

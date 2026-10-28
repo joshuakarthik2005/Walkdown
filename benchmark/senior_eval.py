@@ -58,17 +58,16 @@ def main() -> int:
 
     ledger = CostLedger(DATA_DIR / "runs" / "cost_ledger.jsonl")
     spent_before = ledger.total()
-    instances: dict[str, dict] = {}
 
     def run(e: dict):
         if ledger.total() - spent_before > args.max_usd:
             return None
         r = e["row"]
         stem, obj = r["id"].split("#")
-        if r["image"] not in instances:
-            instances[r["image"]] = {i.object_id: i for i in parse_output(
-                (SAM_DIR / "rust" / (stem + ".txt")).read_text(encoding="utf-8"), 640, 640)}
-        cand = dict(id=r["id"], image=r["image"], instance=instances[r["image"]][obj])
+        # Masks are decoded per candidate and not kept (low memory: a full-frame bool mask is 400 KB).
+        inst = next(i for i in parse_output((SAM_DIR / "rust" / (stem + ".txt")).read_text(encoding="utf-8"), 640, 640)
+                    if i.object_id == obj)
+        cand = dict(id=r["id"], image=r["image"], instance=inst)
         try:
             return _cached_verify(cand, "wonder", args.effort, ledger)
         except Exception as err:  # noqa: BLE001 - report and continue; rerun retries (cached ones are kept)

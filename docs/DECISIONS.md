@@ -285,3 +285,10 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - devdemo was already far above the demo sizing rule (at most 6 register defects); its plan stays FEASIBLE, gap 40%, at the 30 s limit.
   - The public demo clip (the builder's footage) needs a check against the sizing rule in "Demo plan quality" above.
 - Verdicts are reused across pipelines: a merged candidate with mask IoU ≥ 0.9 to a text candidate keeps that candidate's id and verdict.
+
+## Senior review is fail-safe: disputed defects go to a human (2026-10-28)
+
+- **Measured** (benchmark/RESULTS.md section 5): Muse Wonder changed 54 of 528 escalated decisions, all from accept to reject. 29 of those were candidates mostly inside annotated corrosion. Its agreement with the dataset labels was not better than the first pass (72.7% vs 73.5%).
+- **Decision.** When the first pass accepts a defect and the senior reviewer rejects it, the defect stays in the register with the first-pass grade, flagged `senior_disputed`, so it needs human review. A senior review that accepts a first-pass rejection is final, and so is a senior severity change.
+- **Why.** In inspection, a silently dropped real defect costs far more than one extra item in a reviewer's queue. The second opinion is useful as a disagreement signal, not as a filter that removes defects.
+- Cached senior verdicts from before this rule are re-interpreted at load time (`backend/agent/tools.py`).

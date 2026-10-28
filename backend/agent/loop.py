@@ -30,8 +30,8 @@ schedule repairs, and explain the plan. Work autonomously with your tools:
 1. For a video clip, call track_video first (one candidate per tracked defect); if it finds nothing or fails, fall back to segment_frames. For photos use segment_frames: start with a coarse pass over the whole clip (fps 0.5-1). If a stretch shows candidates \
 or looks unclear, inspect it again at a higher fps. Do not resample the same range at the same rate.
 2. verify_candidate: verify every candidate (up to 20 ids per call). Rejected candidates are false positives. Severe
-   (severity 4+) or uncertain grades are re-checked automatically by a senior reviewer (Muse Wonder); its grade is
-   final. Mention it when a senior review changed a decision or a severity.
+   (severity 4+) or uncertain grades are re-checked automatically by a senior reviewer (Muse Wonder); its severity is
+   final, but a defect it disputes stays in the register flagged for human review. Mention senior changes and disputes.
 3. build_register once all candidates are verified.
 4. plan_maintenance to schedule the register together with the existing backlog.
 5. explain_plan for the walkdown defects, then answer.

@@ -26,6 +26,8 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-10-27 | Verifier at scale, test split, all 5,066 SAM candidates, reasoning low (incl. 310 verdicts from earlier interrupted chunks) | muse-spark-1.3 | 5,066 | – | mean 754 reasoning/call | 21.78 | ≈26.50 (ledger total $26.45 + ~$0.05 early probes) |
 | 2026-10-27 | Recall experiment on dev: 2×2 tiling "rust" (200 tiles) + "rust stain" full frame (50) | sam-3.1 | 250 images | – | – | 0.625 | ≈27.13 |
 | 2026-10-28 | Box-prompt recall experiment (dev 50 + test 1,444): Muse Spark minimal box proposals + SAM box prompts, incl. run before clamp fix | muse-spark-1.3 + sam-3.1 | 1,494 images | - | - | 8.28 (propose 4.55, SAM 3.73) | ~35.14 (ledger total $35.09 + ~$0.05 early probes) |
+| 2026-10-28 | F1 senior review measurement: Muse Wonder on the 528 escalated test candidates (50-item dry run + rest) | muse-wonder-1.0 | 528 | - | mean 534 reasoning | 8.32 | - |
+| 2026-10-28 | Baseten open verifier on test text-only candidates (stopped by the local memory guard at 1,169 of 1,444 images) | muse-spark-open-1026 (Baseten) | 3,784 | ~1,200/call | ~1,700/call (1,675 reasoning) | 31.79 (Baseten) | Meta unchanged |
 | 2026-10-28 | Open-weights mode: agent + verifier on Muse Spark Open, devdemo clip (fill run: 28 verifications + agent turns; repeat run: agent turns only) | muse-spark-open-1026 (Baseten) | 2 runs | - | - | 0.289 (Baseten, at the listed $1.25 / $0.15 / $4.25 per 1M) | Meta unchanged |
 | 2026-10-28 | Box-candidate verification, test split: 5,385 new text+boxes candidates, reasoning low (first chunk 147 images, then 1,297 images with 3 processes) | muse-spark-1.3 | 5,385 | - | - | 23.02 | - |
 | 2026-10-28 | Default-pipeline switch: box proposals + box SAM on the 6 devdemo frames (latency measurement, fills the cache), then demo cache refresh (fill + repeat agent runs incl. 4 senior reviews) | muse-spark-1.3 + sam-3.1 + muse-wonder-1.0 | 6 frames, 2 runs | - | - | 0.26 | ≈58.9 (ledger total $58.85 + ~$0.05 early probes) |
@@ -36,8 +38,8 @@ Updated 2026-10-28, after the box-candidate verification run. Meta and Baseten f
 
 | Provider | Used | Target | Stop | Notes |
 |---|---|---|---|---|
-| Meta Model API | ≈ $58.9 | $120–135 | $140 | Box verification finished ($23.02); next: F1 senior review measurement (~$12) |
-| Baseten (Muse Spark Open) | ≈ $1.0 | ≈ $82 | $90 | Includes the Phase 4 dry run (80 calls, priced afterwards at $0.0085 per call) and the open-weights demo run |
+| Meta Model API | ≈ $67.2 | $120–135 | $140 | Box verification $23.02, F1 senior review $8.32 done |
+| Baseten (Muse Spark Open) | ≈ $32.8 | ≈ $82 | $90 | Includes the Phase 4 dry run (80 calls, priced afterwards at $0.0085 per call) and the open-weights demo run |
 | Fireworks | $0 | ≈ $80 | $90 | Dataset uploads still disabled; inference-only use (zero-shot Glimmer baseline) |
 | Modal | ≈ $0 (CPU image build only) | ≈ $80 | $90 | Payment method added (workspace limit $100); GPU jobs queued |
 

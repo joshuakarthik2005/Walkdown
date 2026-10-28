@@ -1,0 +1,37 @@
+{
+ "split": "test",
+ "effort": "low",
+ "first_pass_verdicts": 5066,
+ "escalated": 528,
+ "escalation_rate": 0.1042242400315831,
+ "reviewed": 50,
+ "invalid_replies": 0,
+ "reasons": {
+  "severity": 14,
+  "confidence": 36
+ },
+ "changed_decision": 7,
+ "changed_decision_rate": 0.14,
+ "accepted_to_rejected": 7,
+ "rejected_to_accepted": 0,
+ "changed_severity_among_both_accepted": 18,
+ "both_accepted": 43,
+ "mean_severity_change": 0.13953488372093023,
+ "gt_labelled": 47,
+ "gt_label_counts": {
+  "TP": 33,
+  "FP": 14
+ },
+ "gt_agreement_first": 0.7021276595744681,
+ "gt_agreement_senior": 0.723404255319149,
+ "tp_retention_first": 1.0,
+ "tp_retention_senior": 0.9090909090909091,
+ "fp_rejection_first_NOT_RELIABLE": 0.0,
+ "fp_rejection_senior_NOT_RELIABLE": 0.2857142857142857,
+ "usd_total": 0.9356952000000001,
+ "usd_per_review": 0.018713904,
+ "latency_s_median": 7.848247499998251,
+ "latency_s_p90": 12.729727400001138,
+ "reasoning_tokens_mean": 653.7,
+ "new_spend_this_run": 0.9356952000000001
+}

@@ -48,7 +48,8 @@ def work_orders(s, plan_start: datetime) -> list[dict]:
             plan_status=s.plan.stats.status if s.plan else "", plan_gap=(
                 "" if not s.plan or s.plan.stats.gap is None else round(s.plan.stats.gap, 4)),
             needs_review=e.needs_review,
-            senior_review=("" if not senior else ("changed decision" if senior["changed_decision"] else
+            senior_review=("" if not senior else (("disputed, needs human review" if senior["first_is_defect"] else "accepted first-pass rejection")
+                           if senior["changed_decision"] else
                            f"severity {senior['first_severity']}->{g.severity}" if senior["changed_severity"] else "confirmed")),
             evidence="; ".join(g.evidence.visual_cues[:3]), approval_required=True,
             source="Walkdown (decision support; requires approval by a qualified person)"))

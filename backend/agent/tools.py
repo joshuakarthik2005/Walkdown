@@ -212,7 +212,11 @@ def _verify_one(s: AgentSession, cid: str) -> tuple[Verdict, SeniorReview | None
     senior_cache = cache.parent.with_name(cache.parent.name + "-senior") / cache.name
     if senior_cache.exists() and not s.live:
         d = json.loads(senior_cache.read_text(encoding="utf-8"))
-        return _load_verdict(d["verdict"]), (SeniorReview(**d["review"]) if d["review"] else None)
+        final, review = _load_verdict(d["verdict"]), (SeniorReview(**d["review"]) if d["review"] else None)
+        if review and v.grade and v.grade.is_defect and final.grade and not final.grade.is_defect:
+            # Cached before the fail-safe rule: a disputed defect stays, flagged for human review.
+            final = Verdict(**{**asdict(v), "grade": v.grade, "flags": v.flags + ["senior_disputed"]})
+        return final, review
     final, review = senior_review(cand(), v, effort="low", ledger=s.ledger, job="agent-senior-review")
     if review is not None or not senior_cache.exists():
         senior_cache.parent.mkdir(parents=True, exist_ok=True)

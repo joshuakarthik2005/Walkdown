@@ -38,12 +38,18 @@ def test_not_escalated_makes_no_call(monkeypatch):
     assert final is first and review is None
 
 
-def test_senior_grade_is_final_and_changes_are_recorded(monkeypatch):
+def test_senior_rejection_keeps_the_defect_for_human_review(monkeypatch):
     monkeypatch.setattr(escalation, "verify", lambda c, **k: verdict(grade(is_defect=False, severity=1), "wonder"))
-    final, review = escalation.senior_review(CAND, verdict(grade(severity=4)))
-    assert final.provider == "wonder" and not final.grade.is_defect
+    first = verdict(grade(severity=4))
+    final, review = escalation.senior_review(CAND, first)
+    assert final.grade.is_defect and final.grade.severity == 4 and "senior_disputed" in final.flags
     assert review.changed_decision and not review.changed_severity and review.first_severity == 4
-    assert "senior_changed_decision" in final.flags
+
+
+def test_senior_acceptance_of_a_first_pass_rejection_is_final(monkeypatch):
+    monkeypatch.setattr(escalation, "verify", lambda c, **k: verdict(grade(severity=3), "wonder"))
+    final, review = escalation.senior_review(CAND, verdict(grade(is_defect=False, severity=1, confidence=0.4)))
+    assert final.provider == "wonder" and final.grade.is_defect and "senior_changed_decision" in final.flags
 
 
 def test_severity_change_and_invalid_senior_reply(monkeypatch):
