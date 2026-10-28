@@ -45,7 +45,8 @@ def get_register(s: AgentSession, defect_ids: list[str] | None = None, min_sever
                         review_flags=sorted({f for d in e.detections for f in d.flags}),
                         senior_review=(dict(reason=senior["reason"], changed_decision=senior["changed_decision"],
                                             first_severity=senior["first_severity"]) if senior else None)))
-    return dict(entries=out, total_in_register=len(s.register))
+    notes = [n["note"] for n in getattr(s, "voice_notes", []) if n.get("note")]
+    return dict(entries=out, total_in_register=len(s.register), inspector_voice_notes=notes)
 
 
 def get_schedule(s: AgentSession, defect_ids: list[str] | None = None, crew_id: str | None = None,

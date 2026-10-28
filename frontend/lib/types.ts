@@ -50,6 +50,19 @@ export interface RegisterEntry {
 export interface Register {
   asset: { asset_id: string; asset_type: string; pressurised: boolean; location: string; service: string | null };
   entries: RegisterEntry[];
+  voice_notes: VoiceNoteResult[];
+}
+
+export interface VoiceNoteResult {
+  transcript: string;
+  audio_ms: number;
+  note: {
+    asset_tag: string | null;
+    line_service: string | null;
+    remarks: { location: string; description: string; severity_words: string }[];
+    follow_ups: string[];
+    summary: string;
+  } | null;
 }
 
 export interface Assignment {

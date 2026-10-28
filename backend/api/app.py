@@ -9,6 +9,7 @@ Endpoints:
   GET  /runs/{id}/plan           current maintenance plan (assignments, stats, explanations)
   POST /runs/{id}/changes        constraint change + epsilon; the agent replans and explains
   POST /runs/{id}/ask            inspector copilot: question about the register and plan (read-only tools)
+  POST /runs/{id}/voice          inspector voice note (WAV): transcribed and structured, attached to the run
 
 Runs live in memory (one process); caches and clips are on WALKDOWN_DATA_DIR.
 
@@ -158,7 +159,7 @@ def run_trace(run_id: str, since: int = 0) -> dict:
 @app.get("/runs/{run_id}/register")
 def run_register(run_id: str) -> dict:
     s = _run(run_id).agent.s
-    return dict(asset=s.clip.asset.__dict__, entries=[dict(
+    return dict(asset=s.clip.asset.__dict__, voice_notes=s.voice_notes, entries=[dict(
         defect_id=e.defect_id, frames=e.frames, needs_review=e.needs_review,
         grade=e.grade.model_dump(mode="json"),
         detections=[dict(candidate_id=d.candidate_id, frame=d.frame, box=list(d.box), flags=d.flags, senior=d.senior)
@@ -193,6 +194,21 @@ def post_change(run_id: str, req: ChangeRequest) -> dict:
     st.status = "running"  # before the thread starts, so a poll right after this call cannot see "done"
     threading.Thread(target=st.turn, args=(message,), daemon=True).start()
     return dict(run_id=run_id, status="running")
+
+
+@app.post("/runs/{run_id}/voice")
+async def voice_note(run_id: str, audio: UploadFile = File(...)) -> dict:
+    """Transcribe an inspector's WAV voice note (Muse Voice Transcribe) and extract structured fields."""
+    from backend.voice.notes import process
+    st = _run(run_id)
+    if Path(audio.filename or "").suffix.lower() != ".wav":
+        raise HTTPException(400, "voice notes must be WAV")
+    data = await audio.read()
+    if len(data) > 50 << 20:
+        raise HTTPException(413, "file too large")
+    result = process(data, ledger=st.agent.s.ledger)
+    st.agent.s.voice_notes.append(result)
+    return result
 
 
 class AskRequest(BaseModel):

@@ -54,6 +54,7 @@ class AgentSession:
     frame_paths: dict[int, Path] = field(default_factory=dict)
     verdicts: dict[str, Verdict] = field(default_factory=dict)
     reviews: dict[str, SeniorReview] = field(default_factory=dict)  # candidate id -> senior review
+    voice_notes: list[dict] = field(default_factory=list)  # backend.voice.notes.process results
     register: list[RegisterEntry] = field(default_factory=list)
     scenario: Scenario | None = None
     plan: Plan | None = None

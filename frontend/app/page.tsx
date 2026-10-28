@@ -6,6 +6,7 @@ import { ChangePanel } from "@/components/ChangePanel";
 import { Copilot } from "@/components/Copilot";
 import { Gantt } from "@/components/Gantt";
 import { RegisterView } from "@/components/RegisterView";
+import { VoiceNotes } from "@/components/VoiceNotes";
 import { Attribution, SafetyNotice } from "@/components/SafetyNotice";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Unscheduled } from "@/components/Unscheduled";
@@ -233,6 +234,7 @@ export default function Home() {
             {register.asset.service ? ` · ${register.asset.service.replaceAll("_", " ")} service` : ""} · {register.entries.length} defects
           </h2>
           <RegisterView runId={runId} register={register} frames={frames} />
+          <VoiceNotes runId={runId} notes={register.voice_notes ?? []} onAdded={() => refreshResults(runId)} />
         </section>
       )}
 

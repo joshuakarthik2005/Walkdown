@@ -68,3 +68,9 @@ export async function ask(id: string, question: string) {
     }),
   );
 }
+
+export async function uploadVoice(id: string, file: File) {
+  const form = new FormData();
+  form.append("audio", file);
+  return json<import("./types").VoiceNoteResult>(await fetch(`${API_URL}/runs/${id}/voice`, { method: "POST", body: form }));
+}

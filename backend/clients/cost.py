@@ -24,6 +24,7 @@ MUSE_OUTPUT_PER_TOKEN = 4.25 / 1_000_000
 WONDER_INPUT_PER_TOKEN = 4.00 / 1_000_000
 WONDER_CACHED_INPUT_PER_TOKEN = 0.20 / 1_000_000
 WONDER_OUTPUT_PER_TOKEN = 20.00 / 1_000_000
+VOICE_PER_HOUR = 0.18  # muse-voice-transcribe-1.0, metered in whole seconds, rounded down
 
 
 def sam_image_cost(images: int = 1) -> float:
@@ -41,6 +42,11 @@ def muse_cost(input_tokens: int, output_tokens: int, cached_tokens: int = 0) -> 
     fresh = input_tokens - cached_tokens
     return (fresh * MUSE_INPUT_PER_TOKEN + cached_tokens * MUSE_CACHED_INPUT_PER_TOKEN
             + output_tokens * MUSE_OUTPUT_PER_TOKEN)
+
+
+def voice_cost(audio_ms: int) -> float:
+    """Cost of transcribing ``audio_ms`` of audio with Muse Voice Transcribe."""
+    return (audio_ms // 1000) * VOICE_PER_HOUR / 3600
 
 
 def wonder_cost(input_tokens: int, output_tokens: int, cached_tokens: int = 0) -> float:
