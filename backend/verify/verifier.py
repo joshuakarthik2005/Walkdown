@@ -64,6 +64,19 @@ well the cyan outline fits the actual defect (good, partial, poor).
 with the severity.
 Judge only what is visible. Do not guess about hidden damage."""
 
+# v2 (verifier hardening): an explicit look-alike checklist and a texture-evidence requirement. Tuned only on
+# FLUX training negatives (never on the Muse Image set, public negatives or audited labels); adopted only if it
+# lowers false alarms without costing more than 3 points of audited real-rust recall (docs/DECISIONS.md).
+SYSTEM_PROMPT_V2 = SYSTEM_PROMPT + """
+
+Look-alike checklist (check every item before accepting):
+- Orange, red, brown or rust-coloured PAINT, primer, coatings, tape, labels, arrows: uniform colour, smooth surface, sharp painted edges -> not a defect.
+- Water stains, wet patches, dirt, mud, dust, oil or soot: dark or brown but no oxide texture -> not a defect.
+- Shadows, reflections, warm lighting, wood, soil, plants, copper or brass parts -> not a defect.
+To accept, name at least one TEXTURE cue visible inside the outline: flaking, pitting, scaling, blistering, granular orange-brown oxide, section loss, or a stain that starts at a visibly corroding part (weld, bolt, flange, crack). Colour alone is never enough.
+If the candidate was proposed by a box detector rather than the 'rust' text prompt, apply the checklist strictly: accept only with a clear texture cue."""
+PROMPTS = {"v1": SYSTEM_PROMPT, "v2": SYSTEM_PROMPT_V2}
+
 JSON_INSTRUCTION = ("\n\nReply with ONLY a JSON object, no markdown, matching this JSON schema exactly:\n"
                     + json.dumps(grade_json_schema()))
 
@@ -77,6 +90,7 @@ class Candidate:
     mask: np.ndarray  # bool full-frame mask
     box: tuple[int, int, int, int]
     sam_confidence: float | None = None
+    source: str | None = None  # "text" or "box" (which perception path proposed it); stated to the v2 prompt only
 
 
 @dataclass
@@ -108,11 +122,13 @@ def baseten_client() -> OpenAI:
     return OpenAI(base_url=BASETEN_URL, api_key=key, max_retries=0, timeout=180)
 
 
-def _user_content(c: Candidate) -> list[dict]:
+def _user_content(c: Candidate, prompt_version: str = PROMPT_VERSION) -> list[dict]:
     crop, thumb = verifier_images(c.image, c.mask, c.box)
     h, w = c.mask.shape
     l, t, r, b = c.box
-    text = (f"Candidate {c.candidate_id}: segmenter prompt 'rust'"
+    origin = ("segmenter prompt 'rust'" if prompt_version == "v1" or c.source != "box"
+              else "proposed by a box detector (not by the 'rust' text prompt)")
+    text = (f"Candidate {c.candidate_id}: {origin}"
             + (f", segmenter confidence {c.sam_confidence:.2f}" if c.sam_confidence is not None else "")
             + f". Mask covers {100 * c.mask.sum() / (h * w):.2f}% of the {w}x{h} frame; box x {l}-{r}, y {t}-{b}.")
     return [{"type": "text", "text": text},
@@ -130,22 +146,24 @@ def _extract_json(text: str) -> str:
 
 
 def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low", max_tokens: int | None = None,
-           ledger: CostLedger | None = None, job: str = "verify") -> Verdict:
+           ledger: CostLedger | None = None, job: str = "verify", prompt_version: str | None = None) -> Verdict:
     """Verify and grade one candidate. Never raises on a bad reply; the Verdict carries the error."""
-    content = _user_content(c)
+    prompt_version = prompt_version or PROMPT_VERSION
+    system = PROMPTS[prompt_version]
+    content = _user_content(c, prompt_version)
     if max_tokens is None:
         # Muse Spark Open reasons about twice as long and has no strict decoding; at 4,000 tokens 1.8% of replies
         # were cut off before the JSON (benchmark/RESULTS.md section 6).
         max_tokens = BASETEN_MAX_TOKENS if provider == "baseten" else 4000
     if provider in ("meta", "wonder"):
         client, model = meta_client(), META_MODEL if provider == "meta" else WONDER_MODEL
-        messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": content}]
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": content}]
         extra = dict(response_format={"type": "json_schema", "json_schema": {
                          "name": "walkdown_grade", "strict": True, "schema": grade_json_schema()}},
-                     reasoning_effort=reasoning_effort, prompt_cache_key=f"walkdown-verifier-{PROMPT_VERSION}")
+                     reasoning_effort=reasoning_effort, prompt_cache_key=f"walkdown-verifier-{prompt_version}")
     elif provider == "baseten":
         client, model = baseten_client(), BASETEN_MODEL
-        messages = [{"role": "system", "content": SYSTEM_PROMPT + JSON_INSTRUCTION}, {"role": "user", "content": content}]
+        messages = [{"role": "system", "content": system + JSON_INSTRUCTION}, {"role": "user", "content": content}]
         extra = {}
     else:
         raise ValueError(f"unknown provider {provider!r}")

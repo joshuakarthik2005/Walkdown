@@ -89,7 +89,7 @@ def synthetic_examples() -> list[dict]:
     out = []
     for line in man.read_text(encoding="utf-8").splitlines():
         m = json.loads(line)
-        if m["lookalike"] in AMBIGUOUS_LOOKALIKES:
+        if m["lookalike"] in AMBIGUOUS_LOOKALIKES or m.get("subset") != "train":  # "tune" is for prompt hardening
             continue
         sam = FLUX_SAM / (Path(m["file"]).stem + ".json")
         if not sam.exists():

@@ -32,7 +32,8 @@ OUT = DATA_DIR / "synthetic"
 LEDGER = DATA_DIR / "runs" / "cost_ledger.jsonl"
 SETS = {
     "flux": dict(dir="flux_train", split="train", generator="FLUX.1-schnell (black-forest-labs), Modal L40S",
-                 licence="Apache 2.0", use="training only (Glimmer verifier, SAM LoRA); never in any test set"),
+                 licence="Apache 2.0", use="training/tuning only (subset tune: verifier-prompt hardening; subset "
+                 "train: Glimmer verifier, SAM LoRA); never in any test set"),
     "muse": dict(dir="muse_eval", split="eval", generator="muse-image-1.0 (Meta Model API)",
                  licence="Meta Model API terms (10.1(ix): evaluation only)",
                  use="evaluation only (false-alarm stress test); never used for training"),
@@ -48,7 +49,19 @@ def _save(jpg_or_png: bytes, path: Path) -> None:
     img.save(path, format="JPEG", quality=92)
 
 
+TUNE_SHARE = 0.30  # FLUX images: ~30% "tune" (verifier-prompt hardening), ~70% "train" (Glimmer, SAM LoRA)
+
+
+def flux_subset(rec_id: str) -> str:
+    """Deterministic tune/train split of the FLUX set by image id (seeded hash, no shared images)."""
+    import hashlib
+    h = int(hashlib.sha256(f"flux-split-{rec_id}".encode()).hexdigest(), 16) % 1000
+    return "tune" if h < TUNE_SHARE * 1000 else "train"
+
+
 def _manifest(d: Path, rec: dict, meta: dict) -> None:
+    if meta is SETS["flux"]:
+        rec = {**rec, "subset": flux_subset(rec["id"])}
     with (d / "manifest.jsonl").open("a", encoding="utf-8") as f:
         f.write(json.dumps(dict(file=f"{rec['id']}.jpg", synthetic=True, generator=meta["generator"],
                                 licence=meta["licence"], use=meta["use"], **rec)) + "\n")
