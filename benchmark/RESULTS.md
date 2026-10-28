@@ -411,3 +411,26 @@ What it shows:
 - **The verifiers remove about half of the box look-alikes.** Low effort is the strictest.
 - **Clear look-alikes are easy.** Paint, tape, arrows, shadows, reflections and wet patches: 0–5% after any verifier.
 - **Brown stains, smudges and drips are not.** Oil smudges were accepted on 89–100% of images and paint drips on about 50–76%. Either the generator draws them like rust, or the verifiers can't tell them apart. Both are plausible without a human look.
+
+## 11. Verifier hardening: v2 prompt with a look-alike checklist (overnight item 4, not adopted)
+
+- **v2 prompt** (`backend/verify/verifier.py`, `SYSTEM_PROMPT_V2`) is v1 plus two additions:
+  - an explicit look-alike checklist: paint and coatings, tape and labels, water stains, dirt, shadows, wood, reflections, copper;
+  - a rule that an accept must name a **texture** cue (flaking, pitting, scaling, blistering, granular oxide, section loss, or a stain starting at a corroding part). It is stricter for box-proposed candidates.
+- **Protocol (builder rules).**
+  - Tune only on FLUX-tune: 188 synthetic look-alike candidates, one per image.
+  - Evaluate on sets never used for tuning: the Muse Image stress set (486 Cloud candidates), the real public negatives (185 Cloud candidates), and the builder's audits (133 sure labels, 113 of them rust).
+  - Adopt only if false alarms drop AND audited real-rust recall drops by no more than 3 points.
+- Script: `benchmark/verifier_hardening.py`; results: `results/verifier_hardening_{tune,eval}.json`. Cost: Meta ≈ $2.3, Baseten ≈ $2.3. v1 verdicts were reused from earlier runs of the identical prompt.
+- **Tuning gave no signal.** v1 and v2 both rejected all 188 FLUX-tune look-alikes. The FLUX images that render cleanly are easy. The hard cases (brown stains, drips, smudges) are exactly the categories FLUX draws as rust, so they could not be used.
+
+| Verifier, prompt | Muse Image: candidates accepted | Real negatives: candidates accepted | Audited real-rust recall (95% CI) | Audited not-rust rejected |
+|---|---|---|---|---|
+| Hosted minimal, v1 | 281 / 486 | 41 / 185 | 97.3% (92.5–99.1) | 12 / 20 |
+| Hosted minimal, v2 | 178 / 486 (−37%) | 21 / 185 (−49%) | 93.8% (87.8–97.0) | 13 / 20 |
+| Muse Spark Open, v1 | – | 12 / 185 | 95.6% (90.1–98.1) | 13 / 20 |
+| Muse Spark Open, v2 | – | 10 / 185 | 91.2% (84.5–95.1) | 14 / 20 |
+
+- **Not adopted.** v2 roughly halves the false alarms of the demo verifier. But it costs 3.5 points of audited recall with the hosted verifier (110 → 106 of 113) and 4.4 points with Muse Spark Open, both over the 3-point limit. v1 stays the default.
+- **Why no iteration.** Iterating the prompt on these evaluation sets would be tuning on them, which the protocol forbids, and FLUX-tune gives no signal. The trade-off is reported for the builder to decide.
+- **Context.** Switching the Cloud verifier from minimal to low effort is the other lever: on the real negatives, 12.0% → 6.8% of images (§9), at a measured recall cost in the audits (§8).

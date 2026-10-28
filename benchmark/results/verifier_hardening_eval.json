@@ -1,0 +1,144 @@
+{
+ "stage": "eval",
+ "meta-minimal": {
+  "v1": {
+   "muse_eval": {
+    "candidates": 486,
+    "accepted": 281,
+    "images": 120,
+    "images_with_alarm": 77,
+    "image_alarm_rate": 0.6416666666666667,
+    "ci": [
+     0.553,
+     0.722
+    ],
+    "complete": true
+   },
+   "public": {
+    "candidates": 185,
+    "accepted": 41,
+    "images": 61,
+    "images_with_alarm": 23,
+    "image_alarm_rate": 0.3770491803278688,
+    "ci": [
+     0.266,
+     0.503
+    ],
+    "complete": true
+   },
+   "audited": {
+    "n": 133,
+    "recall": 0.9734513274336283,
+    "recall_ci": [
+     0.925,
+     0.991
+    ],
+    "not_rust_rejected": 0.6,
+    "tp": 110,
+    "fn": 3,
+    "fp": 8,
+    "tn": 12,
+    "complete": true
+   }
+  },
+  "v2": {
+   "muse_eval": {
+    "candidates": 486,
+    "accepted": 178,
+    "images": 120,
+    "images_with_alarm": 57,
+    "image_alarm_rate": 0.475,
+    "ci": [
+     0.388,
+     0.564
+    ],
+    "complete": true
+   },
+   "public": {
+    "candidates": 185,
+    "accepted": 21,
+    "images": 61,
+    "images_with_alarm": 13,
+    "image_alarm_rate": 0.21311475409836064,
+    "ci": [
+     0.129,
+     0.331
+    ],
+    "complete": true
+   },
+   "audited": {
+    "n": 133,
+    "recall": 0.9380530973451328,
+    "recall_ci": [
+     0.878,
+     0.97
+    ],
+    "not_rust_rejected": 0.65,
+    "tp": 106,
+    "fn": 7,
+    "fp": 7,
+    "tn": 13,
+    "complete": true
+   }
+  }
+ },
+ "baseten-low": {
+  "v1": {
+   "public": {
+    "candidates": 185,
+    "accepted": 12,
+    "images": 61,
+    "images_with_alarm": 8,
+    "image_alarm_rate": 0.13114754098360656,
+    "ci": [
+     0.068,
+     0.238
+    ],
+    "complete": true
+   },
+   "audited": {
+    "n": 133,
+    "recall": 0.9557522123893806,
+    "recall_ci": [
+     0.901,
+     0.981
+    ],
+    "not_rust_rejected": 0.65,
+    "tp": 108,
+    "fn": 5,
+    "fp": 7,
+    "tn": 13,
+    "complete": true
+   }
+  },
+  "v2": {
+   "public": {
+    "candidates": 185,
+    "accepted": 10,
+    "images": 61,
+    "images_with_alarm": 8,
+    "image_alarm_rate": 0.13114754098360656,
+    "ci": [
+     0.068,
+     0.238
+    ],
+    "complete": true
+   },
+   "audited": {
+    "n": 133,
+    "recall": 0.911504424778761,
+    "recall_ci": [
+     0.845,
+     0.951
+    ],
+    "not_rust_rejected": 0.7,
+    "tp": 103,
+    "fn": 10,
+    "fp": 6,
+    "tn": 14,
+    "complete": true
+   }
+  }
+ },
+ "usd": 4.2755
+}

@@ -347,3 +347,11 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - **Detection threshold.** The single-image threshold is now 0.5 instead of the video builder's 0.65, matching the lowest score hosted SAM returns. At 0.65 the open weights missed every candidate in the 0.5–0.65 band; on devdemo frame 0 that was 10 candidates against hosted SAM's 18.
 - **Dev check (RESULTS §7):** image detection 68% → 100%, pixel recall 34% → 65% (Cloud 90%).
 - **Cost and speed.** Box proposals are batched across frames: parallel Baseten calls, then one Modal call. A frame-by-frame call costs about 21 s per frame.
+
+## Verifier hardening (v2 prompt) evaluated and not adopted (2026-10-29, overnight)
+
+- **Rule (set by the builder):** adopt only if false alarms drop and audited real-rust recall drops by ≤ 3 points. Tuning is allowed only on FLUX-tune.
+- **Result** (RESULTS §11):
+  - Hosted minimal: candidate false alarms −49% on real negatives and −37% on the Muse Image set, but audited recall −3.5 points (97.3% → 93.8%).
+  - Muse Spark Open: −4.4 points recall for a small false-alarm gain.
+- **Decision:** v1 stays the default. v2 stays in the code behind `prompt_version="v2"` for the builder to decide.

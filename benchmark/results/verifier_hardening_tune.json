@@ -1,0 +1,28 @@
+{
+ "stage": "tune",
+ "v1": {
+  "candidates": 188,
+  "accepted": 0,
+  "images": 188,
+  "images_with_alarm": 0,
+  "image_alarm_rate": 0.0,
+  "ci": [
+   0.0,
+   0.02
+  ],
+  "complete": true
+ },
+ "v2": {
+  "candidates": 188,
+  "accepted": 0,
+  "images": 188,
+  "images_with_alarm": 0,
+  "image_alarm_rate": 0.0,
+  "ci": [
+   0.0,
+   0.02
+  ],
+  "complete": true
+ },
+ "usd": 0.6739
+}

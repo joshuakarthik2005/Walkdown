@@ -49,7 +49,8 @@ THREADS = 8
 # ---- candidate sets ---------------------------------------------------------------------------------------------
 
 def flux_tune() -> list[tuple[str, Candidate]]:
-    """FLUX-tune candidates (SAM 3.1 open weights; prompts 'rust' and 'brown stain'); all labelled not-rust."""
+    """FLUX-tune candidates: SAM 3.1 open-weights masks of the look-alike object, largest per image; all not-rust.
+    Marked as box-proposed: in production, look-alikes like these mostly arrive through box proposals."""
     out = []
     for line in (FLUX_DIR / "manifest.jsonl").read_text(encoding="utf-8").splitlines():
         m = json.loads(line)
@@ -57,9 +58,11 @@ def flux_tune() -> list[tuple[str, Candidate]]:
         if m.get("subset") != "tune" or not sam.exists():
             continue
         img = cv2.imread(str(FLUX_DIR / m["file"]), cv2.IMREAD_COLOR)
-        for inst in to_instances(json.loads(sam.read_text(encoding="utf-8")), frame=0):
+        insts = to_instances(json.loads(sam.read_text(encoding="utf-8")), frame=0)
+        if insts:  # one candidate per image (largest), to keep the tuning set small and varied
+            inst = max(insts, key=lambda i: i.area)
             cid = f"{Path(m['file']).stem}#{inst.object_id}"
-            out.append((cid, Candidate(cid, img, inst.mask, inst.box, inst.confidence, source="text")))
+            out.append((cid, Candidate(cid, img, inst.mask, inst.box, inst.confidence, source="box")))
     return out
 
 
