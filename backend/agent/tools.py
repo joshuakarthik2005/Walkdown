@@ -15,7 +15,7 @@ from pathlib import Path
 from backend.agent.clip import Clip
 from backend.agent.register import Detection, RegisterEntry, build_register, to_planner_defect
 from backend.clients.cost import CostLedger
-from backend.perception.sam import Instance, parse_output, segment_image
+from backend.perception.sam import Instance, parse_output, segment_image, segment_video
 from backend.planner.cpsat import solve
 from backend.planner.generator import load_scenario
 from backend.planner.models import Change, Plan, PlannerConfig, Scenario
@@ -55,6 +55,7 @@ class AgentSession:
     verdicts: dict[str, Verdict] = field(default_factory=dict)
     reviews: dict[str, SeniorReview] = field(default_factory=dict)  # candidate id -> senior review
     voice_notes: list[dict] = field(default_factory=list)  # backend.voice.notes.process results
+    tracks: dict[str, list[int]] = field(default_factory=dict)  # track candidate id -> every frame it was seen on
     register: list[RegisterEntry] = field(default_factory=list)
     scenario: Scenario | None = None
     plan: Plan | None = None
@@ -91,6 +92,51 @@ def segment_frames(s: AgentSession, start_s: float = 0.0, end_s: float | None = 
                             sam_confidence=round(inst.confidence or 0, 2)))
     return dict(frames_segmented=len(frames), new_candidates=len(new), total_candidates=len(s.candidates),
                 candidates=new[:40], truncated=len(new) > 40)
+
+
+def best_track_frames(instances: list[Instance]) -> dict[str, tuple[Instance, list[int]]]:
+    """Per SAM video track (object id): the instance on its best frame (largest area x confidence) and all frames."""
+    by_track: dict[str, list[Instance]] = {}
+    for inst in instances:
+        by_track.setdefault(inst.object_id, []).append(inst)
+    out = {}
+    for obj, insts in by_track.items():
+        best = max(insts, key=lambda i: (i.area * (i.confidence if i.confidence is not None else 1.0), -i.frame))
+        out[obj] = (best, sorted({i.frame for i in insts}))
+    return out
+
+
+def track_video(s: AgentSession, fps: float = 2.0) -> dict:
+    """F3: SAM 3.1 video tracking over the whole clip; one candidate per physical defect (track), on its best frame."""
+    if s.clip.source is None:
+        return dict(error="this clip is a set of photos; use segment_frames")
+    fps = max(0.5, min(fps, 4.0))
+    frames = s.clip.frames(0.0, None, fps)  # the same time grid as the resampled clip: frame i at i / fps s
+    cache = s.clip.dir / "sam_video" / f"rust_{fps:g}fps.txt"
+    if cache.exists() and not s.live:
+        h, w = frames[0].image().shape[:2]
+        instances = parse_output(cache.read_text(encoding="utf-8"), w, h, video=True)
+    else:
+        res = segment_video(s.clip.source, PROMPT, sample_fps=fps, ledger=s.ledger, job="agent-sam-video")
+        cache.parent.mkdir(exist_ok=True)
+        cache.write_text(res.raw_output, encoding="utf-8")
+        instances = res.instances
+    new = []
+    for obj, (inst, idx) in best_track_frames([i for i in instances if i.frame < len(frames)]).items():
+        cid = f"T{obj}"
+        if cid in s.candidates:
+            continue
+        f = frames[inst.frame]
+        for i in idx:
+            s.frame_paths[frames[i].index] = frames[i].path
+        s.candidates[cid] = (f.index, inst)
+        s.tracks[cid] = [frames[i].index for i in idx]
+        h, w = inst.mask.shape
+        new.append(dict(id=cid, best_frame=f.index, time_s=round(f.time_s, 1), seen_on_frames=len(idx),
+                        first_s=round(frames[idx[0]].time_s, 1), last_s=round(frames[idx[-1]].time_s, 1),
+                        area_pct=round(100 * inst.area / (h * w), 2), sam_confidence=round(inst.confidence or 0, 2)))
+    return dict(frames_tracked=len(frames), tracks=len(new), total_candidates=len(s.candidates), candidates=new[:40],
+                truncated=len(new) > 40)
 
 
 def _verdict_cache(s: AgentSession, cid: str) -> Path:
@@ -180,7 +226,8 @@ def build_register_tool(s: AgentSession) -> dict:
             "evidence": {"visual_cues": [], "location": "", "extent": "", "mask_fit": "partial"},
             "recommended_action": "urgent_inspection"})
         review = s.reviews.get(cid)
-        dets.append(Detection(cid, frame, inst.box, grade, v.flags, review.to_dict() if review else None))
+        dets.append(Detection(cid, frame, inst.box, grade, v.flags, review.to_dict() if review else None,
+                              s.tracks.get(cid, [])))
     s.register = build_register(dets, s.clip.asset, merge_across_frames=s.clip.source is not None)
     rejected = sum(1 for v in s.verdicts.values() if v.grade and not v.grade.is_defect)
     return dict(register_entries=len(s.register), rejected_candidates=rejected,
@@ -286,6 +333,10 @@ TOOL_SCHEMAS = [
     _fn("segment_frames", "Sample frames from the walkdown clip and run SAM 3.1 ('rust') on them. Start coarse "
         "(fps 0.5-1 over the whole clip); call again with a higher fps on time ranges that need a closer look.",
         {"start_s": {"type": "number"}, "end_s": {"type": "number"}, "fps": {"type": "number"}}, []),
+    _fn("track_video", "Video clips only: track corrosion through the whole clip with SAM 3.1 video tracking. "
+        "Returns one candidate per tracked physical defect (on its best frame), so repeat sightings are already "
+        "merged. Prefer this over segment_frames for video; use segment_frames for photo sets.",
+        {"fps": {"type": "number"}}, []),
     _fn("verify_candidate", "Verify and grade SAM candidates with Muse Spark (rejects false positives, assigns "
         "severity 1-5, evidence and action). Pass up to 20 candidate ids per call.",
         {"candidate_ids": {"type": "array", "items": {"type": "string"}}}, ["candidate_ids"]),
@@ -304,6 +355,7 @@ TOOL_SCHEMAS = [
 
 TOOLS = {
     "segment_frames": segment_frames,
+    "track_video": track_video,
     "verify_candidate": verify_candidate,
     "build_register": build_register_tool,
     "plan_maintenance": plan_maintenance,

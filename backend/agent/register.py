@@ -44,6 +44,7 @@ class Detection:
     grade: Grade
     flags: list[str] = field(default_factory=list)
     senior: dict | None = None  # SeniorReview.to_dict() when Muse Wonder reviewed this detection
+    track_frames: list[int] = field(default_factory=list)  # every frame of a SAM video track (F3), best frame first
 
 
 @dataclass
@@ -62,7 +63,7 @@ class RegisterEntry:
 
     @property
     def frames(self) -> list[int]:
-        return sorted({d.frame for d in self.detections})
+        return sorted({d.frame for d in self.detections} | {f for d in self.detections for f in d.track_frames})
 
 
 def _iou(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> float:

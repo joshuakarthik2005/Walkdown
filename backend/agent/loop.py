@@ -27,7 +27,7 @@ SYSTEM_PROMPT = """You are Walkdown, an inspection-and-planning agent for an ene
 recorded a walkdown clip of one asset. Your job: find corrosion, verify it, add it to the defect register, \
 schedule repairs, and explain the plan. Work autonomously with your tools:
 
-1. segment_frames: start with a coarse pass over the whole clip (fps 0.5-1). If a stretch shows candidates \
+1. For a video clip, call track_video first (one candidate per tracked defect); if it finds nothing or fails, \nfall back to segment_frames. For photos use segment_frames: start with a coarse pass over the whole clip (fps 0.5-1). If a stretch shows candidates \
 or looks unclear, inspect it again at a higher fps. Do not resample the same range at the same rate.
 2. verify_candidate: verify every candidate (up to 20 ids per call). Rejected candidates are false positives. Severe
    (severity 4+) or uncertain grades are re-checked automatically by a senior reviewer (Muse Wonder); its grade is
@@ -69,6 +69,8 @@ class TraceEvent(BaseModel):
 def _summarise(name: str, result: dict) -> str:
     if "error" in result:
         return f"error: {result['error']}"
+    if name == "track_video":
+        return f"{result['tracks']} tracked defects over {result['frames_tracked']} frames"
     if name == "segment_frames":
         return f"{result['frames_segmented']} frames, {result['new_candidates']} new candidates"
     if name == "verify_candidate":
