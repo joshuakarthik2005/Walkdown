@@ -43,6 +43,7 @@ class AgentSession:
     ledger: CostLedger
     live: bool = False
     verify_effort: str = "low"
+    provider: str = "meta"  # "meta" (hosted Muse Spark) or "baseten" (open-weight Muse Spark Open)
     # Demo path: 30 s per solve (status and gap are always reported; FEASIBLE is shown as such).
     planner_config: PlannerConfig = field(default_factory=lambda: PlannerConfig(time_limit_s=30))
     base_scenario: Scenario = field(default_factory=lambda: demo_backlog())
@@ -89,7 +90,8 @@ def segment_frames(s: AgentSession, start_s: float = 0.0, end_s: float | None = 
 
 
 def _verdict_cache(s: AgentSession, cid: str) -> Path:
-    return s.clip.dir / "verify" / s.verify_effort / f"{cid}.json"
+    sub = s.verify_effort if s.provider == "meta" else f"{s.provider}-{s.verify_effort}"
+    return s.clip.dir / "verify" / sub / f"{cid}.json"
 
 
 VERIFY_WORKERS = 8
@@ -104,7 +106,7 @@ def _verify_one(s: AgentSession, cid: str) -> Verdict:
         return Verdict(**d)
     import cv2
     image = cv2.imread(str(s.frame_paths[frame]), cv2.IMREAD_COLOR)
-    v = verify(Candidate(cid, image, inst.mask, inst.box, inst.confidence), provider="meta",
+    v = verify(Candidate(cid, image, inst.mask, inst.box, inst.confidence), provider=s.provider,
                reasoning_effort=s.verify_effort, ledger=s.ledger, job="agent-verify")
     cache.parent.mkdir(parents=True, exist_ok=True)
     d = asdict(v)

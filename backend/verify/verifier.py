@@ -166,7 +166,8 @@ def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low
             if finish == "length":
                 break  # a retry with the same budget would truncate again
     latency = time.perf_counter() - t0
-    usd = muse_cost(tokens["input"], tokens["output"], tokens["cached"]) if provider == "meta" else None
+    # Baseten lists Muse Spark Open at the same per-token price as hosted Muse Spark (docs/COST_LOG.md).
+    usd = muse_cost(tokens["input"], tokens["output"], tokens["cached"])
     if ledger is not None:
         ledger.add(CostEntry(job=job, model=model, usd=usd or 0.0, input_tokens=tokens["input"],
                              cached_tokens=tokens["cached"], output_tokens=tokens["output"],

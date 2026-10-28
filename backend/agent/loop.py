@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from backend.agent.tools import TOOL_SCHEMAS, TOOLS, AgentSession
 from backend.clients.cost import CostEntry, muse_cost
 from backend.clients.meta import meta_client, with_retries
+from backend.verify.verifier import BASETEN_MODEL, baseten_client
 
 MODEL = "muse-spark-1.3"
 
@@ -92,6 +93,18 @@ class WalkdownAgent:
         self.on_event = on_event
         self.trace: list[TraceEvent] = []
         self.messages: list[dict] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        self.provider = getattr(session, "provider", "meta")
+        self.model = MODEL if self.provider == "meta" else BASETEN_MODEL
+
+    def _complete(self):
+        """One model turn. Muse Spark Open on Baseten gets the same messages and tools; reasoning effort and
+        prompt-cache keys are Meta Model API parameters and are not sent to it."""
+        if self.provider == "meta":
+            return meta_client().chat.completions.create(
+                model=MODEL, messages=self.messages, tools=TOOL_SCHEMAS, reasoning_effort=self.effort,
+                max_tokens=6000, prompt_cache_key="walkdown-agent-v1")
+        return baseten_client().chat.completions.create(
+            model=BASETEN_MODEL, messages=self.messages, tools=TOOL_SCHEMAS, max_tokens=6000)
 
     def _emit(self, ev: TraceEvent) -> None:
         self.trace.append(ev)
@@ -103,19 +116,17 @@ class WalkdownAgent:
         self.messages.append({"role": "user", "content": user_message})
         for _ in range(self.max_steps):
             t0 = time.time()
-            resp = with_retries(lambda: meta_client().chat.completions.create(
-                model=MODEL, messages=self.messages, tools=TOOL_SCHEMAS, reasoning_effort=self.effort,
-                max_tokens=6000, prompt_cache_key="walkdown-agent-v1"))
+            resp = with_retries(lambda: self._complete())
             u = resp.usage
             cached = getattr(getattr(u, "prompt_tokens_details", None), "cached_tokens", 0) or 0
             reasoning = getattr(getattr(u, "completion_tokens_details", None), "reasoning_tokens", 0) or 0
             usd = muse_cost(u.prompt_tokens, u.completion_tokens, cached)
-            self.s.ledger.add(CostEntry(job="agent-llm", model=MODEL, usd=usd, input_tokens=u.prompt_tokens,
+            self.s.ledger.add(CostEntry(job="agent-llm", model=self.model, usd=usd, input_tokens=u.prompt_tokens,
                                         cached_tokens=cached, output_tokens=u.completion_tokens,
                                         reasoning_tokens=reasoning))
             msg = resp.choices[0].message
             calls = msg.tool_calls or []
-            self._emit(TraceEvent(step=len(self.trace), kind="llm", name=MODEL, started_at=t0,
+            self._emit(TraceEvent(step=len(self.trace), kind="llm", name=self.model, started_at=t0,
                                   duration_s=time.time() - t0, usd=usd, input_tokens=u.prompt_tokens,
                                   cached_tokens=cached, output_tokens=u.completion_tokens, reasoning_tokens=reasoning,
                                   summary=(f"calls {', '.join(c.function.name for c in calls)}" if calls

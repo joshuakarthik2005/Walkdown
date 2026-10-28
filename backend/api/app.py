@@ -112,6 +112,8 @@ class RunRequest(BaseModel):
     live: bool = Field(False, description="Ignore cached perception/verification results and call the APIs.")
     verify_effort: Literal["minimal", "low", "medium"] = "minimal"
     agent_effort: Literal["minimal", "low", "medium"] = "low"
+    provider: Literal["meta", "baseten"] = Field(
+        "meta", description="meta: hosted Muse Spark; baseten: open-weight Muse Spark Open (agent and verifier).")
     message: str | None = None
 
 
@@ -124,7 +126,7 @@ def start_run(req: RunRequest) -> dict:
         raise HTTPException(404, "unknown clip") from None
     run_id = f"run-{uuid.uuid4().hex[:10]}"
     session = AgentSession(clip=clip, ledger=CostLedger(clip.dir / "cost_ledger.jsonl"), live=req.live,
-                           verify_effort=req.verify_effort)
+                           verify_effort=req.verify_effort, provider=req.provider)
     state = RunState(run_id, WalkdownAgent(session, reasoning_effort=req.agent_effort))
     RUNS[run_id] = state
     message = req.message or (f"New walkdown clip of {clip.asset.asset_id}"

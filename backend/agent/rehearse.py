@@ -6,7 +6,7 @@ trace until done, fetch register/plan/frames, post a constraint change
 Prints wall time per stage, cost, plan status/gap, register size and the
 agent's two answers, so the video can be planned against real timings.
 
-    .venv\\Scripts\\python.exe -m backend.agent.rehearse <clip_id> [--change crew|window]
+    .venv\\Scripts\\python.exe -m backend.agent.rehearse <clip_id> [--change crew|window] [--provider baseten]
 """
 
 from __future__ import annotations
@@ -34,10 +34,11 @@ def main() -> int:
     ap.add_argument("clip_id")
     ap.add_argument("--change", choices=["crew", "window"], default="window")
     ap.add_argument("--now", type=int, default=24)
+    ap.add_argument("--provider", choices=["meta", "baseten"], default="meta")
     args = ap.parse_args()
     c = TestClient(app)
     t0 = time.time()
-    run_id = c.post("/runs", json={"clip_id": args.clip_id}).json()["run_id"]
+    run_id = c.post("/runs", json={"clip_id": args.clip_id, "provider": args.provider}).json()["run_id"]
     st = wait(c, run_id)
     t_run = time.time() - t0
     reg = c.get(f"/runs/{run_id}/register").json()

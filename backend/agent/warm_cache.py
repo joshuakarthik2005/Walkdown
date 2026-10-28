@@ -5,7 +5,7 @@ first run fills the caches, the second shows how much of a repeat run is
 served from cache (it should cost only the Muse Spark agent turns). Prints
 the register size, plan status and cost of each run.
 
-    .venv\\Scripts\\python.exe -m backend.agent.warm_cache <clip_id> [--effort minimal]
+    .venv\\Scripts\\python.exe -m backend.agent.warm_cache <clip_id> [--effort minimal] [--provider baseten]
 """
 
 from __future__ import annotations
@@ -22,9 +22,10 @@ from backend.clients.cost import CostLedger
 DEMO_MAX_DEFECTS = 6  # with the 12-job demo backlog, plans stay provably optimal (DECISIONS.md)
 
 
-def run_once(clip_id: str, effort: str) -> dict:
+def run_once(clip_id: str, effort: str, provider: str = "meta") -> dict:
     clip = Clip(clip_id)
-    session = AgentSession(clip=clip, ledger=CostLedger(clip.dir / "cost_ledger.jsonl"), verify_effort=effort)
+    session = AgentSession(clip=clip, ledger=CostLedger(clip.dir / "cost_ledger.jsonl"), verify_effort=effort,
+                           provider=provider)
     agent = WalkdownAgent(session)
     t0 = time.time()
     agent.run(f"New walkdown clip of {clip.asset.asset_id} is uploaded. Inspect it, build the register, plan the "
@@ -40,9 +41,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("clip_id")
     ap.add_argument("--effort", default="minimal")
+    ap.add_argument("--provider", choices=["meta", "baseten"], default="meta")
     args = ap.parse_args()
     for label in ("fill", "repeat"):
-        r = run_once(args.clip_id, args.effort)
+        r = run_once(args.clip_id, args.effort, args.provider)
         print(f"{label:6} {r}", flush=True)
     if r["register"] > DEMO_MAX_DEFECTS:
         print(f"note: {r['register']} register entries > {DEMO_MAX_DEFECTS}; the plan may end FEASIBLE with a gap "
