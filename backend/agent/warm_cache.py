@@ -19,7 +19,7 @@ from backend.agent.loop import WalkdownAgent
 from backend.agent.tools import AgentSession
 from backend.clients.cost import CostLedger
 
-DEMO_MAX_DEFECTS = 6  # with the 12-job demo backlog, plans stay provably optimal (DECISIONS.md)
+DEMO_MAX_JOBS = 6  # walkdown jobs (work packages); with the 12-job demo backlog plans stay provably optimal
 
 
 def run_once(clip_id: str, effort: str, provider: str = "meta") -> dict:
@@ -32,7 +32,7 @@ def run_once(clip_id: str, effort: str, provider: str = "meta") -> dict:
               f"repairs and explain the plan.")
     by_job = {j: round(session.ledger.total(j), 4) for j in sorted({e.job for e in session.ledger.entries})}
     return dict(seconds=round(time.time() - t0, 1), usd=round(session.ledger.total(), 4), by_job=by_job,
-                register=len(session.register),
+                register=len(session.register), jobs=len({e.package_id or e.defect_id for e in session.register}),
                 plan=session.plan.stats.status if session.plan else None,
                 gap=session.plan.stats.gap if session.plan else None)
 
@@ -46,8 +46,8 @@ def main() -> int:
     for label in ("fill", "repeat"):
         r = run_once(args.clip_id, args.effort, args.provider)
         print(f"{label:6} {r}", flush=True)
-    if r["register"] > DEMO_MAX_DEFECTS:
-        print(f"note: {r['register']} register entries > {DEMO_MAX_DEFECTS}; the plan may end FEASIBLE with a gap "
+    if r["jobs"] > DEMO_MAX_JOBS:
+        print(f"note: {r['jobs']} walkdown jobs > {DEMO_MAX_JOBS}; the plan may end FEASIBLE with a gap "
               f"within the 30 s limit. Consider a shorter or cleaner clip for the video.")
     return 0
 
