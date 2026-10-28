@@ -234,7 +234,7 @@ def smoke_run(zero_shot_n: int = 20, train_steps: int = 10) -> dict:
                                       train=tr, wall_s=round(wall), usd_estimate=round(wall * H100_PER_SECOND, 2)))
 
 
-@app.function(image=gpu_image, gpu="H100", volumes={VOL: volume}, timeout=4 * 3600, retries=0, max_containers=1)
+@app.function(image=gpu_image, gpu="H100", volumes={VOL: volume}, timeout=3 * 3600, retries=0, max_containers=1)  # $11.85 max
 def train_run(budget_min: float, epochs: float = 2.0, lr: float = 1e-4, run: str = "v1") -> dict:
     t0 = time.time()
     model, proc = _load()

@@ -15,8 +15,8 @@ Sources:
 Never included: hosted Meta model outputs, dev/test images, audit labels, public Roboflow negatives.
 
 Split: 10% of the train pool's source clusters (Roboflow source name) are held out for evaluation and early
-stopping; synthetic images are split 90/10 by image. The training split is balanced: accepts are capped at the
-number of rejects (seeded).
+stopping; synthetic images are split 90/10 by image. The training split is balanced: both classes are capped at
+the smaller one, keeping every real rejection first (seeded).
 
     .venv\\Scripts\\python.exe -m benchmark.glimmer_data
 """
@@ -44,6 +44,7 @@ SAM_TEXT = DATA_DIR / "runs" / "sam_open" / "rust"
 FLUX_DIR = DATA_DIR / "synthetic" / "flux_train"
 FLUX_SAM = DATA_DIR / "runs" / "sam_open" / "flux_train"
 HELDOUT_SHARE = 0.10
+MAX_SYNTHETIC_PER_IMAGE = 3  # largest look-alike masks first; avoids a few images dominating
 SEED = 20261028
 # Look-alikes a person (or the image generator) can render as real rust staining: never used as "not a defect".
 AMBIGUOUS_LOOKALIKES = {"dark water stains running down the surface", "brown paint drips", "brown oil smudges",
@@ -99,7 +100,8 @@ def synthetic_examples() -> list[dict]:
             continue
         image = cv2.imread(str(FLUX_DIR / m["file"]), cv2.IMREAD_COLOR)
         h, w = image.shape[:2]
-        for inst in to_instances(json.loads(sam.read_text(encoding="utf-8")), frame=0):
+        insts = sorted(to_instances(json.loads(sam.read_text(encoding="utf-8")), frame=0), key=lambda i: -i.area)
+        for inst in insts[:MAX_SYNTHETIC_PER_IMAGE]:
             pct = 100 * inst.mask.sum() / (h * w)
             target = {"is_defect": False, "defect_type": "none", "severity": 1, "confidence": 0.9,
                       "evidence": {"visual_cues": [f"{m['lookalike']} on intact metal, not corrosion",
@@ -124,7 +126,12 @@ def main() -> int:
     train = [e for e in teacher + synth if e["cluster"] not in held]
     acc, rej = [e for e in train if e["accept"]], [e for e in train if not e["accept"]]
     rng.shuffle(acc)
-    balanced = rej + acc[:len(rej)] if rej else acc
+    real_rej = [e for e in rej if e["source"] != "synthetic"]
+    syn_rej = [e for e in rej if e["source"] == "synthetic"]
+    rng.shuffle(syn_rej)
+    n = min(len(acc), len(rej))  # balanced: both classes capped at the smaller one; real rejects kept first
+    rej_kept = (real_rej + syn_rej)[:n]
+    balanced = rej_kept + acc[:n]
     rng.shuffle(balanced)
     OUT.mkdir(parents=True, exist_ok=True)
     for name, rows in (("train", balanced), ("heldout", heldout)):
