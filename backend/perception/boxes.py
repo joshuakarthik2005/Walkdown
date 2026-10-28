@@ -10,6 +10,10 @@ detection from 66% to 98% and gave the best instance F1 once candidates are veri
    request, so this is a second SAM call).
 3. ``merge_with_text``: overlap merge of text and box masks. A merged instance that is essentially a text
    instance (mask IoU >= 0.9) keeps that text instance's id, so its verdict is reused.
+
+On-prem mode uses open weights for both steps: ``propose_boxes(..., provider="baseten")`` asks Muse Spark Open
+(no structured output on Baseten, so the reply is parsed from JSON text), and ``box_masks_open`` segments the boxes
+with SAM 3.1 open weights on Modal (``backend.perception.sam_open.segment_boxes_open``).
 """
 
 from __future__ import annotations
@@ -49,23 +53,49 @@ def box_system(width: int, height: int) -> str:
             f"0 <= top < bottom <= {height}. Return an empty list if there is no corrosion.")
 
 
+OPEN_JSON_INSTRUCTION = (' Reply with only a JSON object and nothing else: {"boxes": [{"left": int, "top": int, '
+                         '"right": int, "bottom": int}, ...]}.')
+OPEN_MAX_TOKENS = 8000  # Muse Spark Open reasons before answering and has no strict decoding (RESULTS.md section 6)
+
+
+def _parse_boxes(text: str) -> list[dict]:
+    """Box dicts from a JSON reply; [] when the reply has no parseable JSON (fail closed: no extra candidates)."""
+    from backend.verify.verifier import _extract_json
+    try:
+        boxes = json.loads(_extract_json(text or '{"boxes": []}')).get("boxes", [])
+    except (ValueError, AttributeError):
+        return []
+    return [b for b in boxes if isinstance(b, dict)] if isinstance(boxes, list) else []
+
+
 def propose_boxes(image: Path, width: int, height: int, *, ledger: CostLedger | None = None,
-                  job: str = "box-propose") -> list[Box]:
-    """Muse Spark rust boxes on one frame, clamped to the frame; boxes under 4 px are dropped."""
+                  job: str = "box-propose", provider: str = "meta") -> list[Box]:
+    """Rust boxes on one frame (Muse Spark, or Muse Spark Open with ``provider="baseten"``), clamped to the
+    frame; boxes under 4 px are dropped."""
     mime = mimetypes.guess_type(image.name)[0] or "image/jpeg"
     url = f"data:{mime};base64," + base64.b64encode(image.read_bytes()).decode()
-    resp = with_retries(lambda: meta_client().chat.completions.create(
-        model=MODEL, reasoning_effort="minimal", max_tokens=3000,
-        response_format={"type": "json_schema", "json_schema": {"name": "boxes", "strict": True, "schema": SCHEMA}},
-        messages=[{"role": "system", "content": box_system(width, height)},
-                  {"role": "user", "content": [{"type": "text", "text": "Find the corrosion."},
-                                               {"type": "image_url", "image_url": {"url": url}}]}]))
+    user = {"role": "user", "content": [{"type": "text", "text": "Find the corrosion."},
+                                        {"type": "image_url", "image_url": {"url": url}}]}
+    if provider == "baseten":
+        from backend.verify.verifier import BASETEN_MODEL, baseten_client
+        model = BASETEN_MODEL
+        resp = with_retries(lambda: baseten_client().chat.completions.create(
+            model=model, max_tokens=OPEN_MAX_TOKENS,
+            messages=[{"role": "system", "content": box_system(width, height) + OPEN_JSON_INSTRUCTION}, user]))
+    else:
+        model = MODEL
+        resp = with_retries(lambda: meta_client().chat.completions.create(
+            model=model, reasoning_effort="minimal", max_tokens=3000,
+            response_format={"type": "json_schema", "json_schema": {"name": "boxes", "strict": True,
+                                                                    "schema": SCHEMA}},
+            messages=[{"role": "system", "content": box_system(width, height)}, user]))
     u = resp.usage
     cached = getattr(getattr(u, "prompt_tokens_details", None), "cached_tokens", 0) or 0
     if ledger is not None:
-        ledger.add(CostEntry(job=job, model=MODEL, usd=muse_cost(u.prompt_tokens, u.completion_tokens, cached),
+        # Baseten lists Muse Spark Open at the hosted Muse Spark per-token price (docs/COST_LOG.md).
+        ledger.add(CostEntry(job=job, model=model, usd=muse_cost(u.prompt_tokens, u.completion_tokens, cached),
                              input_tokens=u.prompt_tokens, cached_tokens=cached, output_tokens=u.completion_tokens))
-    raw = json.loads(resp.choices[0].message.content or '{"boxes": []}').get("boxes", [])
+    raw = _parse_boxes(resp.choices[0].message.content)
     # The model occasionally returns an edge a few pixels outside the frame (e.g. 642 on 640).
     boxes = [(max(0, min(width, int(b["left"]))), max(0, min(height, int(b["top"]))),
               max(0, min(width, int(b["right"]))), max(0, min(height, int(b["bottom"]))))

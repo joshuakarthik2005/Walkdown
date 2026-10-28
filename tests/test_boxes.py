@@ -31,3 +31,10 @@ def test_box_enlarging_a_text_instance_becomes_a_new_candidate():
 def test_prompt_matches_benchmark_at_640():
     assert "The image is 640x640 pixels." in box_system(640, 640)
     assert "right <= 1280" in box_system(1280, 720)
+
+
+def test_open_weights_box_reply_is_parsed_from_text_and_fails_closed():
+    from backend.perception.boxes import _parse_boxes
+    reply = 'Looking at the pipe...\n```json\n{"boxes": [{"left": 1, "top": 2, "right": 30, "bottom": 40}]}\n```'
+    assert _parse_boxes(reply) == [{"left": 1, "top": 2, "right": 30, "bottom": 40}]
+    assert _parse_boxes("no json here") == [] and _parse_boxes("") == [] and _parse_boxes('{"boxes": 3}') == []

@@ -67,3 +67,23 @@ def segment_video_open(paths: list[Path], prompt: str, *, ledger: CostLedger | N
     records = _sam31().segment.remote([p.read_bytes() for p in paths], prompt, True)
     _record(ledger, job, time.perf_counter() - t0, frames=len(paths))
     return records
+
+
+def segment_boxes_open(paths: list[Path], boxes: list[list[tuple[int, int, int, int]]], *,
+                       ledger: CostLedger | None = None, job: str = "sam-open-boxes") -> list[list[dict]]:
+    """Raw RLE records per image: one mask per proposed box (object id = box index), unmatched boxes omitted.
+
+    The boxes are given to the open-weights model as visual exemplars and each keeps its best-overlapping
+    detection (``modal_apps/sam_open.py``, ``Sam31.segment_boxes``).
+    """
+    todo = [i for i, b in enumerate(boxes) if b]
+    out: list[list[dict]] = [[] for _ in paths]
+    if not todo:
+        return out
+    t0 = time.perf_counter()
+    records = _sam31().segment_boxes.remote([paths[i].read_bytes() for i in todo],
+                                            [[list(b) for b in boxes[i]] for i in todo], None)
+    _record(ledger, job, time.perf_counter() - t0, images=len(todo))
+    for i, r in zip(todo, records):
+        out[i] = r
+    return out

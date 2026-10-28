@@ -18,7 +18,7 @@ from backend.agent.register import Detection, RegisterEntry, build_register, to_
 from backend.clients.cost import CostLedger
 from backend.perception.boxes import box_masks, merge_with_text, parse_box_output, propose_boxes
 from backend.perception.sam import Instance, parse_output, segment_image, segment_video
-from backend.perception.sam_open import segment_images_open, segment_video_open, to_instances
+from backend.perception.sam_open import segment_boxes_open, segment_images_open, segment_video_open, to_instances
 from backend.planner.cpsat import solve
 from backend.planner.generator import load_scenario
 from backend.planner.models import Change, Plan, PlannerConfig, Scenario
@@ -80,15 +80,42 @@ def _open_cache(s: AgentSession, f) -> Path:
     return s.clip.dir / "sam_open" / f"{f.path.stem}.json"
 
 
+def _open_box_caches(s: AgentSession, f) -> tuple[Path, Path]:
+    return s.clip.dir / "boxes_open" / f"{f.path.stem}.json", s.clip.dir / "sam_open_boxes" / f"{f.path.stem}.json"
+
+
 def _prefetch_open(s: AgentSession, frames: list) -> None:
-    """On-prem mode: segment every uncached frame with SAM 3.1 open weights in one Modal call."""
+    """On-prem mode: segment every uncached frame with SAM 3.1 open weights in one Modal call; with box
+    proposals, ask Muse Spark Open for boxes on all those frames in parallel, then segment them in one call."""
     todo = [f for f in frames if s.live or not _open_cache(s, f).exists()]
+    if todo:
+        for f, records in zip(todo, segment_images_open([f.path for f in todo], PROMPT, ledger=s.ledger,
+                                                        job="agent-sam-open")):
+            _open_cache(s, f).parent.mkdir(exist_ok=True)
+            _open_cache(s, f).write_text(json.dumps(records), encoding="utf-8")
+    if not s.box_proposals:
+        return
+    todo = [f for f in frames if s.live or not _open_box_caches(s, f)[1].exists()]
     if not todo:
         return
-    for f, records in zip(todo, segment_images_open([f.path for f in todo], PROMPT, ledger=s.ledger,
-                                                    job="agent-sam-open")):
-        _open_cache(s, f).parent.mkdir(exist_ok=True)
-        _open_cache(s, f).write_text(json.dumps(records), encoding="utf-8")
+
+    def boxes_for(f) -> list:
+        box_cache = _open_box_caches(s, f)[0]
+        if box_cache.exists() and not s.live:
+            return [tuple(b) for b in json.loads(box_cache.read_text(encoding="utf-8"))]
+        h, w = f.image().shape[:2]
+        boxes = propose_boxes(f.path, w, h, ledger=s.ledger, job="agent-box-propose-open", provider=s.provider)
+        box_cache.parent.mkdir(exist_ok=True)
+        box_cache.write_text(json.dumps(boxes), encoding="utf-8")
+        return boxes
+
+    with ThreadPoolExecutor(max_workers=VERIFY_WORKERS) as pool:
+        boxes = list(pool.map(boxes_for, todo))
+    for f, records in zip(todo, segment_boxes_open([f.path for f in todo], boxes, ledger=s.ledger,
+                                                   job="agent-box-sam-open")):
+        sam_cache = _open_box_caches(s, f)[1]
+        sam_cache.parent.mkdir(exist_ok=True)
+        sam_cache.write_text(json.dumps(records), encoding="utf-8")
 
 
 def _text_instances(s: AgentSession, f) -> list[Instance]:
@@ -105,8 +132,15 @@ def _text_instances(s: AgentSession, f) -> list[Instance]:
     return res.instances
 
 
+def _box_instances_open(s: AgentSession, f) -> list[Instance]:
+    """On-prem box-prompted instances (Muse Spark Open boxes, SAM 3.1 open weights), filled by _prefetch_open."""
+    return to_instances(json.loads(_open_box_caches(s, f)[1].read_text(encoding="utf-8")), frame=0)
+
+
 def _box_instances(s: AgentSession, f) -> list[Instance]:
     """Box-prompted SAM 3.1 instances on one frame: Muse Spark boxes (minimal effort), then SAM (cached)."""
+    if s.sam_backend == "modal":
+        return _box_instances_open(s, f)
     img = f.image()
     h, w = img.shape[:2]
     box_cache = s.clip.dir / "boxes" / f"{f.path.stem}.json"
