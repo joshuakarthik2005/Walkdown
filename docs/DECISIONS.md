@@ -305,13 +305,26 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - **Ids:** single defects keep their own id; packages are `WP1`, `WP2`, ...
   - **Links:** each register entry stores its `package_id`. Work orders, the PDF and the Gantt join through it.
 - **Planner support.** `Defect.extra_skills` and `Defect.members` were added, and crew eligibility is now "crew has every skill the job needs" (`Crew.can_do`) everywhere: time grid, explanations, plan validation.
-- **Measured** on devdemo (cached perception and verdicts, 41 register defects, 12-job backlog, 30 s limit):
+- **Safeguard: severe defects are never bundled.**
+  - Defects at severity ≥ 4 (`PackageConfig.single_from_severity`) always stay single jobs with their own id. A package finishes all its members at its end, so bundling could only make a severe repair finish later.
+  - Tests: `tests/test_packages.py::test_severe_defects_are_never_bundled` checks the rule. `test_bundling_a_severe_defect_would_delay_it_and_the_safeguard_prevents_that` uses a one-crew case: a bundled severe defect finishes later, and with the safeguard it finishes exactly as without packages (both solves OPTIMAL).
+  - **Limit, measured.** The safeguard stops a package from holding a severe repair back. It cannot stop packaging from changing which crew is free when. On 30 small generated scenarios (82 severe defects, both versions solved to OPTIMAL), 1 severe defect finished 2 h later with packages, while another severe defect in the same plan finished 1 h earlier: the optimiser swapped two crew assignments. A strict guarantee would need a deadline per severe defect taken from an unpackaged solve, which costs the solve time packaging is meant to save. Not implemented.
+- **Objective weight.** A package's exposure weight is the sum of its members' weights (`Defect.weight_override`). The planner therefore minimises the same per-defect exposure, with every member unrepaired until its package ends, and packaged and unpackaged plans are scored on one scale (`metrics.evaluate` on the unpacked plan).
+- **"OPTIMAL" refers to the packaged problem.** A packaged plan proven optimal is optimal for the package formulation: the grouping is fixed, and each package must be done in one visit. It is **not** a proof that it beats every per-defect schedule. The unpackaged plan below is the best found in 30 s, with its gap.
+- **Measured** (`benchmark/packages_compare.py`, `benchmark/results/packages_compare.json`; 30 s limit; devdemo uses cached perception and verdicts, so no API calls):
 
-  | | Walkdown jobs | Status | Gap | Solve time |
-  |---|---|---|---|---|
-  | No packages | 41 | FEASIBLE | 57.2% | 31 s |
-  | Packages (24 h cap) | 7 | **OPTIMAL** | 0% | 2.1 s |
-  | Packages, 16 h cap (tried) | 10 | FEASIBLE | 34.9% | 30 s |
+  | Case | Max package size | Jobs | Setup hours saved | Unpackaged: status, gap, exposure, makespan, defects unscheduled | Packaged: status, gap, solve time, exposure, makespan, defects unscheduled |
+  |---|---|---|---|---|---|
+  | devdemo, 41 defects + 12 backlog | 8 h | 19 | 22 | FEASIBLE, 58%, 849,874, 325 h, 23 | FEASIBLE, 57%, 32 s, 852,646, 325 h, 16 |
+  | devdemo | 16 h | 10 | 31 | FEASIBLE, 57%, 830,046, 326 h, 23 | FEASIBLE, 39%, 30 s, 830,614, 300 h, 22 |
+  | devdemo | **24 h (default)** | 7 | 34 | FEASIBLE, 57%, 829,858, 326 h, 23 | **OPTIMAL**, 0%, 2.2 s, 901,812 (+8.7%), 319 h, 18 |
+  | Demo scenario, 25 jobs, packaged by asset | 8 h / 16 h | 24 | 1 | OPTIMAL, 0%, 417,562, 182 h, 0 | OPTIMAL, 0%, ~2 s, 432,596 (+3.6%), 182 h, 0 |
+  | Demo scenario | 24 h | 21 | 4 | OPTIMAL, 0%, 417,562, 182 h, 0 | OPTIMAL, 0%, 1.5 s, 478,490 (+14.6%), 224 h, 0 |
 
-  - Two packages stay unscheduled in both versions because there are not enough coating crew hours in the horizon (only C1 coats). The planner reports this as a capacity shortage, so it is not a solver failure.
+  - No severity ≥ 4 defect finished later with packages in any of these six comparisons.
+  - Unpackaged exposure varies between runs (829,770 to 849,874), because each run stops at the 30 s limit.
+- **What this shows.**
+  - Packaging buys a provable optimum and fewer, larger work orders: 41 jobs become 7, 34 setup hours are saved, and 5 more defects get scheduled on devdemo.
+  - The cost is **higher per-defect risk exposure**. Low-severity members wait for their package to finish: +8.7% on devdemo at 24 h, and +3.6% to +14.6% on the demo scenario, where the unpackaged problem already solves to optimal.
+  - Packaging is therefore a planning-practicality choice, not a risk improvement. The trade-off is reported here and in RESULTS. Whether it stays on by default is a builder decision.
 - The builder's public demo clip still needs the same check once it exists.

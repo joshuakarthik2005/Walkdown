@@ -81,6 +81,8 @@ class Defect(BaseModel):
                                     description="Work package: skills needed besides ``skill`` (one crew does all).")
     members: list[str] = Field(default_factory=list,
                                description="Work package: register defect ids repaired in this job (empty = single).")
+    weight_override: int | None = Field(default=None, ge=0, description="Work package: exposure weight per hour, "
+                                        "the sum of the members' own weights (so the objective counts every member).")
 
     @property
     def skills(self) -> set[str]:
@@ -206,6 +208,8 @@ class PlannerConfig(BaseModel):
 
     def risk_weight(self, defect: Defect) -> int:
         """Integer exposure weight per hour unrepaired: risk_scale x likelihood x consequence."""
+        if defect.weight_override is not None:
+            return defect.weight_override
         return round(self.risk_scale * self.likelihood(defect) * self.consequence(defect))
 
     def is_critical(self, defect: Defect) -> bool:

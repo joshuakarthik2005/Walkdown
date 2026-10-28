@@ -42,3 +42,32 @@ def test_caps_and_frame_gap_and_single_defects_keep_their_id():
     shut = build_packages([d("W1", hours=5, shutdown=True), d("W2", hours=5, shutdown=True)], {}, CREWS)
     assert len(shut) == 2  # shutdown packages are capped at one shift (8 h)
     assert build_packages([d("W1"), d("W2")], {}, CREWS, PackageConfig(enabled=False))[1].id == "W2"
+
+
+def test_severe_defects_are_never_bundled():
+    ds = [d("S1", sev=4, risk=0.6), d("S2", sev=5, risk=0.8), d("L1"), d("L2"), d("L3", sev=3)]
+    jobs = build_packages(ds, {}, CREWS)
+    for j in jobs:
+        assert not (j.members and any(x.severity >= 4 for x in ds if x.id in j.members))
+    assert {"S1", "S2"} <= {j.id for j in jobs}  # severe defects keep their own job and id
+
+
+def test_bundling_a_severe_defect_would_delay_it_and_the_safeguard_prevents_that():
+    """One coating crew: a severe 3 h job and two 6 h low-severity jobs on the same asset. If the severe defect
+    were bundled, it would finish at the package end; kept single, it finishes exactly as without packages."""
+    from backend.planner.cpsat import solve
+    from backend.planner.models import PlannerConfig, Scenario
+    from backend.planner.packages import unpack
+    cfg = PlannerConfig(time_limit_s=10, num_workers=4)
+    ds = [d("S1", sev=4, risk=0.6, hours=3), d("L1", hours=6), d("L2", hours=6)]
+    sc = Scenario(name="t", horizon_days=3, defects=ds, crews=[CREWS[0]])
+
+    def severe_end(cfg_pk: PackageConfig) -> int:
+        jobs = build_packages(ds, {}, sc.crews, cfg_pk, planner=cfg)
+        plan = solve(sc.model_copy(update={"defects": jobs}), cfg)
+        assert plan.stats.status == "OPTIMAL"
+        return {a.defect_id: a.end for a in unpack(jobs, plan.assignments)}["S1"]
+
+    unpackaged = {a.defect_id: a.end for a in solve(sc, cfg).assignments}["S1"]
+    assert severe_end(PackageConfig()) == unpackaged
+    assert severe_end(PackageConfig(single_from_severity=6)) > unpackaged  # what the safeguard prevents

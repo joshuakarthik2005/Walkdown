@@ -329,7 +329,8 @@ def _plan_summary(s: AgentSession, plan: Plan, new_ids: set[str]) -> dict:
 def plan_maintenance(s: AgentSession) -> dict:
     """Merge the register into the plant backlog and solve the schedule with CP-SAT."""
     defects = [to_planner_defect(e, found_at=s.now) for e in s.register]
-    new = build_packages(defects, {e.defect_id: e.frames for e in s.register}, s.base_scenario.crews, s.packages)
+    new = build_packages(defects, {e.defect_id: e.frames for e in s.register}, s.base_scenario.crews, s.packages,
+                         planner=s.planner_config)
     owner = package_of(new)
     for e in s.register:
         e.package_id = owner[e.defect_id]

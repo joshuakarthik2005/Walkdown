@@ -1,0 +1,379 @@
+[
+ {
+  "case": "devdemo (41 walkdown defects + 12-job backlog)",
+  "max_package_hours": 8,
+  "defects_packaged": 41,
+  "packages": 18,
+  "jobs_after_packaging": 19,
+  "setup_hours_saved": 22,
+  "unpackaged": {
+   "status": "FEASIBLE",
+   "gap": 0.5823,
+   "solve_s": 31.15,
+   "jobs": 53,
+   "exposure": 849874,
+   "unscheduled_penalties": 0,
+   "makespan_h": 325,
+   "defects_unscheduled": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W10",
+    "W11",
+    "W12",
+    "W13",
+    "W14",
+    "W15",
+    "W17",
+    "W24",
+    "W26",
+    "W29",
+    "W30",
+    "W31",
+    "W36",
+    "W39",
+    "W40",
+    "W41"
+   ],
+   "severe_end_hours": {
+    "W25": 82
+   }
+  },
+  "packaged": {
+   "status": "FEASIBLE",
+   "gap": 0.5734,
+   "solve_s": 31.92,
+   "jobs": 31,
+   "exposure": 852646,
+   "unscheduled_penalties": 0,
+   "makespan_h": 325,
+   "defects_unscheduled": [
+    "W12",
+    "W13",
+    "W15",
+    "W17",
+    "W19",
+    "W24",
+    "W26",
+    "W29",
+    "W30",
+    "W31",
+    "W32",
+    "W36",
+    "W37",
+    "W39",
+    "W40",
+    "W41"
+   ],
+   "severe_end_hours": {
+    "W25": 82
+   }
+  },
+  "severe_later_with_packages": {}
+ },
+ {
+  "case": "demo scenario (25 jobs, packaged by asset)",
+  "max_package_hours": 8,
+  "defects_packaged": 25,
+  "packages": 1,
+  "jobs_after_packaging": 24,
+  "setup_hours_saved": 1,
+  "unpackaged": {
+   "status": "OPTIMAL",
+   "gap": 0.0,
+   "solve_s": 6.34,
+   "jobs": 25,
+   "exposure": 417562,
+   "unscheduled_penalties": 0,
+   "makespan_h": 182,
+   "defects_unscheduled": [],
+   "severe_end_hours": {
+    "D02": 14,
+    "D08": 62,
+    "D10": 58,
+    "D11": 108,
+    "D13": 38,
+    "D16": 86,
+    "D24": 8
+   }
+  },
+  "packaged": {
+   "status": "OPTIMAL",
+   "gap": 0.0,
+   "solve_s": 2.5,
+   "jobs": 24,
+   "exposure": 432596,
+   "unscheduled_penalties": 0,
+   "makespan_h": 182,
+   "defects_unscheduled": [],
+   "severe_end_hours": {
+    "D02": 14,
+    "D08": 62,
+    "D10": 58,
+    "D11": 108,
+    "D13": 38,
+    "D16": 86,
+    "D24": 8
+   }
+  },
+  "severe_later_with_packages": {}
+ },
+ {
+  "case": "devdemo (41 walkdown defects + 12-job backlog)",
+  "max_package_hours": 16,
+  "defects_packaged": 41,
+  "packages": 9,
+  "jobs_after_packaging": 10,
+  "setup_hours_saved": 31,
+  "unpackaged": {
+   "status": "FEASIBLE",
+   "gap": 0.5735,
+   "solve_s": 31.23,
+   "jobs": 53,
+   "exposure": 830046,
+   "unscheduled_penalties": 0,
+   "makespan_h": 326,
+   "defects_unscheduled": [
+    "W01",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W07",
+    "W08",
+    "W09",
+    "W10",
+    "W11",
+    "W12",
+    "W13",
+    "W14",
+    "W15",
+    "W17",
+    "W19",
+    "W24",
+    "W26",
+    "W29",
+    "W30",
+    "W31",
+    "W39",
+    "W41"
+   ],
+   "severe_end_hours": {
+    "W25": 82
+   }
+  },
+  "packaged": {
+   "status": "FEASIBLE",
+   "gap": 0.3864,
+   "solve_s": 30.17,
+   "jobs": 22,
+   "exposure": 830614,
+   "unscheduled_penalties": 0,
+   "makespan_h": 300,
+   "defects_unscheduled": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W07",
+    "W08",
+    "W09",
+    "W10",
+    "W11",
+    "W12",
+    "W13",
+    "W14",
+    "W15",
+    "W17",
+    "W19",
+    "W24",
+    "W26",
+    "W29",
+    "W30",
+    "W31"
+   ],
+   "severe_end_hours": {
+    "W25": 82
+   }
+  },
+  "severe_later_with_packages": {}
+ },
+ {
+  "case": "demo scenario (25 jobs, packaged by asset)",
+  "max_package_hours": 16,
+  "defects_packaged": 25,
+  "packages": 1,
+  "jobs_after_packaging": 24,
+  "setup_hours_saved": 1,
+  "unpackaged": {
+   "status": "OPTIMAL",
+   "gap": 0.0,
+   "solve_s": 5.08,
+   "jobs": 25,
+   "exposure": 417562,
+   "unscheduled_penalties": 0,
+   "makespan_h": 182,
+   "defects_unscheduled": [],
+   "severe_end_hours": {
+    "D02": 14,
+    "D08": 62,
+    "D10": 58,
+    "D11": 108,
+    "D13": 38,
+    "D16": 86,
+    "D24": 8
+   }
+  },
+  "packaged": {
+   "status": "OPTIMAL",
+   "gap": 0.0,
+   "solve_s": 2.13,
+   "jobs": 24,
+   "exposure": 432596,
+   "unscheduled_penalties": 0,
+   "makespan_h": 182,
+   "defects_unscheduled": [],
+   "severe_end_hours": {
+    "D02": 14,
+    "D08": 62,
+    "D10": 58,
+    "D11": 108,
+    "D13": 38,
+    "D16": 86,
+    "D24": 8
+   }
+  },
+  "severe_later_with_packages": {}
+ },
+ {
+  "case": "devdemo (41 walkdown defects + 12-job backlog)",
+  "max_package_hours": 24,
+  "defects_packaged": 41,
+  "packages": 6,
+  "jobs_after_packaging": 7,
+  "setup_hours_saved": 34,
+  "unpackaged": {
+   "status": "FEASIBLE",
+   "gap": 0.5732,
+   "solve_s": 31.08,
+   "jobs": 53,
+   "exposure": 829858,
+   "unscheduled_penalties": 0,
+   "makespan_h": 326,
+   "defects_unscheduled": [
+    "W01",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W07",
+    "W08",
+    "W09",
+    "W10",
+    "W11",
+    "W12",
+    "W13",
+    "W14",
+    "W15",
+    "W17",
+    "W19",
+    "W24",
+    "W26",
+    "W29",
+    "W30",
+    "W32",
+    "W39",
+    "W41"
+   ],
+   "severe_end_hours": {
+    "W25": 82
+   }
+  },
+  "packaged": {
+   "status": "OPTIMAL",
+   "gap": 0.0,
+   "solve_s": 2.15,
+   "jobs": 19,
+   "exposure": 901812,
+   "unscheduled_penalties": 0,
+   "makespan_h": 319,
+   "defects_unscheduled": [
+    "W04",
+    "W05",
+    "W06",
+    "W07",
+    "W08",
+    "W09",
+    "W10",
+    "W11",
+    "W12",
+    "W13",
+    "W14",
+    "W15",
+    "W17",
+    "W19",
+    "W24",
+    "W37",
+    "W38",
+    "W40"
+   ],
+   "severe_end_hours": {
+    "W25": 82
+   }
+  },
+  "severe_later_with_packages": {}
+ },
+ {
+  "case": "demo scenario (25 jobs, packaged by asset)",
+  "max_package_hours": 24,
+  "defects_packaged": 25,
+  "packages": 3,
+  "jobs_after_packaging": 21,
+  "setup_hours_saved": 4,
+  "unpackaged": {
+   "status": "OPTIMAL",
+   "gap": 0.0,
+   "solve_s": 6.59,
+   "jobs": 25,
+   "exposure": 417562,
+   "unscheduled_penalties": 0,
+   "makespan_h": 182,
+   "defects_unscheduled": [],
+   "severe_end_hours": {
+    "D02": 14,
+    "D08": 62,
+    "D10": 58,
+    "D11": 108,
+    "D13": 38,
+    "D16": 86,
+    "D24": 8
+   }
+  },
+  "packaged": {
+   "status": "OPTIMAL",
+   "gap": 0.0,
+   "solve_s": 1.47,
+   "jobs": 21,
+   "exposure": 478490,
+   "unscheduled_penalties": 0,
+   "makespan_h": 224,
+   "defects_unscheduled": [],
+   "severe_end_hours": {
+    "D02": 14,
+    "D08": 62,
+    "D10": 58,
+    "D11": 108,
+    "D13": 38,
+    "D16": 86,
+    "D24": 8
+   }
+  },
+  "severe_later_with_packages": {}
+ }
+]
