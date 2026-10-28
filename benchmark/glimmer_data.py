@@ -47,7 +47,8 @@ HELDOUT_SHARE = 0.10
 SEED = 20261028
 # Look-alikes a person (or the image generator) can render as real rust staining: never used as "not a defect".
 AMBIGUOUS_LOOKALIKES = {"dark water stains running down the surface", "brown paint drips", "brown oil smudges",
-                        "dried mud splashes", "safety yellow paint with brown dirt smears"}
+                        "dried mud splashes", "safety yellow paint with brown dirt smears",
+                        "wet patches after rain"}
 
 
 def _jpeg(data_url: str) -> str:
