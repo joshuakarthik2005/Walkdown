@@ -218,3 +218,49 @@ What it shows:
 - SAM 3.1 open weights and hosted SAM 3.1 were not compared mask-for-mask on the test split. On this clip the open weights returned 17 instances against 28 from the hosted text prompt, at the predictor's default 0.5 output threshold.
 - This is one 6-image clip, so it is a functional check of the mode, not a benchmark.
 - Every Modal container scaled to zero after the run.
+
+## 8. Human-audited evaluation (n = 100)
+
+- **Sample.** 100 SAM 3.1 text-prompt candidates from the test split, stratified by the dataset coverage label (40 "TP", 40 "FP", 20 "ambiguous"; `benchmark/label_app.py`, seeded). The builder labelled each crop rust / not rust / unsure without seeing the dataset label or any verdict.
+- **Labels:** 82 rust, 7 not rust, **11 unsure** (9 of them dataset "FP", 2 dataset "TP"). Unsure is excluded from every metric below.
+- **Two views of every metric.** "Sample" counts the 89 sure labels as drawn. "Reweighted" corrects the stratified draw to the test split's candidate mix (3,616 TP / 1,325 FP / 125 ambiguous). 95% intervals: Wilson for the sample, stratified bootstrap for reweighted.
+- Script: `benchmark/audit_eval.py`; result: `results/audit_eval.json`. Cost: $0.24 (hosted minimal-effort verdicts for the 100 candidates; all other verdicts were cached).
+
+### Dataset labels vs the human (the annotation gap)
+
+| Dataset coverage label | Human: rust | not rust | unsure |
+|---|---|---|---|
+| "TP" (40) | 37 | 1 | 2 |
+| "FP" (40) | **26** | 5 | 9 |
+| "ambiguous" (20) | 19 | 1 | 0 |
+
+- **84% of dataset "false positives" are rust to a human** (26 of 31 sure labels; 95% CI 67–93%). The dataset's polygons miss much of the visible rust, so the "FP" label mostly marks unannotated rust, not false alarms.
+- The dataset "TP" label is reliable: 1 of 38 was not rust (CI 0.5–13.5%).
+- On TP/FP candidates, dataset label and human agree only **61%** of the time (42 of 69; CI 49–72%).
+- This confirms, with human labels, the finding in §2: FP rejection measured against dataset labels is not a valid metric, and pixel/instance precision against the masks understates real precision.
+
+### How many SAM text-prompt candidates are real rust
+
+- **92% of text-prompt candidates are rust** (82 of 89; CI 85–96%); reweighted to the test mix, **94%**.
+- So the text prompt "rust" mostly finds real rust. Its weakness is recall (§1), not precision.
+- **Text+boxes candidates were not audited.** The sample predates box proposals, so it contains text-prompt candidates only. The share of box-only candidates that is real rust is **not measured**. Box-only candidates are where §4 found the extra false alarms, so this is the open question. A 50-candidate audit of box-only candidates is proposed.
+
+### Verifiers vs the human (89 sure labels; invalid replies count as accept)
+
+| Verifier | TP | FP | FN | TN | Precision (sample, 95% CI) | Recall (sample, 95% CI) | Accuracy (sample, 95% CI) | Not-rust rejected | Reweighted P / R / accuracy |
+|---|---|---|---|---|---|---|---|---|---|
+| Hosted Muse Spark, low | 72 | 2 | 10 | 5 | 97.3% (90.7–99.3) | 87.8% (79.0–93.2) | 86.5% (77.9–92.1) | 5 of 7 | 97.7% / 90.0% / 88.6% |
+| Hosted Muse Spark, minimal (live demo setting) | 79 | 3 | 3 | 4 | 96.3% (89.8–98.7) | **96.3%** (89.8–98.7) | **93.3%** (86.1–96.9) | 4 of 7 | 97.0% / 97.0% / 94.3% |
+| Muse Spark Open (Baseten), low | 77 | 2 | 5 | 5 | 97.5% (91.2–99.3) | 93.9% (86.5–97.4) | 92.1% (84.6–96.1) | 5 of 7 | 97.8% / 94.4% / 92.7% |
+| Product with senior review (low + Muse Wonder, fail-safe) | 72 | 2 | 10 | 5 | 97.3% | 87.8% | 86.5% | 5 of 7 | same as low |
+
+- Raw intervals for every row and the reweighted bootstrap intervals are in the JSON.
+- **The verifier is mostly a recall cost on this sample.** 92% of the candidates are rust, so accepting everything would already score 92% precision.
+- The verifier rejected 4 or 5 of the 7 not-rust candidates, but **n = 7 is far too small to estimate false-positive rejection** (Wilson intervals 36–92% for low effort and Muse Spark Open, 25–84% for minimal).
+- What the audit does show is how much real rust each verifier wrongly rejects:
+  - hosted low effort rejected 12% (10 of 82);
+  - Muse Spark Open rejected 6%;
+  - minimal effort rejected 4%.
+- The differences between the verifiers are within the confidence intervals: low vs minimal recall intervals overlap. Treat them as indicative.
+- **Senior review.** 13 of the 89 were escalated; Muse Wonder agreed with the first pass on all 13, so on this sample it **overturned nothing**. Whether its overturned verdicts match a human therefore **cannot be assessed from this audit**. The §5 statement stands: it is a second opinion that surfaces disputes, with no measured accuracy gain.
+- **Not measured here:** false-positive rejection (needs many more not-rust candidates: the builder's negatives footage and public negatives sets), box-only candidates, severity accuracy.
