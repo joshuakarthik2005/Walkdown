@@ -34,6 +34,7 @@ Tonight so far: see the item log below.
 | 7c | Muse Spark Open: Fireworks serverless vs Baseten (100 test candidates) | DONE | 97.0% same decisions, severity 72.7% exact / 99.0% ±1, invalid 1 vs 0, latency 28 s vs 11 s, cost $0.0090 vs $0.0083 per candidate. RESULTS §6 | Fireworks ≈ $0.95 |
 | 7a | Fireworks zero-shot Glimmer baseline (on-demand deployment) | **BLOCKED** | Fireworks: HTTP 400 "payment method is required" for on-demand deployments (serverless works on credits). Per the rules, Fireworks deployment jobs stopped; confirmed no deployments exist; $0 billed. Glimmer zero-shot and tuned evaluation moved to Modal (batched, same inputs) | $0 |
 | 5 | Glimmer stage 3 training (Modal H100, QLoRA r=16) | DONE | 1,654 balanced examples (827 teacher accepts; 86 real + 741 FLUX-train look-alike rejections), 2 epochs completed in 76 min, 884 tokens/s, loss 1.64 → 0.39. Adapter in the private Modal volume (never published). App stopped, 0 containers | Modal ≈ $5.04 (cap $15) |
+| 8 | Stock demo clips through the pipeline (6 Pexels clips, Cloud) | DONE | valve-tank: 11 entries, 2 jobs, OPTIMAL; vessel: 11 / 1 / OPTIMAL; tank-farm: 17 / 2 / OPTIMAL; rusty-pipe: 12 / 3; welded-pipes: 16 jobs FEASIBLE 4% on the first run; **clean piping: 0 entries** (no false alarm). Recommended: valve-tank + clean-piping (+ vessel as backup). Notes in DEMO_SCRIPT. Masks not yet checked by eye; repeat runs are not fully cached (the agent picks new frames) | Meta ≈ $2.4 |
 
 ## Resources at zero (checked after each job)
 
