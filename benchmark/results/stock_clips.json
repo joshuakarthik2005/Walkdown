@@ -1,0 +1,243 @@
+{
+ "stock-valve-tank": {
+  "file": "pexels_11662354.mp4",
+  "video": {
+   "size": [
+    1280,
+    720
+   ],
+   "seconds": 12.6
+  },
+  "fill": {
+   "seconds": 176.8,
+   "usd": 0.2446,
+   "by_job": {
+    "agent-box-propose": 0.0407,
+    "agent-box-sam": 0.025,
+    "agent-llm": 0.0299,
+    "agent-sam": 0.025,
+    "agent-sam-video": 0.01,
+    "agent-senior-review": 0.0374,
+    "agent-verify": 0.0765
+   },
+   "register": 11,
+   "jobs": 2,
+   "plan": "OPTIMAL",
+   "gap": 0.0
+  },
+  "repeat": {
+   "seconds": 160.6,
+   "usd": 0.1635,
+   "by_job": {
+    "agent-box-propose": 0.0324,
+    "agent-box-sam": 0.0225,
+    "agent-llm": 0.0273,
+    "agent-sam": 0.0225,
+    "agent-sam-video": 0.01,
+    "agent-verify": 0.0489
+   },
+   "register": 13,
+   "jobs": 2,
+   "plan": "OPTIMAL",
+   "gap": 0.0
+  }
+ },
+ "stock-welded-pipes": {
+  "file": "pexels_5571839.mp4",
+  "video": {
+   "size": [
+    1280,
+    720
+   ],
+   "seconds": 10.0
+  },
+  "fill": {
+   "seconds": 174.2,
+   "usd": 0.3467,
+   "by_job": {
+    "agent-box-propose": 0.0448,
+    "agent-box-sam": 0.025,
+    "agent-llm": 0.037,
+    "agent-sam": 0.025,
+    "agent-sam-video": 0.01,
+    "agent-senior-review": 0.1173,
+    "agent-verify": 0.0877
+   },
+   "register": 16,
+   "jobs": 16,
+   "plan": "FEASIBLE",
+   "gap": 0.040316826031111745
+  },
+  "repeat": {
+   "seconds": 201.9,
+   "usd": 0.1941,
+   "by_job": {
+    "agent-llm": 0.0329,
+    "agent-sam-video": 0.01,
+    "agent-senior-review": 0.091,
+    "agent-verify": 0.0603
+   },
+   "register": 18,
+   "jobs": 2,
+   "plan": "OPTIMAL",
+   "gap": 0.0
+  }
+ },
+ "stock-vessel": {
+  "file": "pexels_35069362.mp4",
+  "video": {
+   "size": [
+    720,
+    1280
+   ],
+   "seconds": 7.0
+  },
+  "fill": {
+   "seconds": 127.3,
+   "usd": 0.2366,
+   "by_job": {
+    "agent-box-propose": 0.0248,
+    "agent-box-sam": 0.015,
+    "agent-llm": 0.0205,
+    "agent-sam": 0.0175,
+    "agent-sam-video": 0.01,
+    "agent-senior-review": 0.1039,
+    "agent-verify": 0.0448
+   },
+   "register": 11,
+   "jobs": 1,
+   "plan": "OPTIMAL",
+   "gap": 0.0
+  },
+  "repeat": {
+   "seconds": 52.2,
+   "usd": 0.0192,
+   "by_job": {
+    "agent-llm": 0.0192
+   },
+   "register": 11,
+   "jobs": 1,
+   "plan": "OPTIMAL",
+   "gap": 0.0
+  }
+ },
+ "stock-tank-farm": {
+  "file": "pexels_35596447.mp4",
+  "video": {
+   "size": [
+    720,
+    1280
+   ],
+   "seconds": 11.7
+  },
+  "fill": {
+   "seconds": 272.2,
+   "usd": 0.386,
+   "by_job": {
+    "agent-box-propose": 0.0639,
+    "agent-box-sam": 0.04,
+    "agent-llm": 0.0414,
+    "agent-sam": 0.04,
+    "agent-sam-video": 0.01,
+    "agent-senior-review": 0.0863,
+    "agent-verify": 0.1044
+   },
+   "register": 17,
+   "jobs": 2,
+   "plan": "OPTIMAL",
+   "gap": 0.0
+  },
+  "repeat": {
+   "seconds": 154.5,
+   "usd": 0.2272,
+   "by_job": {
+    "agent-box-propose": 0.0283,
+    "agent-box-sam": 0.0175,
+    "agent-llm": 0.031,
+    "agent-sam": 0.0175,
+    "agent-sam-video": 0.01,
+    "agent-senior-review": 0.0615,
+    "agent-verify": 0.0615
+   },
+   "register": 14,
+   "jobs": 14,
+   "plan": "FEASIBLE",
+   "gap": 0.04052331781413374
+  }
+ },
+ "stock-rusty-pipe": {
+  "file": "pexels_34633267.mp4",
+  "video": {
+   "size": [
+    1280,
+    720
+   ],
+   "seconds": 6.1
+  },
+  "fill": {
+   "seconds": 118.3,
+   "usd": 0.1118,
+   "by_job": {
+    "agent-box-propose": 0.0222,
+    "agent-box-sam": 0.0175,
+    "agent-llm": 0.0185,
+    "agent-sam": 0.0175,
+    "agent-sam-video": 0.01,
+    "agent-verify": 0.0261
+   },
+   "register": 12,
+   "jobs": 3,
+   "plan": "OPTIMAL",
+   "gap": 0.0
+  },
+  "repeat": {
+   "seconds": 64.7,
+   "usd": 0.025,
+   "by_job": {
+    "agent-llm": 0.015,
+    "agent-sam-video": 0.01
+   },
+   "register": 8,
+   "jobs": 2,
+   "plan": "OPTIMAL",
+   "gap": 0.0
+  }
+ },
+ "stock-clean-piping": {
+  "file": "pexels_30243437.mp4",
+  "video": {
+   "size": [
+    1280,
+    674
+   ],
+   "seconds": 7.6
+  },
+  "fill": {
+   "seconds": 57.6,
+   "usd": 0.12,
+   "by_job": {
+    "agent-box-propose": 0.0441,
+    "agent-llm": 0.0083,
+    "agent-sam": 0.0575,
+    "agent-sam-video": 0.01
+   },
+   "register": 0,
+   "jobs": 0,
+   "plan": "OPTIMAL",
+   "gap": 0.0
+  },
+  "repeat": {
+   "seconds": 24.5,
+   "usd": 0.0434,
+   "by_job": {
+    "agent-box-propose": 0.0158,
+    "agent-llm": 0.0076,
+    "agent-sam": 0.02
+   },
+   "register": 0,
+   "jobs": 0,
+   "plan": "OPTIMAL",
+   "gap": 0.0
+  }
+ }
+}

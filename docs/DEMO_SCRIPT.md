@@ -63,3 +63,25 @@ Never say "replaces inspection", "detects all corrosion", or anything about dron
 Same rules: no dataset images, numbers only from verified sources, nothing claimed beyond what's shown.
 
 **Wording rule for Muse Wonder (builder decision, 2026-10-28):** describe it as a second opinion that surfaces disagreements to a human. Never say it improves accuracy: on the test split, label agreement was 73.5% before and 72.7% after the review (benchmark/RESULTS.md section 5).
+
+## Stock demonstration footage fallback (overnight item 8, 2026-10-29)
+
+Use these only if the builder's own footage is not enough. On screen and in the README they are labelled **"stock demonstration footage"** (Pexels; authors and licence in `docs/FOOTAGE_SOURCES.md`). Clips are downscaled to 1,280 px and cut to ≤ 20 s, stored on G: as Walkdown clips, and run with the agent in Cloud mode at minimal effort (`benchmark/stock_clips.py`, `benchmark/results/stock_clips.json`).
+
+| Clip id | Content | Register entries | Walkdown jobs | Plan | First run / repeat run cost |
+|---|---|---|---|---|---|
+| `stock-valve-tank` | Old fuel-transfer valve under a tank | 11 | 2 | OPTIMAL | $0.24 / $0.16 |
+| `stock-vessel` | Corroded horizontal vessel shell (vertical video) | 11 | 1 | OPTIMAL | $0.24 / $0.02 |
+| `stock-tank-farm` | Tank farm with pipe rack (vertical video) | 17 | 2 | OPTIMAL | $0.39 / $0.23 |
+| `stock-rusty-pipe` | Heavily rusted outdoor pipe (not a plant) | 12 / 8 | 3 / 2 | OPTIMAL | $0.11 / $0.03 |
+| `stock-welded-pipes` | Welded pipes with rust staining | 16 / 18 | 16 / 2 | FEASIBLE (gap 4%) / OPTIMAL | $0.35 / $0.19 |
+| `stock-clean-piping` | Clean painted plant piping | **0** | 0 | – | $0.12 / $0.04 |
+
+**Recommended for the video:**
+1. **`stock-valve-tank`** as the main walkdown: a real plant object, a readable register, 2 jobs and a provably optimal plan.
+2. **`stock-clean-piping`** as the false-alarm beat: "on clean painted piping, the register stays empty". The same piping is a false-alarm risk in RESULTS §9, so verify it again before recording.
+3. **`stock-vessel`** as a backup: a single job, and the repeat run is almost fully cached ($0.02).
+
+**Caveats:**
+- **The repeat runs are not fully cached** (valve-tank, tank-farm, welded-pipes). The agent chooses different sampling rates on each run, so some new frames get segmented and verified. For the recorded demo, run the chosen clip once more right before recording and keep that run.
+- **Check the masks before recording.** These numbers are pipeline output with no human check: each register entry needs a look on the overlay.
