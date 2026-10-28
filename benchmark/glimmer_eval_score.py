@@ -22,19 +22,19 @@ RES = DATA_DIR / "glimmer" / "results"
 OUT = Path(__file__).parent / "results"
 
 
-def meta() -> dict[str, dict]:
+def meta() -> dict[tuple[str, str], dict]:
     out = {}
     with EVAL.open(encoding="utf-8") as f:
         for line in f:
             e = json.loads(line)
             e.pop("messages")
-            out[e["id"]] = e
+            out[(e["set"], e["id"])] = e  # a few audit candidates are also in the test sample
     return out
 
 
-def score(tag: str, m: dict[str, dict]) -> dict:
+def score(tag: str, m: dict[tuple[str, str], dict]) -> dict:
     rows = [json.loads(l) for l in (RES / f"eval_{tag}.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
-    rows = [r | m[r["id"]] for r in rows if r["id"] in m]
+    rows = [r | m[(r["set"], r["id"])] for r in rows if (r["set"], r["id"]) in m]
     acc = lambda r: True if r["accept"] is None else r["accept"]  # noqa: E731
     out = dict(tag=tag, replies=len(rows), of=len(m), unparsed=sum(r["accept"] is None for r in rows))
     a = [r for r in rows if r["set"] == "audit"]

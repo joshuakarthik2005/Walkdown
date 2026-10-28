@@ -467,3 +467,17 @@ What it shows:
 
 - **Medium buys nothing measurable.** It rejects the same look-alikes as low (14 of 20), and its recall is within the interval of low. It keeps fewer coverage-labelled TPs, costs 1.9× low, and is 1.6× slower.
 - **Recommendation.** Do not use medium. The real choice is between minimal (best recall, weakest on look-alikes) and low (§8, §9).
+
+## 13. Box proposals at low reasoning effort (300 test images; overnight item 9)
+
+- **Setup.** The first 300 test images. Muse Spark box proposals at low effort (own cache, `runs/box_prompt_low/`) against the existing minimal-effort proposals on the same images. SAM 3.1 box prompts, unverified candidates, scored against the dataset masks.
+- Script: `benchmark/box_prompt.py --effort low --max-images 300`; results: `results/box_prompt_test_{low,minimal}_n300.json`. Cost: proposals $1.55 + box SAM $0.75.
+
+| 300 test images, text + boxes | Image detection | Pixel precision | Pixel recall | Instance P / R / F1 @0.5 | Boxes per image | Proposal cost per image |
+|---|---|---|---|---|---|---|
+| Minimal (default) | 99.3% | 0.759 | 0.879 | 0.427 / 0.311 / 0.360 | 4.30 | $0.0030 (§4) |
+| Low | 99.7% | **0.797** | 0.879 | 0.425 / 0.335 / **0.375** | 4.62 | $0.0052 |
+
+- **Low effort gives slightly cleaner boxes:** pixel precision +3.8 points, instance F1 +1.5 points. Pixel recall is the same and image detection is equal.
+- It costs 1.7× more per proposal and is slower.
+- **The effect is small, with no verification on top.** Low-effort proposals are a reasonable option only if box false alarms (§9, §10) are the priority. **Not switched.**
