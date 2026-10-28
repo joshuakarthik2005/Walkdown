@@ -10,7 +10,8 @@ Sources:
 2. **Synthetic hard negatives** (F6): FLUX.1-schnell images of intact plant metal with rust look-alikes
    (``benchmark.synthetic_negatives flux``), candidates from SAM 3.1 open weights (``--synthetic-candidates``).
    Target = a constructed rejection (is_defect false, severity 1, no_action) naming the look-alike. Categories a
-   person could read as real rust staining (water stains, paint drips, oil smudges, mud) are left out.
+   person could read as real rust staining (water stains, paint drips, oil smudges, mud, dirt smears) are left
+   out: on a visual check FLUX renders them like rust.
 Never included: hosted Meta model outputs, dev/test images, audit labels, public Roboflow negatives.
 
 Split: 10% of the train pool's source clusters (Roboflow source name) are held out for evaluation and early
@@ -44,8 +45,9 @@ FLUX_DIR = DATA_DIR / "synthetic" / "flux_train"
 FLUX_SAM = DATA_DIR / "runs" / "sam_open" / "flux_train"
 HELDOUT_SHARE = 0.10
 SEED = 20261028
+# Look-alikes a person (or the image generator) can render as real rust staining: never used as "not a defect".
 AMBIGUOUS_LOOKALIKES = {"dark water stains running down the surface", "brown paint drips", "brown oil smudges",
-                        "dried mud splashes"}
+                        "dried mud splashes", "safety yellow paint with brown dirt smears"}
 
 
 def _jpeg(data_url: str) -> str:

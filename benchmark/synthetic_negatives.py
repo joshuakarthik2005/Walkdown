@@ -89,19 +89,30 @@ def run_muse(recs: list[dict], d: Path, ledger: CostLedger, max_usd: float) -> N
                 print(err, flush=True)
 
 
+# FLUX ignores negation: "no rust, no corrosion" in the prompt produced rusty metal on a first 30-image batch
+# (set aside in synthetic/flux_train_negation_prompt_set_aside). FLUX prompts therefore never mention rust and
+# describe new, intact, freshly coated metal instead.
+FLUX_STYLE = ("Realistic handheld inspection photo, close to medium range, sharp focus. The metal is brand new and "
+              "factory clean: smooth intact glossy coating, bright clean steel, recently installed equipment.")
+
+
+def flux_prompt(rec: dict) -> str:
+    return f"{rec['subject']} with {rec['lookalike']}, {rec['context']}. {FLUX_STYLE}"
+
+
 def run_flux(recs: list[dict], d: Path, ledger: CostLedger, batch: int = 50) -> None:
     import modal
     flux = modal.Cls.from_name("walkdown-flux", "Flux")()
     for i in range(0, len(recs), batch):
         part = recs[i:i + batch]
         t0 = time.perf_counter()
-        images = flux.generate.remote([dict(prompt=r["prompt"], seed=r["seed"]) for r in part])
+        images = flux.generate.remote([dict(prompt=flux_prompt(r), seed=r["seed"]) for r in part])
         secs = time.perf_counter() - t0
         ledger.add(CostEntry(job="synthetic-flux-train", model="FLUX.1-schnell (Modal L40S)",
                              usd=secs * L40S_PER_SECOND, images=len(part)))
         for rec, jpg in zip(part, images):
             _save(jpg, d / f"{rec['id']}.jpg")
-            _manifest(d, rec, SETS["flux"])
+            _manifest(d, {**rec, "prompt": flux_prompt(rec)}, SETS["flux"])
         print(f"{i + len(part)}/{len(recs)} ({secs:.0f} s, {secs / len(part):.1f} s/image)", flush=True)
 
 
@@ -115,6 +126,9 @@ def main() -> int:
     d = OUT / meta["dir"]
     d.mkdir(parents=True, exist_ok=True)
     recs = [r for r in prompts(meta["split"], args.n) if not (d / f"{r['id']}.jpg").exists()]
+    if args.set == "flux":  # training negatives: only look-alikes that render without rust (glimmer_data)
+        from benchmark.glimmer_data import AMBIGUOUS_LOOKALIKES
+        recs = [r for r in recs if r["lookalike"] not in AMBIGUOUS_LOOKALIKES]
     ledger = CostLedger(LEDGER)
     print(f"{len(recs)} to generate into {d}", flush=True)
     if args.set == "muse":
