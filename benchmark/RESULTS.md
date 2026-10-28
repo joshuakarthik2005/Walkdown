@@ -368,6 +368,18 @@ Reweighted over six strata (source × dataset label) to the default pipeline's c
 | Cloud | 0.11 | 0.97 | 0.21 |
 | On-prem | 0.08 | 0.55 | 0.04 |
 
+**Same Cloud candidates, every verifier** (item 2 of the overnight run, `--all-verifiers`; 185 text + boxes candidates on the 191 images):
+
+| Verifier on the Cloud text + boxes candidates | Images with a false alarm (95% CI) | Accepted candidates per image |
+|---|---|---|
+| None (text + boxes) | 31.9% (25.7–38.8) | 0.97 |
+| Hosted Muse Spark, minimal (demo setting) | 12.0% (8.2–17.4) | 0.21 |
+| Hosted Muse Spark, low | 6.8% (4.0–11.3) | 0.12 |
+| Muse Spark Open (Baseten) | **4.2%** (2.1–8.0) | 0.06 |
+
+- On real clean pipes, minimal effort is the weakest verifier. Low effort halves its false alarms, and Muse Spark Open cuts them by about two thirds.
+- This matches the audit, where minimal also accepted the most look-alikes, at the price of rejecting less real rust (§8).
+
 What it shows:
 - **The text prompt alone rarely fires on clean pipes:** 3–4% of images.
 - **Box proposals are the main source of false alarms** on clean surfaces: 19–32% of images. This agrees with the box audit in §8.
