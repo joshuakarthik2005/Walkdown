@@ -43,6 +43,7 @@ class Detection:
     box: tuple[int, int, int, int]
     grade: Grade
     flags: list[str] = field(default_factory=list)
+    senior: dict | None = None  # SeniorReview.to_dict() when Muse Wonder reviewed this detection
 
 
 @dataclass

@@ -29,7 +29,9 @@ schedule repairs, and explain the plan. Work autonomously with your tools:
 
 1. segment_frames: start with a coarse pass over the whole clip (fps 0.5-1). If a stretch shows candidates \
 or looks unclear, inspect it again at a higher fps. Do not resample the same range at the same rate.
-2. verify_candidate: verify every candidate (up to 20 ids per call). Rejected candidates are false positives.
+2. verify_candidate: verify every candidate (up to 20 ids per call). Rejected candidates are false positives. Severe
+   (severity 4+) or uncertain grades are re-checked automatically by a senior reviewer (Muse Wonder); its grade is
+   final. Mention it when a senior review changed a decision or a severity.
 3. build_register once all candidates are verified.
 4. plan_maintenance to schedule the register together with the existing backlog.
 5. explain_plan for the walkdown defects, then answer.
@@ -71,7 +73,9 @@ def _summarise(name: str, result: dict) -> str:
         return f"{result['frames_segmented']} frames, {result['new_candidates']} new candidates"
     if name == "verify_candidate":
         acc = sum(1 for r in result["results"] if r.get("is_defect"))
-        return f"{result['verified']} verified, {acc} accepted, {result['verified'] - acc} rejected"
+        senior = result.get("senior_reviews", 0)
+        return (f"{result['verified']} verified, {acc} accepted, {result['verified'] - acc} rejected"
+                + (f", {senior} senior review{'s' if senior != 1 else ''} (Muse Wonder)" if senior else ""))
     if name == "build_register":
         return f"{result['register_entries']} register entries, {len(result['needs_review'])} need review"
     if name in ("plan_maintenance", "replan"):

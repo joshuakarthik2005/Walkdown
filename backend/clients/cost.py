@@ -21,6 +21,9 @@ SAM_MIN_VIDEO_FRAMES = 50
 MUSE_INPUT_PER_TOKEN = 1.25 / 1_000_000
 MUSE_CACHED_INPUT_PER_TOKEN = 0.15 / 1_000_000
 MUSE_OUTPUT_PER_TOKEN = 4.25 / 1_000_000
+WONDER_INPUT_PER_TOKEN = 4.00 / 1_000_000
+WONDER_CACHED_INPUT_PER_TOKEN = 0.20 / 1_000_000
+WONDER_OUTPUT_PER_TOKEN = 20.00 / 1_000_000
 
 
 def sam_image_cost(images: int = 1) -> float:
@@ -38,6 +41,13 @@ def muse_cost(input_tokens: int, output_tokens: int, cached_tokens: int = 0) -> 
     fresh = input_tokens - cached_tokens
     return (fresh * MUSE_INPUT_PER_TOKEN + cached_tokens * MUSE_CACHED_INPUT_PER_TOKEN
             + output_tokens * MUSE_OUTPUT_PER_TOKEN)
+
+
+def wonder_cost(input_tokens: int, output_tokens: int, cached_tokens: int = 0) -> float:
+    """Cost of one Muse Wonder call (muse-wonder-1.0, Standard mode)."""
+    fresh = input_tokens - cached_tokens
+    return (fresh * WONDER_INPUT_PER_TOKEN + cached_tokens * WONDER_CACHED_INPUT_PER_TOKEN
+            + output_tokens * WONDER_OUTPUT_PER_TOKEN)
 
 
 @dataclass

@@ -26,12 +26,13 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import ValidationError
 
-from backend.clients.cost import CostEntry, CostLedger, muse_cost
+from backend.clients.cost import CostEntry, CostLedger, muse_cost, wonder_cost
 from backend.clients.meta import PROJECT_ROOT, BillingError, meta_client, with_retries
 from backend.verify.crops import verifier_images
 from backend.verify.schema import Grade, consistency_flags, grade_json_schema
 
 META_MODEL = "muse-spark-1.3"
+WONDER_MODEL = "muse-wonder-1.0"  # senior review (backend/verify/escalation.py)
 BASETEN_MODEL = "meta-models/muse-spark-open-1026"
 BASETEN_URL = "https://inference.baseten.co/v1"
 PROMPT_VERSION = "v1"
@@ -131,8 +132,8 @@ def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low
            ledger: CostLedger | None = None, job: str = "verify") -> Verdict:
     """Verify and grade one candidate. Never raises on a bad reply; the Verdict carries the error."""
     content = _user_content(c)
-    if provider == "meta":
-        client, model = meta_client(), META_MODEL
+    if provider in ("meta", "wonder"):
+        client, model = meta_client(), META_MODEL if provider == "meta" else WONDER_MODEL
         messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": content}]
         extra = dict(response_format={"type": "json_schema", "json_schema": {
                          "name": "walkdown_grade", "strict": True, "schema": grade_json_schema()}},
@@ -167,7 +168,7 @@ def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low
                 break  # a retry with the same budget would truncate again
     latency = time.perf_counter() - t0
     # Baseten lists Muse Spark Open at the same per-token price as hosted Muse Spark (docs/COST_LOG.md).
-    usd = muse_cost(tokens["input"], tokens["output"], tokens["cached"])
+    usd = (wonder_cost if provider == "wonder" else muse_cost)(tokens["input"], tokens["output"], tokens["cached"])
     if ledger is not None:
         ledger.add(CostEntry(job=job, model=model, usd=usd or 0.0, input_tokens=tokens["input"],
                              cached_tokens=tokens["cached"], output_tokens=tokens["output"],

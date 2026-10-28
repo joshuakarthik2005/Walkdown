@@ -85,3 +85,4 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; }
 .safety { border: 1px solid var(--warn); border-left-width: 4px; border-radius: var(--radius); padding: 8px 12px; margin-bottom: 16px; font-size: 12.5px; line-height: 1.45; color: var(--text); background: var(--panel); }
 .footer { color: var(--muted); font-size: 12px; margin-top: 10px; padding-bottom: 16px; }
 .attribution { color: var(--text); font-weight: 600; }
+.badge.senior { border-color: var(--accent, #3987e5); color: var(--text); margin-top: 3px; }

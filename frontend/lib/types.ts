@@ -44,7 +44,7 @@ export interface RegisterEntry {
   frames: number[];
   needs_review: boolean;
   grade: Grade;
-  detections: { candidate_id: string; frame: number; box: number[]; flags: string[] }[];
+  detections: { candidate_id: string; frame: number; box: number[]; flags: string[]; senior: SeniorReview | null }[];
 }
 
 export interface Register {
@@ -119,4 +119,17 @@ export interface PlanResponse {
 export interface FrameInfo {
   frame: number;
   detections: { defect_id: string; candidate_id: string; box: number[]; severity: number }[];
+}
+
+export interface SeniorReview {
+  model: string;
+  first_is_defect: boolean;
+  first_severity: number;
+  first_confidence: number;
+  changed_decision: boolean;
+  changed_severity: boolean;
+  reason: string;
+  usd: number;
+  latency_s: number;
+  valid: boolean;
 }

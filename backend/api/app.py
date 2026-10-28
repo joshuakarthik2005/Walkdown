@@ -158,7 +158,7 @@ def run_register(run_id: str) -> dict:
     return dict(asset=s.clip.asset.__dict__, entries=[dict(
         defect_id=e.defect_id, frames=e.frames, needs_review=e.needs_review,
         grade=e.grade.model_dump(mode="json"),
-        detections=[dict(candidate_id=d.candidate_id, frame=d.frame, box=list(d.box), flags=d.flags)
+        detections=[dict(candidate_id=d.candidate_id, frame=d.frame, box=list(d.box), flags=d.flags, senior=d.senior)
                     for d in e.detections]) for e in s.register])
 
 

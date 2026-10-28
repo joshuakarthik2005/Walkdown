@@ -37,6 +37,7 @@ export function RegisterView({ runId, register, frames }: { runId: string; regis
               <td className="mono">
                 {e.defect_id}
                 {e.needs_review && <div className="badge warn" title={e.detections.flatMap((d) => d.flags).join(", ")}>review</div>}
+                <SeniorBadge entry={e} />
               </td>
               <td>
                 <span className="sev" style={{ background: SEVERITY_COLOUR[e.grade.severity] }}>{e.grade.severity}</span>
@@ -52,6 +53,18 @@ export function RegisterView({ runId, register, frames }: { runId: string; regis
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function SeniorBadge({ entry }: { entry: Register["entries"][number] }) {
+  const reviews = entry.detections.map((d) => d.senior).filter((r): r is NonNullable<typeof r> => r !== null);
+  if (!reviews.length) return null;
+  const r = reviews[0];
+  const what = r.changed_decision ? "changed the decision" : r.changed_severity ? `severity ${r.first_severity} → ${entry.grade.severity}` : "confirmed";
+  return (
+    <div className="badge senior" title={`Escalated (${r.reason}); Muse Wonder ${what}`}>
+      senior review{r.changed_decision || r.changed_severity ? " ✎" : ""}
     </div>
   );
 }

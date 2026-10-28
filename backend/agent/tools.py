@@ -21,6 +21,7 @@ from backend.planner.generator import load_scenario
 from backend.planner.models import Change, Plan, PlannerConfig, Scenario
 from backend.planner.replan import replan
 from backend.verify.schema import Grade
+from backend.verify.escalation import SeniorReview, senior_review
 from backend.verify.verifier import Candidate, Verdict, verify
 
 PROMPT = "rust"  # frozen from the dev dry run
@@ -44,6 +45,7 @@ class AgentSession:
     live: bool = False
     verify_effort: str = "low"
     provider: str = "meta"  # "meta" (hosted Muse Spark) or "baseten" (open-weight Muse Spark Open)
+    senior_review: bool = True  # escalate severe/uncertain grades to Muse Wonder (Cloud mode only)
     # Demo path: 30 s per solve (status and gap are always reported; FEASIBLE is shown as such).
     planner_config: PlannerConfig = field(default_factory=lambda: PlannerConfig(time_limit_s=30))
     base_scenario: Scenario = field(default_factory=lambda: demo_backlog())
@@ -51,6 +53,7 @@ class AgentSession:
     candidates: dict[str, tuple[int, Instance]] = field(default_factory=dict)  # id -> (frame index, instance)
     frame_paths: dict[int, Path] = field(default_factory=dict)
     verdicts: dict[str, Verdict] = field(default_factory=dict)
+    reviews: dict[str, SeniorReview] = field(default_factory=dict)  # candidate id -> senior review
     register: list[RegisterEntry] = field(default_factory=list)
     scenario: Scenario | None = None
     plan: Plan | None = None
@@ -97,22 +100,44 @@ def _verdict_cache(s: AgentSession, cid: str) -> Path:
 VERIFY_WORKERS = 8
 
 
-def _verify_one(s: AgentSession, cid: str) -> Verdict:
-    frame, inst = s.candidates[cid]
-    cache = _verdict_cache(s, cid)
-    if cache.exists() and not s.live:
-        d = json.loads(cache.read_text(encoding="utf-8"))
-        d["grade"] = Grade.model_validate(d["grade"]) if d["grade"] else None
-        return Verdict(**d)
-    import cv2
-    image = cv2.imread(str(s.frame_paths[frame]), cv2.IMREAD_COLOR)
-    v = verify(Candidate(cid, image, inst.mask, inst.box, inst.confidence), provider=s.provider,
-               reasoning_effort=s.verify_effort, ledger=s.ledger, job="agent-verify")
-    cache.parent.mkdir(parents=True, exist_ok=True)
+def _load_verdict(d: dict) -> Verdict:
+    d = dict(d)
+    d["grade"] = Grade.model_validate(d["grade"]) if d["grade"] else None
+    return Verdict(**d)
+
+
+def _dump_verdict(v: Verdict) -> dict:
     d = asdict(v)
     d["grade"] = v.grade.model_dump(mode="json") if v.grade else None
-    cache.write_text(json.dumps(d, indent=1), encoding="utf-8")
-    return v
+    return d
+
+
+def _verify_one(s: AgentSession, cid: str) -> tuple[Verdict, SeniorReview | None]:
+    """First-pass verdict (cached), then senior review when the grade needs it (cached separately)."""
+    import cv2
+    frame, inst = s.candidates[cid]
+    cand = lambda: Candidate(cid, cv2.imread(str(s.frame_paths[frame]), cv2.IMREAD_COLOR), inst.mask,  # noqa: E731
+                             inst.box, inst.confidence)
+    cache = _verdict_cache(s, cid)
+    if cache.exists() and not s.live:
+        v = _load_verdict(json.loads(cache.read_text(encoding="utf-8")))
+    else:
+        v = verify(cand(), provider=s.provider, reasoning_effort=s.verify_effort, ledger=s.ledger, job="agent-verify")
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps(_dump_verdict(v), indent=1), encoding="utf-8")
+    if not (s.senior_review and s.provider == "meta"):
+        return v, None
+    senior_cache = cache.parent.with_name(cache.parent.name + "-senior") / cache.name
+    if senior_cache.exists() and not s.live:
+        d = json.loads(senior_cache.read_text(encoding="utf-8"))
+        return _load_verdict(d["verdict"]), (SeniorReview(**d["review"]) if d["review"] else None)
+    final, review = senior_review(cand(), v, effort="low", ledger=s.ledger, job="agent-senior-review")
+    if review is not None or not senior_cache.exists():
+        senior_cache.parent.mkdir(parents=True, exist_ok=True)
+        senior_cache.write_text(json.dumps(dict(verdict=_dump_verdict(final),
+                                                review=review.to_dict() if review else None), indent=1),
+                                encoding="utf-8")
+    return final, review
 
 
 def verify_candidate(s: AgentSession, candidate_ids: list[str]) -> dict:
@@ -126,14 +151,19 @@ def verify_candidate(s: AgentSession, candidate_ids: list[str]) -> dict:
         if cid not in done:
             out.append(dict(id=cid, error="unknown candidate id"))
             continue
-        v = done[cid]
+        v, review = done[cid]
         s.verdicts[cid] = v
+        if review is not None:
+            s.reviews[cid] = review
         g = v.grade
         out.append(dict(id=cid, is_defect=g.is_defect if g else None, defect_type=g.defect_type.value if g else None,
                         severity=g.severity if g else None, confidence=g.confidence if g else None,
                         recommended_action=g.recommended_action.value if g else None, flags=v.flags,
-                        evidence=g.evidence.visual_cues[:3] if g else None))
-    return dict(verified=len(out), results=out)
+                        evidence=g.evidence.visual_cues[:3] if g else None,
+                        senior_review=(dict(reason=review.reason, first_severity=review.first_severity,
+                                            changed_decision=review.changed_decision,
+                                            changed_severity=review.changed_severity) if review else None)))
+    return dict(verified=len(out), senior_reviews=sum(1 for r in out if r.get("senior_review")), results=out)
 
 
 def build_register_tool(s: AgentSession) -> dict:
@@ -148,7 +178,8 @@ def build_register_tool(s: AgentSession) -> dict:
             "is_defect": True, "defect_type": "other", "severity": 3, "confidence": 0.0,
             "evidence": {"visual_cues": [], "location": "", "extent": "", "mask_fit": "partial"},
             "recommended_action": "urgent_inspection"})
-        dets.append(Detection(cid, frame, inst.box, grade, v.flags))
+        review = s.reviews.get(cid)
+        dets.append(Detection(cid, frame, inst.box, grade, v.flags, review.to_dict() if review else None))
     s.register = build_register(dets, s.clip.asset, merge_across_frames=s.clip.source is not None)
     rejected = sum(1 for v in s.verdicts.values() if v.grade and not v.grade.is_defect)
     return dict(register_entries=len(s.register), rejected_candidates=rejected,
