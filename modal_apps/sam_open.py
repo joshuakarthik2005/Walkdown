@@ -29,7 +29,9 @@ image = (
     .pip_install("torch==2.10.0", "torchvision", index_url="https://download.pytorch.org/whl/cu128")
     .run_commands(f"git clone https://github.com/facebookresearch/sam3.git /opt/sam3 && cd /opt/sam3 "
                   f"&& git checkout {SAM3_COMMIT} && pip install -e .")
-    .pip_install("huggingface_hub", "opencv-python-headless<4.12", "pycocotools", "numpy<2", "pillow", "einops")
+    # psutil, decord and scipy are imported by sam3's video predictor but not listed in its pyproject.
+    .pip_install("huggingface_hub", "opencv-python-headless<4.12", "pycocotools", "numpy<2", "pillow", "einops",
+                 "psutil", "decord", "scipy", "scikit-image")
 )
 
 
@@ -59,6 +61,18 @@ class Sam31:
             weights.commit()
         from sam3.model_builder import build_sam3_multiplex_video_predictor
         self.predictor = build_sam3_multiplex_video_predictor(checkpoint_path=CHECKPOINT, use_fa3=False)
+        # Upstream mismatch at the pinned commit: the base predictor's start_session passes offload_state_to_cpu
+        # (and possibly video_loader_type) to the multiplex model's init_state, which does not accept them.
+        # Drop keyword arguments init_state does not declare.
+        import functools
+        import inspect
+        init = self.predictor.model.init_state
+        accepted = set(inspect.signature(init).parameters)
+
+        @functools.wraps(init)
+        def init_state(**kwargs):
+            return init(**{k: v for k, v in kwargs.items() if k in accepted})
+        self.predictor.model.init_state = init_state
 
     def _track(self, frames: list[bytes], prompt: str, propagate: bool) -> dict:
         """Run a text prompt on frame 0 and (optionally) propagate; returns per-frame raw outputs."""
@@ -116,6 +130,18 @@ class Sam31:
                 result.append(dict(frame=int(f), obj_id=int(ids[k]), score=float(probs[k]),
                                    box_xyxy=[x, y, x + bw, y + bh], rle=rle))
         return result
+
+
+@app.function(image=image, timeout=600)
+def check_imports() -> str:
+    """CPU-only import check of the predictor module (avoids crash-looping a GPU container on a missing dep)."""
+    from sam3.model_builder import build_sam3_multiplex_video_predictor  # noqa: F401
+    return "sam3 imports OK"
+
+
+@app.local_entrypoint()
+def imports() -> None:
+    print(check_imports.remote())
 
 
 @app.local_entrypoint()

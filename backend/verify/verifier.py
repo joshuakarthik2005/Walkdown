@@ -35,6 +35,7 @@ META_MODEL = "muse-spark-1.3"
 WONDER_MODEL = "muse-wonder-1.0"  # senior review (backend/verify/escalation.py)
 BASETEN_MODEL = "meta-models/muse-spark-open-1026"
 BASETEN_URL = "https://inference.baseten.co/v1"
+BASETEN_MAX_TOKENS = 8000
 PROMPT_VERSION = "v1"
 
 SYSTEM_PROMPT = """You are a corrosion inspection verifier for energy plant assets (pipes, tanks, valves, \
@@ -128,10 +129,14 @@ def _extract_json(text: str) -> str:
     return text[start:end + 1] if start >= 0 and end > start else text
 
 
-def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low", max_tokens: int = 4000,
+def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low", max_tokens: int | None = None,
            ledger: CostLedger | None = None, job: str = "verify") -> Verdict:
     """Verify and grade one candidate. Never raises on a bad reply; the Verdict carries the error."""
     content = _user_content(c)
+    if max_tokens is None:
+        # Muse Spark Open reasons about twice as long and has no strict decoding; at 4,000 tokens 1.8% of replies
+        # were cut off before the JSON (benchmark/RESULTS.md section 6).
+        max_tokens = BASETEN_MAX_TOKENS if provider == "baseten" else 4000
     if provider in ("meta", "wonder"):
         client, model = meta_client(), META_MODEL if provider == "meta" else WONDER_MODEL
         messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": content}]
