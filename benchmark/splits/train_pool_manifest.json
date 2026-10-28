@@ -1,0 +1,15 @@
+{
+ "purpose": "training only (verifier distillation, SAM LoRA); never evaluation",
+ "train_images": 14214,
+ "excluded_stock_style_names": 1506,
+ "excluded_same_name_and_within_90_bits": 11022,
+ "excluded_within_40_bits_of_any_valid_or_test": 220,
+ "null_distance_unrelated_pairs": "99.9% above 74 bits, median 112 (159,797 pairs)",
+ "hash_variants": "8 flips/rotations of each train image vs every valid/test image",
+ "after_exclusion": 1466,
+ "unique_sources": 212,
+ "max_copies_per_source": 3,
+ "pool": 585,
+ "pool_positives": 585,
+ "pool_negatives": 0
+}
