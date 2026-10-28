@@ -40,6 +40,11 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-10-28 | Teacher labels, clean train pool (585 images): SAM 3.1 open weights on Modal (dry run at new-detection threshold 0.65 on 15 images, set aside; then all 585 at 0.5) | Modal L40S | 600 images | - | - | 0.22 (ledger, list rate) | Modal ≈ 0.4 incl. box-exemplar probes and redeploys |
 | 2026-10-28 | Teacher labels: Muse Spark Open verdicts on 1,298 open-weights candidates (dry runs 11 + 60 candidates included; 11 set aside with the 0.65 masks) | muse-spark-open-1026 (Baseten) | 1,309 | - | - | 10.95 (Baseten) | - |
 | 2026-10-28 | Human audit evaluation: hosted minimal-effort verdicts for the 100 audited candidates | muse-spark-1.3 | 100 | - | - | 0.24 | - |
+| 2026-10-28 | Synthetic negatives, evaluation only: Muse Image (dry run 10 + 290) | muse-image-1.0 | 300 images | - | - | 3.00 | - |
+| 2026-10-28 | Box-only audit fill (hosted minimal + Muse Spark Open at 8,000 tokens on 50 candidates); On-prem box dev check (50 dev images: Muse Spark Open boxes + Modal SAM) | muse-spark-1.3 / muse-spark-open-1026 / Modal L40S | 50 + 50 | - | - | Meta ≈ 0.1, Baseten ≈ 1.0, Modal 0.05 | - |
+| 2026-10-28 | False alarms on 191 public negatives, Cloud and On-prem (incl. 20-image dry runs) | sam-3.1 + muse-spark-1.3 / Modal + muse-spark-open-1026 | 191 x 2 | - | - | Meta 1.20, Baseten ≈ 1.25, Modal ≈ 0.04 | - |
+| 2026-10-28 | Glimmer stage 1: weights to private Modal volume (59.6 GB, 263 s, CPU) | Modal CPU | 1 | - | - | ≈ 0.02 | - |
+| 2026-10-28 | **Incident:** Glimmer smoke test stopped by the local low-memory guard during model load; the remote H100 kept running 21:06-21:09 IST until the ephemeral app was stopped (`modal app stop -y`), 0 containers confirmed. Since then every Modal GPU job runs with `modal run --detach` and a hard function timeout, results written to the volume, app/container lists checked after every job | Modal H100 | 1 | - | - | ≈ 0.2 | - |
 
 ## Credit pools: used vs target
 

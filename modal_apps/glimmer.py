@@ -10,8 +10,12 @@ Data (``benchmark.glimmer_data``) is put into the volume with ``modal volume put
 GPU job: max one container, retries off, scale to zero, explicit timeouts.
 
     .venv\\Scripts\\modal.exe run modal_apps/glimmer.py::download
-    .venv\\Scripts\\modal.exe run modal_apps/glimmer.py::smoke
-    .venv\\Scripts\\modal.exe run modal_apps/glimmer.py::train --budget-min 180
+    .venv\\Scripts\\modal.exe run --detach modal_apps/glimmer.py::smoke
+    .venv\\Scripts\\modal.exe run --detach modal_apps/glimmer.py::train --budget-min 180
+
+GPU stages always run with ``--detach``: they finish or hit their function timeout even if the local client is
+stopped, and write their result to the volume (``/results/<stage>.json``). After every job and after any local
+stop: ``modal app list`` / ``modal container list``, stop anything left, log it.
 """
 
 from __future__ import annotations
@@ -118,6 +122,15 @@ def _batch(proc, ex: dict):
     return enc
 
 
+def _save_result(name: str, result: dict) -> dict:
+    """Write the result to the volume: with ``modal run --detach`` the local client may be gone."""
+    os.makedirs(f"{VOL}/results", exist_ok=True)
+    with open(f"{VOL}/results/{name}.json", "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=1)
+    volume.commit()
+    return result
+
+
 def _read(name: str, n: int | None = None) -> list[dict]:
     rows = []
     with open(f"{DATA}/{name}.jsonl", encoding="utf-8") as f:
@@ -209,8 +222,9 @@ def smoke_run(zero_shot_n: int = 20, train_steps: int = 10) -> dict:
     model, targets = _peft(model)
     tr = _train_loop(model, proc, _read("train", train_steps * 4), epochs=1, lr=1e-4, accum=4, budget_s=900)
     wall = time.time() - t0
-    return dict(load_s=round(load_s), lora_targets=targets, zero_shot={k: v for k, v in zs.items() if k != "rows"},
-                zero_shot_rows=zs["rows"], train=tr, wall_s=round(wall), usd_estimate=round(wall * H100_PER_SECOND, 2))
+    return _save_result("smoke", dict(load_s=round(load_s), lora_targets=targets,
+                                      zero_shot={k: v for k, v in zs.items() if k != "rows"}, zero_shot_rows=zs["rows"],
+                                      train=tr, wall_s=round(wall), usd_estimate=round(wall * H100_PER_SECOND, 2)))
 
 
 @app.function(image=gpu_image, gpu="H100", volumes={VOL: volume}, timeout=4 * 3600, retries=0, max_containers=1)
@@ -224,8 +238,8 @@ def train_run(budget_min: float, epochs: float = 2.0, lr: float = 1e-4, run: str
     model.save_pretrained(path)
     volume.commit()
     wall = time.time() - t0
-    return dict(run=run, adapter=path, lora_targets=targets, train=tr, wall_s=round(wall),
-                usd_estimate=round(wall * H100_PER_SECOND, 2))
+    return _save_result(f"train_{run}", dict(run=run, adapter=path, lora_targets=targets, train=tr, wall_s=round(wall),
+                                             usd_estimate=round(wall * H100_PER_SECOND, 2)))
 
 
 @app.local_entrypoint()
