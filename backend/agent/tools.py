@@ -22,7 +22,7 @@ from backend.perception.sam_open import segment_images_open, segment_video_open,
 from backend.planner.cpsat import solve
 from backend.planner.generator import load_scenario
 from backend.planner.models import Change, Plan, PlannerConfig, Scenario
-from backend.planner.packages import PackageConfig, build_packages, package_of
+from backend.planner.packages import PackageConfig, build_packages, choose_view, package_of, plan_metrics, setup_hours_saved
 from backend.planner.replan import replan
 from backend.verify.schema import Grade
 from backend.verify.escalation import SeniorReview, senior_review
@@ -67,6 +67,11 @@ class AgentSession:
     scenario: Scenario | None = None
     plan: Plan | None = None
     plan_history: list[dict] = field(default_factory=list)
+    # Both plans of the walkdown: "individual" (one job per defect) and, when defects can be grouped, "grouped"
+    # (work packages); each {"scenario", "plan", "jobs"}. plan_view is the one the agent uses (s.scenario/s.plan).
+    variants: dict[str, dict] = field(default_factory=dict)
+    plan_view: str = "individual"
+    view_reason: str = ""
 
 
 # ---- tool implementations ---------------------------------------------------
@@ -328,18 +333,50 @@ def _plan_summary(s: AgentSession, plan: Plan, new_ids: set[str]) -> dict:
     )
 
 
-def plan_maintenance(s: AgentSession) -> dict:
-    """Merge the register into the plant backlog and solve the schedule with CP-SAT."""
-    defects = [to_planner_defect(e, found_at=s.now) for e in s.register]
-    new = build_packages(defects, {e.defect_id: e.frames for e in s.register}, s.base_scenario.crews, s.packages,
-                         planner=s.planner_config)
-    owner = package_of(new)
+def _use_view(s: AgentSession, view: str) -> None:
+    """Make one plan variant current: s.scenario, s.plan and each register entry's planner job id."""
+    s.plan_view = view
+    v = s.variants[view]
+    s.scenario, s.plan = v["scenario"], v["plan"]
+    owner = package_of(v["jobs"])
     for e in s.register:
-        e.package_id = owner[e.defect_id]
-    s.scenario = s.base_scenario.model_copy(update={"defects": s.base_scenario.defects + new})
-    s.plan = solve(s.scenario, s.planner_config, now=s.now)
-    s.plan_history.append(dict(kind="plan", now=s.now, exposure=s.plan.breakdown.exposure))
-    return _plan_summary(s, s.plan, {d.id for d in new})
+        e.package_id = owner.get(e.defect_id, e.package_id or e.defect_id)
+
+
+def compare_views(s: AgentSession) -> dict:
+    """Both plans side by side on the per-defect objective (exposure, makespan, status/gap, setup hours saved)."""
+    flat = s.variants["individual"]["scenario"]
+    out = dict(chosen=s.plan_view, reason=s.view_reason)
+    for name, v in s.variants.items():
+        m = plan_metrics(flat, s.planner_config, v["plan"], v["jobs"] if name == "grouped" else None)
+        m["setup_hours_saved"] = setup_hours_saved(v["jobs"], s.variants["individual"]["jobs"]) if name == "grouped" else 0
+        out[name] = m
+    return out
+
+
+def plan_maintenance(s: AgentSession) -> dict:
+    """Merge the register into the plant backlog and solve the schedule with CP-SAT.
+
+    Solves the individual plan and, when defects can be grouped, the work-package plan in parallel; the adaptive
+    rule (``choose_view``) picks which one the agent uses. Both stay available for the UI.
+    """
+    defects = [to_planner_defect(e, found_at=s.now) for e in s.register]
+    grouped = build_packages(defects, {e.defect_id: e.frames for e in s.register}, s.base_scenario.crews, s.packages,
+                             planner=s.planner_config)
+    jobs = {"individual": defects}
+    if any(j.members for j in grouped):
+        jobs["grouped"] = grouped
+    scenarios = {k: s.base_scenario.model_copy(update={"defects": s.base_scenario.defects + js}) for k, js in jobs.items()}
+    with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
+        plans = dict(zip(jobs, pool.map(lambda k: solve(scenarios[k], s.planner_config, now=s.now), jobs)))
+    s.variants = {k: dict(scenario=scenarios[k], plan=plans[k], jobs=jobs[k]) for k in jobs}
+    view, s.view_reason = choose_view(plans["individual"], plans.get("grouped"), s.packages)
+    _use_view(s, view)
+    s.plan_history.append(dict(kind="plan", now=s.now, exposure=s.plan.breakdown.exposure, view=view))
+    out = _plan_summary(s, s.plan, {d.id for d in jobs[view]})
+    out.update(plan_view=view, view_reason=s.view_reason,
+               comparison={k: v for k, v in compare_views(s).items() if k in ("individual", "grouped")})
+    return out
 
 
 def _walkdown_job_ids(s: AgentSession) -> set[str]:
@@ -371,8 +408,18 @@ def replan_tool(s: AgentSession, change: dict, now_hour: int, epsilon: float | N
     from pydantic import TypeAdapter
     change = normalise_change(change)
     parsed = TypeAdapter(Change).validate_python(change)
-    r = replan(s.scenario, s.plan, parsed, now=now_hour, config=s.planner_config, epsilon=epsilon)
-    s.scenario, s.plan, s.now = r.scenario, r.plan, now_hour
+    names = list(s.variants) or [s.plan_view]
+    if not s.variants:
+        s.variants = {s.plan_view: dict(scenario=s.scenario, plan=s.plan, jobs=[])}
+    with ThreadPoolExecutor(max_workers=len(names)) as pool:  # keep both plans current for the UI
+        results = dict(zip(names, pool.map(
+            lambda k: replan(s.variants[k]["scenario"], s.variants[k]["plan"], parsed, now=now_hour,
+                             config=s.planner_config, epsilon=epsilon), names)))
+    for k, res in results.items():
+        s.variants[k] = dict(s.variants[k], scenario=res.scenario, plan=res.plan)
+    r = results[s.plan_view]
+    s.now = now_hour
+    _use_view(s, s.plan_view)
     s.plan_history.append(dict(kind="replan", now=now_hour, change=change, epsilon=epsilon,
                                exposure=r.plan.breakdown.exposure, moved=len(r.moved_jobs)))
     out = _plan_summary(s, r.plan, _walkdown_job_ids(s))

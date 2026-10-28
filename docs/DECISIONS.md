@@ -326,5 +326,14 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - **What this shows.**
   - Packaging buys a provable optimum and fewer, larger work orders: 41 jobs become 7, 34 setup hours are saved, and 5 more defects get scheduled on devdemo.
   - The cost is **higher per-defect risk exposure**. Low-severity members wait for their package to finish: +8.7% on devdemo at 24 h, and +3.6% to +14.6% on the demo scenario, where the unpackaged problem already solves to optimal.
-  - Packaging is therefore a planning-practicality choice, not a risk improvement. The trade-off is reported here and in RESULTS. Whether it stays on by default is a builder decision.
+  - Packaging is therefore a planning-practicality choice, not a risk improvement. The trade-off is reported here and in RESULTS.
+- **Default: adaptive packaging (builder decision, option b, 2026-10-28).**
+  - `plan_maintenance` solves both plans in parallel: the individual plan (one job per defect) and, when anything can be grouped, the grouped plan.
+  - The agent uses the **individual** plan when it is OPTIMAL or its gap is at most 5% (`PackageConfig.adaptive_gap`) within the 30 s limit. Otherwise it uses the **grouped** plan (`packages.choose_view`, with the reason stored and shown).
+  - Both plans stay current: a replan applies the change to both.
+  - The UI has a "Grouped jobs / Individual defects" toggle with a side-by-side table: solver status, gap, jobs, risk exposure (with the % difference), makespan, defects unscheduled and setup hours saved. The +8.7% exposure cost on devdemo is visible to the user, not hidden.
+  - Register, work orders and PDF follow the plan the agent uses.
+  - `PackageConfig.mode` can force `"grouped"` or `"individual"`.
+  - Check on cached devdemo (38 register defects after the F2 run renumbered one box candidate): individual FEASIBLE, gap 65%, 857,922 exposure, 22 defects unscheduled; grouped OPTIMAL in 2.7 s, 18 jobs, 932,948 exposure (+8.7%), 13 unscheduled, 32 setup hours saved. The agent uses grouped. On the 25-job demo scenario the individual plan is OPTIMAL, so the agent keeps individual defects.
+  - Tests: `test_adaptive_rule_groups_only_when_individual_plan_is_not_proven`, `test_session_solves_both_plans_and_replans_both`.
 - The builder's public demo clip still needs the same check once it exists.

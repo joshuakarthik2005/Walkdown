@@ -5,13 +5,14 @@ import { AgentTrail } from "@/components/AgentTrail";
 import { ChangePanel } from "@/components/ChangePanel";
 import { Copilot } from "@/components/Copilot";
 import { Gantt } from "@/components/Gantt";
+import { PlanViews } from "@/components/PlanViews";
 import { RegisterView } from "@/components/RegisterView";
 import { VoiceNotes } from "@/components/VoiceNotes";
 import { Attribution, SafetyNotice } from "@/components/SafetyNotice";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Unscheduled } from "@/components/Unscheduled";
 import * as api from "@/lib/api";
-import type { FrameInfo, PlanResponse, Register, RunStatus, TraceEvent } from "@/lib/types";
+import type { FrameInfo, PlanResponse, PlanView, Register, RunStatus, TraceEvent } from "@/lib/types";
 import { usd } from "@/lib/format";
 
 const POLL_MS = 1200;
@@ -51,6 +52,7 @@ export default function Home() {
   const [register, setRegister] = useState<Register | null>(null);
   const [frames, setFrames] = useState<FrameInfo[]>([]);
   const [plan, setPlan] = useState<PlanResponse | null>(null);
+  const planView = useRef<PlanView | undefined>(undefined); // undefined = the plan the agent uses
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const cursor = useRef(0);
@@ -63,7 +65,7 @@ export default function Home() {
       const [r, f] = await Promise.all([api.getRegister(id), api.getFrames(id)]);
       setRegister(r);
       setFrames(f.frames);
-      setPlan(await api.getPlan(id));
+      setPlan(await api.getPlan(id, planView.current));
     } catch {
       /* no plan until plan_maintenance has run */
     }
@@ -115,6 +117,7 @@ export default function Home() {
     setEvents([]);
     setRegister(null);
     setPlan(null);
+    planView.current = undefined;
     setFrames([]);
     cursor.current = 0;
     try {
@@ -263,6 +266,17 @@ export default function Home() {
               {plan.plan.assignments.length} jobs scheduled · {plan.plan.unscheduled.length} unscheduled · {plan.plan.moved_jobs.length} moved by the last replan
             </span>
           </div>
+          {plan.comparison && runId && (
+            <PlanViews
+              comparison={plan.comparison}
+              view={plan.view}
+              busy={running}
+              onSelect={async (v) => {
+                planView.current = v;
+                setPlan(await api.getPlan(runId, v));
+              }}
+            />
+          )}
           <Gantt data={plan} />
           <h2 style={{ marginTop: 14 }}>Walkdown defects that do not fit</h2>
           <Unscheduled explanations={plan.plan.explanations} walkdownIds={plan.walkdown_defect_ids} />

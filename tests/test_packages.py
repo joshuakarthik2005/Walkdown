@@ -1,7 +1,13 @@
 """Work packages: grouping rules, combined fields, crew coverage, and the effect on the plan."""
 
-from backend.planner.models import Crew, Defect
-from backend.planner.packages import PackageConfig, build_packages, package_of
+from types import SimpleNamespace
+
+from backend.agent import tools
+from backend.agent.register import AssetInfo, Detection, RegisterEntry
+from backend.clients.cost import CostLedger
+from backend.planner.models import Crew, Defect, PlannerConfig
+from backend.planner.packages import PackageConfig, build_packages, choose_view, package_of
+from backend.verify.schema import Grade
 
 CREWS = [Crew(id="C1", skills=["coating", "insulation"]), Crew(id="C3", skills=["mechanical", "welding"])]
 
@@ -71,3 +77,45 @@ def test_bundling_a_severe_defect_would_delay_it_and_the_safeguard_prevents_that
     unpackaged = {a.defect_id: a.end for a in solve(sc, cfg).assignments}["S1"]
     assert severe_end(PackageConfig()) == unpackaged
     assert severe_end(PackageConfig(single_from_severity=6)) > unpackaged  # what the safeguard prevents
+
+
+def _stats(status, gap):
+    return SimpleNamespace(stats=SimpleNamespace(status=status, gap=gap))
+
+
+def test_adaptive_rule_groups_only_when_individual_plan_is_not_proven():
+    cfg = PackageConfig()
+    assert choose_view(_stats("OPTIMAL", 0.0), _stats("OPTIMAL", 0.0), cfg)[0] == "individual"
+    assert choose_view(_stats("FEASIBLE", 0.04), _stats("OPTIMAL", 0.0), cfg)[0] == "individual"
+    assert choose_view(_stats("FEASIBLE", 0.57), _stats("OPTIMAL", 0.0), cfg)[0] == "grouped"
+    assert choose_view(_stats("FEASIBLE", None), _stats("OPTIMAL", 0.0), cfg)[0] == "grouped"
+    assert choose_view(_stats("FEASIBLE", 0.57), None, cfg)[0] == "individual"  # nothing to group
+    assert choose_view(_stats("OPTIMAL", 0.0), _stats("OPTIMAL", 0.0), PackageConfig(mode="grouped"))[0] == "grouped"
+
+
+def _grade(sev):
+    return Grade.model_validate({"is_defect": True, "defect_type": "corrosion", "severity": sev, "confidence": 0.8,
+                                 "recommended_action": "clean_and_recoat", "evidence": {"visual_cues": ["scale"],
+                                 "location": "pipe", "extent": "small", "mask_fit": "good"}})
+
+
+def test_session_solves_both_plans_and_replans_both():
+    asset = AssetInfo(asset_id="P-101", asset_type="pipe", pressurised=True)
+    reg = [RegisterEntry(f"W{i:02d}", asset, [Detection(f"c{i}", i, (0, 0, 5, 5), _grade(2))], False)
+           for i in range(1, 5)]
+    s = tools.AgentSession(clip=SimpleNamespace(), ledger=CostLedger(), base_scenario=tools.demo_backlog(2),
+                           planner_config=PlannerConfig(time_limit_s=10))
+    s.register = reg
+    out = tools.plan_maintenance(s)
+    assert set(s.variants) == {"individual", "grouped"}
+    assert out["plan_view"] == "individual" and s.plan.stats.status == "OPTIMAL"  # small problem: proven
+    assert {e.package_id for e in reg} == {e.defect_id for e in reg}  # individual view: own job ids
+    cmp = tools.compare_views(s)
+    assert cmp["grouped"]["jobs"] < cmp["individual"]["jobs"] and cmp["grouped"]["setup_hours_saved"] > 0
+    tools._use_view(s, "grouped")
+    assert {e.package_id for e in reg} == {"WP1"}
+    tools._use_view(s, "individual")
+    crew = s.base_scenario.crews[0].id
+    tools.replan_tool(s, {"type": "crew_unavailable", "crew_id": crew, "start": 0, "end": 24}, now_hour=0)
+    for v in s.variants.values():
+        assert all(not (a.crew_id == crew and a.start < 24) for a in v["plan"].assignments)

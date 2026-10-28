@@ -1,5 +1,5 @@
 // Thin client for the Walkdown FastAPI backend.
-import type { FrameInfo, PlanResponse, Register, RunStatus, TraceEvent } from "./types";
+import type { FrameInfo, PlanResponse, PlanView, Register, RunStatus, TraceEvent } from "./types";
 
 // Default: the API on port 8000 of the host serving this page (avoids localhost vs 127.0.0.1 mismatches).
 export const API_URL =
@@ -41,7 +41,8 @@ export const getStatus = async (id: string) => json<RunStatus>(await fetch(`${AP
 export const getTrace = async (id: string, since: number) =>
   json<{ status: string; next: number; events: TraceEvent[] }>(await fetch(`${API_URL}/runs/${id}/trace?since=${since}`));
 export const getRegister = async (id: string) => json<Register>(await fetch(`${API_URL}/runs/${id}/register`));
-export const getPlan = async (id: string) => json<PlanResponse>(await fetch(`${API_URL}/runs/${id}/plan`));
+export const getPlan = async (id: string, view?: PlanView) =>
+  json<PlanResponse>(await fetch(`${API_URL}/runs/${id}/plan${view ? `?view=${view}` : ""}`));
 export const getFrames = async (id: string) => json<{ frames: FrameInfo[] }>(await fetch(`${API_URL}/runs/${id}/frames`));
 export const frameUrl = (id: string, frame: number) => `${API_URL}/runs/${id}/frames/${frame}.jpg`;
 

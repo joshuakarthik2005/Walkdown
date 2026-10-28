@@ -128,6 +128,30 @@ export interface PlanResponse {
   scenario: Scenario;
   history: { kind: string; now: number; exposure: number; moved?: number; epsilon?: number | null }[];
   walkdown_defect_ids: string[];
+  view: PlanView; // the plan shown
+  chosen_view: PlanView; // the plan the agent uses (adaptive rule)
+  views: PlanView[];
+  comparison: PlanComparison | null;
+}
+
+export type PlanView = "grouped" | "individual";
+
+export interface PlanMetrics {
+  status: string;
+  gap: number | null;
+  solve_s: number;
+  jobs: number;
+  exposure: number;
+  makespan_h: number;
+  defects_unscheduled: number;
+  setup_hours_saved: number;
+}
+
+export interface PlanComparison {
+  chosen: PlanView;
+  reason: string;
+  individual: PlanMetrics;
+  grouped?: PlanMetrics;
 }
 
 export interface FrameInfo {

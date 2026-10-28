@@ -23,21 +23,33 @@ A package is one planner job:
   packages at ``max_shutdown_package_hours`` (default 8 h, one shift) so they still fit inside a shutdown window.
 
 Single-defect packages keep the defect's own id, so a plan without groupings looks exactly as before.
+
+Adaptive default (``mode="adaptive"``): the agent solves both the grouped and the individual plan and uses the
+grouped one only when the individual plan cannot be proven within ``adaptive_gap`` (5%) of optimal in the time
+limit. Grouping makes the problem small enough to prove optimal, but costs risk exposure (members wait for the
+whole package), so it is used only when it buys a proven plan. Both plans are kept for the UI.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from .models import Assignment, Crew, Defect, PlannerConfig
+from .metrics import evaluate
+from .models import Assignment, Crew, Defect, Plan, PlannerConfig, Scenario
 
 
 class PackageConfig(BaseModel):
     """How register defects are grouped into work packages."""
 
     enabled: bool = True
+    mode: Literal["adaptive", "grouped", "individual"] = Field(
+        default="adaptive", description="Which plan the agent uses: adaptive = grouped only when the individual "
+        "plan is not proven within adaptive_gap of optimal in the time limit.")
+    adaptive_gap: float = Field(default=0.05, ge=0, description="Gap at or below which the individual plan is "
+                                "good enough and grouping is not used.")
     max_frame_gap: int | None = Field(default=None, description="Max frame-index gap to the nearest member; "
                                                                 "None = anywhere on the same asset.")
     setup_saving_hours: int = Field(default=1, ge=0, description="Hours saved per extra member (shared setup).")
@@ -153,3 +165,29 @@ def setup_hours_saved(jobs: list[Defect], originals: list[Defect]) -> int:
     """Repair hours saved by packaging: member hours minus package hours."""
     hours = {d.id: d.repair_hours for d in originals}
     return sum(sum(hours[m] for m in j.members) - j.repair_hours for j in jobs if j.members)
+
+
+def choose_view(individual: Plan, grouped: Plan | None, config: PackageConfig) -> tuple[str, str]:
+    """Which plan to use ("individual" or "grouped") and why."""
+    if grouped is None:
+        return "individual", "no defects could be grouped"
+    if config.mode != "adaptive":
+        return config.mode, f"packaging mode set to {config.mode}"
+    gap = individual.stats.gap
+    if individual.stats.status == "OPTIMAL" or (gap is not None and gap <= config.adaptive_gap):
+        return "individual", (f"individual plan proven within {config.adaptive_gap:.0%} of optimal "
+                              f"({individual.stats.status}, gap {0 if gap is None else gap:.1%})")
+    return "grouped", (f"individual plan not proven within {config.adaptive_gap:.0%} of optimal in the time limit "
+                       f"({individual.stats.status}, gap {'unknown' if gap is None else f'{gap:.1%}'}); "
+                       f"grouped plan is {grouped.stats.status}")
+
+
+def plan_metrics(flat: Scenario, config: PlannerConfig, plan: Plan, jobs: list[Defect] | None = None) -> dict:
+    """Per-defect score of a plan on the individual scenario (a grouped plan is unpacked first)."""
+    assignments = unpack(jobs, plan.assignments) if jobs else plan.assignments
+    b = evaluate(flat, config, assignments, now=plan.now)
+    ends = [a.end for a in assignments if a.end > plan.now]
+    return dict(status=plan.stats.status, gap=None if plan.stats.gap is None else round(plan.stats.gap, 4),
+                solve_s=round(plan.stats.wall_time_s, 2), jobs=len(plan.assignments) + len(plan.unscheduled),
+                exposure=b.exposure, makespan_h=(max(ends) - plan.now) if ends else 0,
+                defects_unscheduled=sum(1 for d in flat.defects if d.id not in {a.defect_id for a in assignments}))

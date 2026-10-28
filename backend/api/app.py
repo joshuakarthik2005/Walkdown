@@ -37,9 +37,10 @@ from pydantic import BaseModel, Field
 from backend.agent.clip import CLIPS_DIR, Clip, create_clip
 from backend.agent.copilot import copilot
 from backend.agent.loop import TraceEvent, WalkdownAgent
-from backend.agent.tools import AgentSession
+from backend.agent.tools import AgentSession, compare_views
 from backend.clients.cost import CostLedger
 from backend.planner.models import ServiceType
+from backend.planner.packages import package_of
 
 app = FastAPI(title="Walkdown API", version="0.1.0")
 # Local UI only: any port on localhost / 127.0.0.1.
@@ -173,14 +174,23 @@ def run_register(run_id: str) -> dict:
 
 
 @app.get("/runs/{run_id}/plan")
-def run_plan(run_id: str) -> dict:
+def run_plan(run_id: str, view: Literal["grouped", "individual"] | None = None) -> dict:
+    """The plan the agent uses, or the other variant (``view``), with the grouped-vs-individual comparison."""
     s = _run(run_id).agent.s
     if s.plan is None:
         raise HTTPException(409, "no plan yet")
-    return dict(plan=json.loads(s.plan.model_dump_json()), scenario=json.loads(s.scenario.model_dump_json()),
-                history=s.plan_history,
+    view = view if view in s.variants else s.plan_view
+    v = s.variants.get(view, dict(scenario=s.scenario, plan=s.plan, jobs=[]))
+    if view == "individual" or not v["jobs"]:
+        job_ids = {e.defect_id for e in s.register}
+    else:
+        owner = package_of(v["jobs"])
+        job_ids = {owner.get(e.defect_id, e.defect_id) for e in s.register}
+    return dict(plan=json.loads(v["plan"].model_dump_json()), scenario=json.loads(v["scenario"].model_dump_json()),
+                history=s.plan_history, view=view, chosen_view=s.plan_view, views=sorted(s.variants),
+                comparison=compare_views(s) if "individual" in s.variants else None,
                 # planner job ids of the walkdown (work packages, or single defects) for the Gantt
-                walkdown_defect_ids=sorted({e.package_id or e.defect_id for e in s.register}))
+                walkdown_defect_ids=sorted(job_ids))
 
 
 class ChangeRequest(BaseModel):
