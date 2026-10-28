@@ -292,3 +292,26 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - **Decision.** When the first pass accepts a defect and the senior reviewer rejects it, the defect stays in the register with the first-pass grade, flagged `senior_disputed`, so it needs human review. A senior review that accepts a first-pass rejection is final, and so is a senior severity change.
 - **Why.** In inspection, a silently dropped real defect costs far more than one extra item in a reviewer's queue. The second opinion is useful as a disagreement signal, not as a filter that removes defects.
 - Cached senior verdicts from before this rule are re-interpreted at load time (`backend/agent/tools.py`).
+
+## Work packages: nearby walkdown defects become one maintenance job (2026-10-28)
+
+- **Problem.** With the default text + boxes pipeline, a walkdown yields many small register defects: 41 on the 6-photo devdemo clip when every frame is inspected. Each one became its own planner job.
+  - That overstates the work, since every job pays its own setup.
+  - It also pushed the plan past what CP-SAT can prove within 30 s: FEASIBLE with a 57% gap.
+- **Decision.** `backend/planner/packages.py` groups register defects into work packages before planning.
+  - **Grouping rule:** same asset, within an optional frame gap, same shutdown need, at most one permit type, and one crew must hold every skill (otherwise the package is split).
+  - **Package job:** repair hours are the sum minus 1 h of shared setup per extra defect; severity is the maximum; failure risk is 1 − ∏(1 − r); permit is the shared one.
+  - **Caps:** 24 h per package (three shifts), and 8 h for shutdown-only packages so they fit a window.
+  - **Ids:** single defects keep their own id; packages are `WP1`, `WP2`, ...
+  - **Links:** each register entry stores its `package_id`. Work orders, the PDF and the Gantt join through it.
+- **Planner support.** `Defect.extra_skills` and `Defect.members` were added, and crew eligibility is now "crew has every skill the job needs" (`Crew.can_do`) everywhere: time grid, explanations, plan validation.
+- **Measured** on devdemo (cached perception and verdicts, 41 register defects, 12-job backlog, 30 s limit):
+
+  | | Walkdown jobs | Status | Gap | Solve time |
+  |---|---|---|---|---|
+  | No packages | 41 | FEASIBLE | 57.2% | 31 s |
+  | Packages (24 h cap) | 7 | **OPTIMAL** | 0% | 2.1 s |
+  | Packages, 16 h cap (tried) | 10 | FEASIBLE | 34.9% | 30 s |
+
+  - Two packages stay unscheduled in both versions because there are not enough coating crew hours in the horizon (only C1 coats). The planner reports this as a capacity shortage, so it is not a solver failure.
+- The builder's public demo clip still needs the same check once it exists.

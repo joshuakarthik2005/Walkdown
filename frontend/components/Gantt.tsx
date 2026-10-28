@@ -14,6 +14,7 @@ export function Gantt({ data }: { data: PlanResponse }) {
   const walkdown = new Set(walkdown_defect_ids);
   const moved = new Set(plan.moved_jobs);
   const sev = Object.fromEntries(scenario.defects.map((d) => [d.id, d.severity]));
+  const members = Object.fromEntries(scenario.defects.map((d) => [d.id, d.members ?? []]));
   const x = (h: number) => LEFT + h * PX_PER_H;
   return (
     <div className="gantt-wrap">
@@ -59,7 +60,7 @@ export function Gantt({ data }: { data: PlanResponse }) {
                         stroke={moved.has(a.defect_id) ? "#fff" : "none"}
                         strokeDasharray={moved.has(a.defect_id) ? "3 2" : undefined}
                       >
-                        <title>{`${a.defect_id} · ${c.id} · ${hourLabel(a.start)} – ${hourLabel(a.end)}${moved.has(a.defect_id) ? " · moved by replan" : ""}`}</title>
+                        <title>{`${a.defect_id}${members[a.defect_id]?.length ? ` (work package: ${members[a.defect_id].join(", ")})` : ""} · ${c.id} · ${hourLabel(a.start)} – ${hourLabel(a.end)}${moved.has(a.defect_id) ? " · moved by replan" : ""}`}</title>
                       </rect>
                       {(a.end - a.start) * PX_PER_H > 26 && (
                         <text x={x(a.start) + 3} y={y + 21} fontSize={9} fill="#111">{a.defect_id}</text>

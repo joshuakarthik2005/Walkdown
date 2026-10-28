@@ -55,7 +55,7 @@ def feasible_slots(
     ``shutdown`` and ``unavailability`` switch those filters off, which the
     explainer uses to find out which constraint delayed a job.
     """
-    if defect.skill not in crew.skills:
+    if not crew.can_do(defect):
         return {}
     table = end_table(shift_hours(crew, scenario.horizon_hours), defect.repair_hours)
     slots = {}

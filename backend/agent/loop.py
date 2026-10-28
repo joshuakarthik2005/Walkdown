@@ -33,7 +33,9 @@ or looks unclear, inspect it again at a higher fps. Do not resample the same ran
    (severity 4+) or uncertain grades are re-checked automatically by a senior reviewer (Muse Wonder); its severity is
    final, but a defect it disputes stays in the register flagged for human review. Mention senior changes and disputes.
 3. build_register once all candidates are verified.
-4. plan_maintenance to schedule the register together with the existing backlog.
+4. plan_maintenance to schedule the register together with the existing backlog. Nearby defects on the asset that one
+   crew can repair in one visit are grouped into work packages (job ids WP1, WP2, ...; walkdown_jobs lists the register
+   defects in each). Talk about jobs by package and say which defects each covers.
 5. explain_plan for the walkdown defects, then answer.
 
 When the user reports a constraint change, call replan (then explain_plan) instead of starting over.

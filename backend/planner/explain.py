@@ -55,7 +55,7 @@ def explain(scenario: Scenario, plan: Plan, *, fixed_ids: set[str] | None = None
     for d in scenario.defects:
         a = plan.assignment(d.id)
         release = release_hour(d, scenario, now)
-        eligible = [c for c in scenario.crews if d.skill in c.skills]
+        eligible = [c for c in scenario.crews if c.can_do(d)]
 
         def earliest(r: int, shutdown: bool, unavailability: bool) -> int | None:
             starts = [min(sl) for c in eligible

@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from xml.sax.saxutils import escape
 
 PRIORITY = {5: "P1-emergency", 4: "P2-urgent", 3: "P3-planned", 2: "P4-routine", 1: "P5-monitor"}
-FIELDS = ["work_order_id", "defect_id", "priority", "asset_tag", "asset_type", "location", "line_service",
+FIELDS = ["work_order_id", "defect_id", "work_package", "priority", "asset_tag", "asset_type", "location", "line_service",
           "defect_type", "severity", "confidence", "recommended_action", "required_skill", "repair_hours",
           "needs_shutdown", "permit", "status", "crew", "planned_start", "planned_end", "plan_status", "plan_gap",
           "needs_review", "senior_review", "evidence", "approval_required", "source"]
@@ -33,14 +33,16 @@ def work_orders(s, plan_start: datetime) -> list[dict]:
     assign = {a.defect_id: a for a in (s.plan.assignments if s.plan else [])}
     rows = []
     for i, e in enumerate(s.register):
-        g, d, a = e.grade, defects.get(e.defect_id), assign.get(e.defect_id)
+        job = e.package_id or e.defect_id  # the planner job (work package) that repairs this defect
+        g, d, a = e.grade, defects.get(job), assign.get(job)
         senior = next((x.senior for x in e.detections if x.senior), None)
         rows.append(dict(
-            work_order_id=f"WD-{e.asset.asset_id}-{i + 1:03d}", defect_id=e.defect_id, priority=PRIORITY[g.severity],
+            work_order_id=f"WD-{e.asset.asset_id}-{i + 1:03d}", defect_id=e.defect_id,
+            work_package=job if d is not None and d.members else "", priority=PRIORITY[g.severity],
             asset_tag=e.asset.asset_id, asset_type=e.asset.asset_type, location=g.evidence.location or e.asset.location,
             line_service=e.asset.service or "", defect_type=g.defect_type.value, severity=g.severity,
             confidence=round(g.confidence, 2), recommended_action=g.recommended_action.value,
-            required_skill=d.skill if d else "", repair_hours=d.repair_hours if d else "",
+            required_skill=", ".join(sorted(d.skills)) if d else "", repair_hours=d.repair_hours if d else "",
             needs_shutdown=bool(d and d.needs_shutdown), permit=(d.permit or "") if d else "",
             status="planned" if a else ("unscheduled" if s.plan else "not planned"),
             crew=a.crew_id if a else "", planned_start=_when(plan_start, a.start if a else None),
@@ -146,7 +148,7 @@ def pdf_report(s, plan_start: datetime, *, max_frames: int = 6) -> bytes:
         story.append(Table([imgs[i:i + 3] for i in range(0, len(imgs), 3)]))
 
     if s.plan and s.plan.explanations:
-        ids = {e.defect_id for e in s.register}
+        ids = {e.package_id or e.defect_id for e in s.register}
         story += [Spacer(1, 6), Paragraph("Why the plan looks like this (planner reasons)", st["Heading2"])]
         for ex in s.plan.explanations:
             if ex.defect_id in ids:

@@ -24,6 +24,7 @@ export function RegisterView({ runId, register, frames }: { runId: string; regis
         <thead>
           <tr>
             <th>ID</th>
+            <th>Job</th>
             <th>Sev</th>
             <th>Type</th>
             <th>Evidence</th>
@@ -38,6 +39,9 @@ export function RegisterView({ runId, register, frames }: { runId: string; regis
                 {e.defect_id}
                 {e.needs_review && <div className="badge warn" title={e.detections.flatMap((d) => d.flags).join(", ")}>review</div>}
                 <SeniorBadge entry={e} />
+              </td>
+              <td className="mono" title={e.package_id && e.package_id !== e.defect_id ? "work package: repaired together with nearby defects in one job" : "own job"}>
+                {e.package_id ?? "-"}
               </td>
               <td>
                 <span className="sev" style={{ background: SEVERITY_COLOUR[e.grade.severity] }}>{e.grade.severity}</span>

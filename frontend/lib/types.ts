@@ -41,6 +41,7 @@ export interface Grade {
 
 export interface RegisterEntry {
   defect_id: string;
+  package_id: string | null; // planner job (work package) this defect is repaired in
   frames: number[];
   needs_review: boolean;
   grade: Grade;
@@ -117,7 +118,7 @@ export interface Plan {
 export interface Scenario {
   name: string;
   horizon_days: number;
-  defects: { id: string; asset: string; severity: number; skill: string; repair_hours: number; needs_shutdown: boolean }[];
+  defects: { id: string; asset: string; severity: number; skill: string; extra_skills: string[]; members: string[]; repair_hours: number; needs_shutdown: boolean }[];
   crews: { id: string; name: string; skills: string[]; shift_start: number; shift_hours: number; unavailable: { start: number; end: number }[] }[];
   windows: { id: string; start: number; end: number }[];
 }

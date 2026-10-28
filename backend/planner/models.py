@@ -77,6 +77,15 @@ class Defect(BaseModel):
     permit: str | None = None
     found_at: int = Field(default=0, ge=0, description="Hour the defect was found; exposure is counted from here.")
     service: ServiceType | None = Field(default=None, description="Line service; None means consequence factor 1.")
+    extra_skills: list[str] = Field(default_factory=list,
+                                    description="Work package: skills needed besides ``skill`` (one crew does all).")
+    members: list[str] = Field(default_factory=list,
+                               description="Work package: register defect ids repaired in this job (empty = single).")
+
+    @property
+    def skills(self) -> set[str]:
+        """Every skill the job needs; a crew must have all of them."""
+        return {self.skill, *self.extra_skills}
 
 
 class Crew(BaseModel):
@@ -89,6 +98,10 @@ class Crew(BaseModel):
     shift_hours: int = Field(default=8, ge=1, le=24)
     work_days: list[int] | None = Field(default=None, description="Day indices worked; None means every day.")
     unavailable: list[TimeRange] = Field(default_factory=list)
+
+    def can_do(self, defect: "Defect") -> bool:
+        """True if the crew has every skill the job needs."""
+        return defect.skills <= set(self.skills)
 
     @model_validator(mode="after")
     def _shift_within_day(self) -> "Crew":

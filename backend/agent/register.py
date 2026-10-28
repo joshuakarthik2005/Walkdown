@@ -55,6 +55,7 @@ class RegisterEntry:
     asset: AssetInfo
     detections: list[Detection]
     needs_review: bool
+    package_id: str | None = None  # planner job (work package) this defect is repaired in; set by plan_maintenance
 
     @property
     def grade(self) -> Grade:

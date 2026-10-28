@@ -22,6 +22,7 @@ from backend.perception.sam_open import segment_images_open, segment_video_open,
 from backend.planner.cpsat import solve
 from backend.planner.generator import load_scenario
 from backend.planner.models import Change, Plan, PlannerConfig, Scenario
+from backend.planner.packages import PackageConfig, build_packages, package_of
 from backend.planner.replan import replan
 from backend.verify.schema import Grade
 from backend.verify.escalation import SeniorReview, senior_review
@@ -49,6 +50,7 @@ class AgentSession:
     verify_effort: str = "low"
     box_proposals: bool = True  # text + boxes + verifier is the default pipeline (benchmark/RESULTS.md section 4)
     sam_backend: str = "meta"  # "meta" (hosted SAM 3.1) or "modal" (SAM 3.1 open weights, On-prem mode)
+    packages: PackageConfig = field(default_factory=PackageConfig)  # work-package grouping of register defects
     provider: str = "meta"  # "meta" (hosted Muse Spark) or "baseten" (open-weight Muse Spark Open)
     senior_review: bool = True  # escalate severe/uncertain grades to Muse Wonder (Cloud mode only)
     # Demo path: 30 s per solve (status and gap are always reported; FEASIBLE is shown as such).
@@ -309,25 +311,37 @@ def build_register_tool(s: AgentSession) -> dict:
 
 def _plan_summary(s: AgentSession, plan: Plan, new_ids: set[str]) -> dict:
     by_id = {a.defect_id: a for a in plan.assignments}
+    jobs = {d.id: d for d in s.scenario.defects} if s.scenario else {}
     return dict(
         status=plan.stats.status, solve_time_s=round(plan.stats.wall_time_s, 2),
         gap=None if plan.stats.gap is None else round(plan.stats.gap, 4),
         exposure=plan.breakdown.exposure, scheduled=len(plan.assignments), unscheduled=plan.unscheduled,
         critical_unscheduled=plan.critical_unscheduled, high_unscheduled=plan.high_unscheduled,
         moved_jobs=plan.moved_jobs,
-        walkdown_defects=[dict(defect_id=d, crew=by_id[d].crew_id if d in by_id else None,
-                               start_hour=by_id[d].start if d in by_id else None,
-                               end_hour=by_id[d].end if d in by_id else None) for d in sorted(new_ids)],
+        walkdown_jobs=[dict(job_id=d, register_defects=(jobs[d].members or [d]) if d in jobs else [d],
+                            repair_hours=jobs[d].repair_hours if d in jobs else None,
+                            crew=by_id[d].crew_id if d in by_id else None,
+                            start_hour=by_id[d].start if d in by_id else None,
+                            end_hour=by_id[d].end if d in by_id else None) for d in sorted(new_ids)],
     )
 
 
 def plan_maintenance(s: AgentSession) -> dict:
     """Merge the register into the plant backlog and solve the schedule with CP-SAT."""
-    new = [to_planner_defect(e, found_at=s.now) for e in s.register]
+    defects = [to_planner_defect(e, found_at=s.now) for e in s.register]
+    new = build_packages(defects, {e.defect_id: e.frames for e in s.register}, s.base_scenario.crews, s.packages)
+    owner = package_of(new)
+    for e in s.register:
+        e.package_id = owner[e.defect_id]
     s.scenario = s.base_scenario.model_copy(update={"defects": s.base_scenario.defects + new})
     s.plan = solve(s.scenario, s.planner_config, now=s.now)
     s.plan_history.append(dict(kind="plan", now=s.now, exposure=s.plan.breakdown.exposure))
     return _plan_summary(s, s.plan, {d.id for d in new})
+
+
+def _walkdown_job_ids(s: AgentSession) -> set[str]:
+    """Planner job ids of the walkdown: work packages and ungrouped register defects."""
+    return {e.package_id or e.defect_id for e in s.register}
 
 
 CHANGE_KINDS = ("crew_unavailable", "shutdown_window_changed", "new_defect")
@@ -358,7 +372,7 @@ def replan_tool(s: AgentSession, change: dict, now_hour: int, epsilon: float | N
     s.scenario, s.plan, s.now = r.scenario, r.plan, now_hour
     s.plan_history.append(dict(kind="replan", now=now_hour, change=change, epsilon=epsilon,
                                exposure=r.plan.breakdown.exposure, moved=len(r.moved_jobs)))
-    out = _plan_summary(s, r.plan, {e.defect_id for e in s.register})
+    out = _plan_summary(s, r.plan, _walkdown_job_ids(s))
     out.update(change_applied=change, epsilon=epsilon if epsilon is not None else s.planner_config.replan_epsilon,
                exposure_before=r.objective_before, newly_unscheduled=r.newly_unscheduled,
                newly_scheduled=r.newly_scheduled)
@@ -370,7 +384,7 @@ def explain_plan(s: AgentSession, defect_ids: list[str] | None = None) -> dict:
     if s.plan is None:
         return dict(error="no plan yet")
     if not defect_ids:
-        defect_ids = sorted({e.defect_id for e in s.register} | set(s.plan.moved_jobs) | set(s.plan.unscheduled))
+        defect_ids = sorted(_walkdown_job_ids(s) | set(s.plan.moved_jobs) | set(s.plan.unscheduled))
     ex = {e.defect_id: e for e in s.plan.explanations}
     return dict(explanations=[ex[d].model_dump(mode="json") for d in defect_ids if d in ex][:30],
                 unknown_ids=[d for d in defect_ids if d not in ex])

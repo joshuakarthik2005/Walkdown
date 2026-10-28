@@ -102,8 +102,8 @@ def validate(scenario: Scenario, assignments: list[Assignment], *, now: int = 0,
         by_crew[c.id].append(a)
         if d.permit:
             by_permit[d.permit].append(a)
-        if d.skill not in c.skills:
-            errors.append(f"{d.id}: crew {c.id} lacks skill {d.skill}")
+        if not c.can_do(d):
+            errors.append(f"{d.id}: crew {c.id} lacks skill {', '.join(sorted(d.skills - set(c.skills)))}")
         expected_end = end_table(shift_hours(c, scenario.horizon_hours), d.repair_hours).get(a.start)
         if expected_end != a.end:
             errors.append(f"{d.id}: end {a.end} does not match {d.repair_hours} on-shift hours from {a.start}")

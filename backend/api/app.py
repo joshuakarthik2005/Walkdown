@@ -166,7 +166,7 @@ def run_trace(run_id: str, since: int = 0) -> dict:
 def run_register(run_id: str) -> dict:
     s = _run(run_id).agent.s
     return dict(asset=s.clip.asset.__dict__, voice_notes=s.voice_notes, entries=[dict(
-        defect_id=e.defect_id, frames=e.frames, needs_review=e.needs_review,
+        defect_id=e.defect_id, package_id=e.package_id, frames=e.frames, needs_review=e.needs_review,
         grade=e.grade.model_dump(mode="json"),
         detections=[dict(candidate_id=d.candidate_id, frame=d.frame, box=list(d.box), flags=d.flags, senior=d.senior)
                     for d in e.detections]) for e in s.register])
@@ -178,7 +178,9 @@ def run_plan(run_id: str) -> dict:
     if s.plan is None:
         raise HTTPException(409, "no plan yet")
     return dict(plan=json.loads(s.plan.model_dump_json()), scenario=json.loads(s.scenario.model_dump_json()),
-                history=s.plan_history, walkdown_defect_ids=[e.defect_id for e in s.register])
+                history=s.plan_history,
+                # planner job ids of the walkdown (work packages, or single defects) for the Gantt
+                walkdown_defect_ids=sorted({e.package_id or e.defect_id for e in s.register}))
 
 
 class ChangeRequest(BaseModel):
