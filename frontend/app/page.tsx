@@ -214,7 +214,7 @@ export default function Home() {
             <div className="muted mode-note">
               {mode === "cloud"
                 ? "Hosted Meta models: SAM 3.1, Muse Spark (agent, verifier), Muse Wonder (senior review)."
-                : "Open weights: agent and verifier on Muse Spark Open. Built with Muse Spark Open. SAM 3.1 open weights run on a GPU endpoint when one is configured; until then segmentation uses hosted SAM 3.1. No Muse Wonder senior review."}
+                : "Open weights only: SAM 3.1 open weights on a scale-to-zero GPU (Modal), agent and verifier on Muse Spark Open (Baseten). Built with Muse Spark Open. No hosted box proposals and no Muse Wonder senior review."}
             </div>
             <div className="row" style={{ marginTop: 10 }}>
               <button onClick={run} disabled={!clipId || running}>Run the agent</button>

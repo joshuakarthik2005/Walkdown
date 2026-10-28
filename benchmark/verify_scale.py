@@ -82,7 +82,7 @@ def summarise(split: str, effort: str, images: list[str], done: dict[str, list[d
 
 
 def process_image(rel: str, effort: str, provider: str = "meta",
-                  calls_per_process: int = CALLS_PER_PROCESS) -> tuple[str, list[dict] | None, float, int, str | None]:
+                  calls_per_process: int = CALLS_PER_PROCESS, max_tokens: int | None = None) -> tuple[str, list[dict] | None, float, int, str | None]:
     """Verify every candidate on one image (runs in a worker process)."""
     ledger = CostLedger(DATA_DIR / "runs" / "cost_ledger.jsonl")
     sam_path = SAM_DIR / "rust" / (Path(rel).stem + ".txt")
@@ -98,7 +98,7 @@ def process_image(rel: str, effort: str, provider: str = "meta",
         # Exceptions must not escape a worker process: some (e.g. openai.APIConnectionError) cannot be
         # pickled back to the parent and would break the whole pool. Failed candidates are retried later.
         try:
-            return _cached_verify(c, provider, effort, ledger)
+            return _cached_verify(c, provider, effort, ledger, max_tokens=max_tokens)
         except Exception as err:  # noqa: BLE001
             return f"{type(err).__name__}: {str(err)[:200]}"
 
@@ -123,6 +123,7 @@ def main() -> int:
     ap.add_argument("--effort", default="low")
     ap.add_argument("--provider", choices=("meta", "baseten"), default="meta")
     ap.add_argument("--calls-per-process", type=int, default=CALLS_PER_PROCESS)
+    ap.add_argument("--max-tokens", type=int, default=None, help="output budget per call (default: verifier's)")
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--max-usd", type=float, required=True, help="cap on new spend in this chunk")
     ap.add_argument("--max-minutes", type=float, default=None)
@@ -146,7 +147,7 @@ def main() -> int:
         def submit_next() -> None:
             rel = next(queue, None)
             if rel is not None:
-                pending[pool.submit(process_image, rel, args.effort, args.provider, args.calls_per_process)] = rel
+                pending[pool.submit(process_image, rel, args.effort, args.provider, args.calls_per_process, args.max_tokens)] = rel
 
         for _ in range(workers):
             submit_next()

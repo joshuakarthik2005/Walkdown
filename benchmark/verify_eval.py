@@ -69,7 +69,8 @@ def load_candidates(split: str) -> list[dict]:
     return out
 
 
-def _cached_verify(cand: dict, provider: str, effort: str, ledger: CostLedger, suffix: str = "") -> Verdict:
+def _cached_verify(cand: dict, provider: str, effort: str, ledger: CostLedger, suffix: str = "",
+                   max_tokens: int | None = None) -> Verdict:
     cache = VERIFY_DIR / provider / f"{effort}{suffix}"
     cache.mkdir(parents=True, exist_ok=True)
     path = cache / (cand["id"].replace("#", "__") + ".json")
@@ -81,7 +82,7 @@ def _cached_verify(cand: dict, provider: str, effort: str, ledger: CostLedger, s
     image = cv2.imread(str(RAW_DIR / cand["image"]), cv2.IMREAD_COLOR)
     inst = cand["instance"]
     v = verify(Candidate(cand["id"], image, inst.mask, inst.box, inst.confidence), provider=provider,
-               reasoning_effort=effort, ledger=ledger, job=f"verify-{provider}")
+               reasoning_effort=effort, ledger=ledger, job=f"verify-{provider}", max_tokens=max_tokens)
     d = asdict(v)
     d["grade"] = v.grade.model_dump(mode="json") if v.grade else None
     path.write_text(json.dumps(d, indent=1), encoding="utf-8")

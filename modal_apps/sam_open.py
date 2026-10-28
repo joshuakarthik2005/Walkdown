@@ -110,25 +110,36 @@ class Sam31:
             return f"{type(v).__name__} {str(v)[:80]}"
         return info(raw) if isinstance(raw, dict) else {"type": info(raw)}
 
+    @staticmethod
+    def _encode(f: int, o: dict) -> list[dict]:
+        import numpy as np
+        from pycocotools import mask as mask_utils
+        ids, probs = o["out_obj_ids"], o["out_probs"]
+        masks, boxes = o["out_binary_masks"], o["out_boxes_xywh"]
+        h, w = masks.shape[-2:] if len(masks) else (0, 0)
+        result = []
+        for k in range(len(ids)):
+            m = np.asfortranarray(np.asarray(masks[k]).astype(np.uint8))
+            rle = mask_utils.encode(m)
+            rle["counts"] = rle["counts"].decode()
+            x, y, bw, bh = (float(v) for v in boxes[k])
+            if max(x, y, bw, bh) <= 1.0:  # relative coordinates
+                x, y, bw, bh = x * w, y * h, bw * w, bh * h
+            result.append(dict(frame=int(f), obj_id=int(ids[k]), score=float(probs[k]),
+                               box_xyxy=[x, y, x + bw, y + bh], rle=rle))
+        return result
+
+    @modal.method()
+    def segment_images(self, images: list[bytes], prompt: str = "rust") -> list[list[dict]]:
+        """Independent images (one session each): instances per image as COCO RLE."""
+        return [self._encode(0, self._track([jpg], prompt, propagate=False)[0]) for jpg in images]
+
     @modal.method()
     def segment(self, frames: list[bytes], prompt: str = "rust", propagate: bool = True) -> list[dict]:
         """Instances per frame as COCO RLE: [{frame, obj_id, score, box_xyxy, rle}]."""
-        import numpy as np
-        from pycocotools import mask as mask_utils
         result = []
         for f, o in self._track(frames, prompt, propagate).items():
-            ids, probs = o["out_obj_ids"], o["out_probs"]
-            masks, boxes = o["out_binary_masks"], o["out_boxes_xywh"]
-            h, w = masks.shape[-2:] if len(masks) else (0, 0)
-            for k in range(len(ids)):
-                m = np.asfortranarray(np.asarray(masks[k]).astype(np.uint8))
-                rle = mask_utils.encode(m)
-                rle["counts"] = rle["counts"].decode()
-                x, y, bw, bh = (float(v) for v in boxes[k])
-                if max(x, y, bw, bh) <= 1.0:  # relative coordinates
-                    x, y, bw, bh = x * w, y * h, bw * w, bh * h
-                result.append(dict(frame=int(f), obj_id=int(ids[k]), score=float(probs[k]),
-                                   box_xyxy=[x, y, x + bw, y + bh], rle=rle))
+            result += self._encode(f, o)
         return result
 
 

@@ -18,6 +18,7 @@ from backend.agent.register import Detection, RegisterEntry, build_register, to_
 from backend.clients.cost import CostLedger
 from backend.perception.boxes import box_masks, merge_with_text, parse_box_output, propose_boxes
 from backend.perception.sam import Instance, parse_output, segment_image, segment_video
+from backend.perception.sam_open import segment_images_open, segment_video_open, to_instances
 from backend.planner.cpsat import solve
 from backend.planner.generator import load_scenario
 from backend.planner.models import Change, Plan, PlannerConfig, Scenario
@@ -47,6 +48,7 @@ class AgentSession:
     live: bool = False
     verify_effort: str = "low"
     box_proposals: bool = True  # text + boxes + verifier is the default pipeline (benchmark/RESULTS.md section 4)
+    sam_backend: str = "meta"  # "meta" (hosted SAM 3.1) or "modal" (SAM 3.1 open weights, On-prem mode)
     provider: str = "meta"  # "meta" (hosted Muse Spark) or "baseten" (open-weight Muse Spark Open)
     senior_review: bool = True  # escalate severe/uncertain grades to Muse Wonder (Cloud mode only)
     # Demo path: 30 s per solve (status and gap are always reported; FEASIBLE is shown as such).
@@ -67,8 +69,25 @@ class AgentSession:
 
 # ---- tool implementations ---------------------------------------------------
 
+def _open_cache(s: AgentSession, f) -> Path:
+    return s.clip.dir / "sam_open" / f"{f.path.stem}.json"
+
+
+def _prefetch_open(s: AgentSession, frames: list) -> None:
+    """On-prem mode: segment every uncached frame with SAM 3.1 open weights in one Modal call."""
+    todo = [f for f in frames if s.live or not _open_cache(s, f).exists()]
+    if not todo:
+        return
+    for f, records in zip(todo, segment_images_open([f.path for f in todo], PROMPT, ledger=s.ledger,
+                                                    job="agent-sam-open")):
+        _open_cache(s, f).parent.mkdir(exist_ok=True)
+        _open_cache(s, f).write_text(json.dumps(records), encoding="utf-8")
+
+
 def _text_instances(s: AgentSession, f) -> list[Instance]:
     """SAM 3.1 'rust' instances on one frame (cached)."""
+    if s.sam_backend == "modal":
+        return to_instances(json.loads(_open_cache(s, f).read_text(encoding="utf-8")), frame=0)
     cache = s.clip.dir / "sam" / f"{f.path.stem}.txt"
     if cache.exists() and not s.live:
         img = f.image()
@@ -107,6 +126,8 @@ def segment_frames(s: AgentSession, start_s: float = 0.0, end_s: float | None = 
     """
     fps = max(0.2, min(fps, 4.0))
     frames = s.clip.frames(start_s, end_s, fps)
+    if s.sam_backend == "modal":
+        _prefetch_open(s, frames)
     new = []
     with ThreadPoolExecutor(max_workers=2) as pool:
         for f in frames:
@@ -148,7 +169,16 @@ def track_video(s: AgentSession, fps: float = 2.0) -> dict:
     fps = max(0.5, min(fps, 4.0))
     frames = s.clip.frames(0.0, None, fps)  # the same time grid as the resampled clip: frame i at i / fps s
     cache = s.clip.dir / "sam_video" / f"rust_{fps:g}fps.txt"
-    if cache.exists() and not s.live:
+    if s.sam_backend == "modal":
+        cache = s.clip.dir / "sam_open_video" / f"rust_{fps:g}fps.json"
+        if cache.exists() and not s.live:
+            records = json.loads(cache.read_text(encoding="utf-8"))
+        else:
+            records = segment_video_open([f.path for f in frames], PROMPT, ledger=s.ledger, job="agent-sam-open-video")
+            cache.parent.mkdir(exist_ok=True)
+            cache.write_text(json.dumps(records), encoding="utf-8")
+        instances = to_instances(records)
+    elif cache.exists() and not s.live:
         h, w = frames[0].image().shape[:2]
         instances = parse_output(cache.read_text(encoding="utf-8"), w, h, video=True)
     else:
