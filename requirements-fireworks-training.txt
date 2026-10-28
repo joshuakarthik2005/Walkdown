@@ -1,0 +1,9 @@
+# Separate venv for the Fireworks Serverless Training API (benchmark/fireworks_train_probe.py and the optional
+# Fireworks Glimmer variant). Kept apart from requirements.txt because the training extra pins pydantic<2.13 and
+# installs torch. Create it on G: (large wheels), e.g. G:\walkdown-data\venv-fwtrain.
+fireworks-ai[training]==1.2.30
+torch==2.14.1
+torchvision==0.29.1
+transformers==5.21.0
+pillow==13.0.0
+python-dotenv==1.2.4
