@@ -149,5 +149,42 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--eval" not in sys.argv:
     sys.exit(main())
+
+
+def build_eval() -> dict:
+    """Evaluation file for Glimmer (zero-shot and tuned): production requests + labels, never trained on.
+
+    Sets: the builder's audits (sure labels), Cloud candidates of the real public negatives and of the Muse Image
+    stress set, and every 12th text-prompt test candidate (coverage label + cached hosted/Open decisions).
+    """
+    from benchmark.fireworks_eval import test_candidates
+    from benchmark.verifier_hardening import audited, negatives_cloud
+
+    def example(c, **meta) -> dict:
+        content = _user_content(c)
+        for part in content:
+            if part["type"] == "image_url":
+                part["image_url"]["url"] = _jpeg(part["image_url"]["url"])
+        return dict(id=c.candidate_id, messages=[{"role": "system", "content": SYSTEM_PROMPT + JSON_INSTRUCTION},
+                                                 {"role": "user", "content": content}], **meta)
+
+    rows = []
+    for rust, c in audited():
+        rows.append(example(c, set="audit", human_rust=rust, source=c.source))
+    for name, set_name in (("public", "public"), ("muse_eval", "synthetic_muse")):
+        for img, c in negatives_cloud(set_name):
+            rows.append(example(c, set=name, image=img, source=c.source))
+    for r, lazy in test_candidates()[::12]:
+        rows.append(example(lazy.load(), set="test", coverage_label=r["label"]))
+    with (OUT / "eval.jsonl").open("w", encoding="utf-8") as f:
+        for e in rows:
+            f.write(json.dumps(e) + "\n")
+    import collections
+    return dict(rows=len(rows), by_set=dict(collections.Counter(e["set"] for e in rows)),
+                mb=round((OUT / "eval.jsonl").stat().st_size / 1e6, 1))
+
+
+if __name__ == "__main__" and "--eval" in sys.argv:
+    print(json.dumps(build_eval(), indent=1))

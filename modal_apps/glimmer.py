@@ -249,6 +249,70 @@ def train_run(budget_min: float, epochs: float = 2.0, lr: float = 1e-4, run: str
                                              usd_estimate=round(wall * H100_PER_SECOND, 2)))
 
 
+@app.function(image=gpu_image, gpu="H100", volumes={VOL: volume}, timeout=2 * 3600, retries=0, max_containers=1)  # $7.90 max
+def eval_run(tag: str, adapter: str = "", batch: int = 8, budget_min: float = 100) -> dict:
+    """Verifier replies for /data/eval.jsonl (zero-shot, or with a LoRA adapter), batched, resumable.
+
+    Each reply is appended to /results/eval_<tag>.jsonl as soon as its batch finishes; scoring happens locally.
+    """
+    import torch
+    t0 = time.time()
+    model, proc = _load(adapter or None)
+    model.eval()
+    proc.tokenizer.padding_side = "left"
+    if proc.tokenizer.pad_token is None:
+        proc.tokenizer.pad_token = proc.tokenizer.eos_token
+    load_s = time.time() - t0
+    rows = _read("eval")
+    out_path = f"{VOL}/results/eval_{tag}.jsonl"
+    os.makedirs(f"{VOL}/results", exist_ok=True)
+    done = set()
+    if os.path.exists(out_path):
+        with open(out_path, encoding="utf-8") as f:
+            done = {json.loads(line)["id"] for line in f if line.strip()}
+    todo = [r for r in rows if r["id"] not in done]
+    n_new, fallbacks = 0, 0
+
+    def generate(chunk: list[dict]) -> list[str]:
+        texts, imgs = [], []
+        for ex in chunk:
+            msgs, images = _hf_messages(ex, with_target=False)
+            texts.append(proc.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True))
+            imgs.append(images)
+        enc = proc(text=texts, images=imgs, return_tensors="pt", padding=True).to("cuda:0")
+        with torch.no_grad():
+            gen = model.generate(**enc, max_new_tokens=1200, do_sample=False)
+        return [proc.decode(g[enc["input_ids"].shape[1]:], skip_special_tokens=True) for g in gen]
+
+    with open(out_path, "a", encoding="utf-8") as f:
+        for i in range(0, len(todo), batch):
+            if time.time() - t0 > budget_min * 60:
+                break
+            chunk = todo[i:i + batch]
+            try:
+                outs = generate(chunk)
+            except Exception:  # noqa: BLE001  one by one if a batch fails (e.g. image sizes)
+                fallbacks += 1
+                outs = [generate([ex])[0] for ex in chunk]
+            for ex, text in zip(chunk, outs):
+                f.write(json.dumps(dict(id=ex["id"], set=ex["set"], accept=_decide(text), text=text[-600:])) + "\n")
+            f.flush()
+            n_new += len(chunk)
+            if (i // batch) % 10 == 0:
+                volume.commit()
+    volume.commit()
+    wall = time.time() - t0
+    return _save_result(f"eval_{tag}_run", dict(tag=tag, adapter=adapter, load_s=round(load_s), new=n_new,
+                                                 already_done=len(done), total=len(rows), batch_fallbacks=fallbacks,
+                                                 seconds_per_example=round((wall - load_s) / max(1, n_new), 2),
+                                                 wall_s=round(wall), usd_estimate=round(wall * H100_PER_SECOND, 2)))
+
+
+@app.local_entrypoint()
+def evaluate(tag: str, adapter: str = "", batch: int = 8, budget_min: float = 100) -> None:
+    print(json.dumps(eval_run.remote(tag, adapter, batch, budget_min)))
+
+
 @app.local_entrypoint()
 def download() -> None:
     print(json.dumps(download_weights.remote()))

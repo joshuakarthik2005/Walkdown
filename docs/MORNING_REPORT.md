@@ -32,10 +32,12 @@ Tonight so far: see the item log below.
 | 4 | Verifier hardening (v2 prompt: look-alike checklist + texture evidence) | DONE: **not adopted** (v1 stays) | Hosted minimal: false-alarm candidates on real negatives 41 → 21 (−49%), Muse Image 281 → 178 (−37%), but audited real-rust recall 97.3% → 93.8% (−3.5 points, over the 3-point limit). Muse Spark Open: 12 → 10, recall −4.4 points. FLUX-tune gave no tuning signal (both prompts rejected all 188). RESULTS §11 | Meta ≈ $2.3, Baseten ≈ $2.3 |
 | 6 | Box proposals on the 500-image On-prem test subset, with verification | **SKIPPED** (cost rule) | Real cost is ≈ $0.06/image, not ≈ $0.024. On-prem uses open-weights masks, so the cached Baseten verdicts (made on hosted masks) cannot be reused and every merged candidate (~5.6/image) needs verifying. 500 images ≈ $30, more than 50% over the $12 estimate and over tonight's Baseten cap. Decision for the morning | $0 |
 | 7c | Muse Spark Open: Fireworks serverless vs Baseten (100 test candidates) | DONE | 97.0% same decisions, severity 72.7% exact / 99.0% ±1, invalid 1 vs 0, latency 28 s vs 11 s, cost $0.0090 vs $0.0083 per candidate. RESULTS §6 | Fireworks ≈ $0.95 |
+| 7a | Fireworks zero-shot Glimmer baseline (on-demand deployment) | **BLOCKED** | Fireworks: HTTP 400 "payment method is required" for on-demand deployments (serverless works on credits). Per the rules, Fireworks deployment jobs stopped; confirmed no deployments exist; $0 billed. Glimmer zero-shot and tuned evaluation moved to Modal (batched, same inputs) | $0 |
 
 ## Resources at zero (checked after each job)
 
 ## Decisions waiting for the builder
 
+- **Fireworks on-demand deployments need a payment method on the account** (HTTP 400). Add one if you want the Fireworks Glimmer evaluation or serving; serverless inference works without it.
 - **Item 6 (On-prem box proposals on the test split):** ≈ $0.06/image with verification. Options: a 100-image subset (≈ $6), or proposals without verification on 500 images (≈ $6, unverified perception metrics only).
 - **Verifier false alarms vs recall.** v2 prompt (−49% false alarms, −3.5 points recall) or Cloud at low effort (§9: 12.0% → 6.8% of clean images) or keep minimal. All are measured; the rule kept v1 + minimal.
