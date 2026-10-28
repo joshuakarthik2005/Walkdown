@@ -30,16 +30,55 @@ from benchmark.sam_dryrun import RUN_DIR as SAM_DIR, ground_truth
 from benchmark.splits import SEED, load_split
 from benchmark.verify_eval import label
 
+import sys as _sys
+
 LABEL_DIR = DATA_DIR / "labels"
-SAMPLE_PATH = LABEL_DIR / "audit_sample.json"
-LABELS_PATH = LABEL_DIR / "audit.jsonl"
-PER_STRATUM = {"TP": 40, "FP": 40, "ambiguous": 20}
+BOXES = "--set" in _sys.argv and _sys.argv[_sys.argv.index("--set") + 1] == "boxes"
+SAMPLE_PATH = LABEL_DIR / ("audit_boxes_sample.json" if BOXES else "audit_sample.json")
+LABELS_PATH = LABEL_DIR / ("audit_boxes.jsonl" if BOXES else "audit.jsonl")
+PER_STRATUM = {"TP": 20, "FP": 20, "ambiguous": 10} if BOXES else {"TP": 40, "FP": 40, "ambiguous": 20}
+BOX_SAMPLE_PATH = LABEL_DIR / "audit_boxes_sample.json"
+BOX_LABELS_PATH = LABEL_DIR / "audit_boxes.jsonl"
+
+
+def build_box_sample() -> list[dict]:
+    """Stratified sample of box-only test candidates (seeded; ids ``<stem>#tb<k>`` as in benchmark.box_verify)."""
+    from benchmark.box_verify import candidates
+    rng = random.Random(SEED + 1)
+    images = load_split("test")
+    rng.shuffle(images)
+    picked: dict[str, list[dict]] = {k: [] for k in PER_STRATUM}
+    for rel in images:
+        if all(len(picked[k]) >= n for k, n in PER_STRATUM.items()):
+            break
+        _, merged, records = candidates(rel)
+        new = [(inst, r) for inst, r in zip(merged, records) if r["new"]]
+        if not new:
+            continue
+        gt = ground_truth([rel])[rel]
+        union = np.logical_or.reduce(gt) if gt else np.zeros((640, 640), bool)
+        rng.shuffle(new)
+        per_image: dict[str, int] = {}
+        for inst, r in new:
+            lab, cov = label(inst.mask, union)
+            if len(picked[lab]) >= PER_STRATUM[lab] or per_image.get(lab, 0) >= 2:
+                continue
+            per_image[lab] = per_image.get(lab, 0) + 1
+            picked[lab].append(dict(id=r["id"], image=rel, object_id=inst.object_id, coverage_label=lab,
+                                    coverage=round(cov, 3)))
+    sample = [c for k in PER_STRATUM for c in picked[k]]
+    rng.shuffle(sample)
+    LABEL_DIR.mkdir(parents=True, exist_ok=True)
+    SAMPLE_PATH.write_text(json.dumps(sample, indent=1), encoding="utf-8")
+    return sample
 
 
 def build_sample() -> list[dict]:
     """Stratified sample of test candidates by coverage label, built once and saved (seeded)."""
     if SAMPLE_PATH.exists():
         return json.loads(SAMPLE_PATH.read_text(encoding="utf-8"))
+    if BOXES:
+        return build_box_sample()
     # Visit test images in a seeded random order and take at most 2 candidates per image per stratum
     # until every stratum is full: only the visited images' masks are decoded (decoding is slow).
     rng = random.Random(SEED)
@@ -71,11 +110,12 @@ def build_sample() -> list[dict]:
     return sample
 
 
-def read_labels() -> dict[str, dict]:
+def read_labels(path: Path | None = None) -> dict[str, dict]:
     """Latest label per candidate (later lines win; 'undo' removes)."""
+    path = path or LABELS_PATH
     out: dict[str, dict] = {}
-    if LABELS_PATH.exists():
-        for line in LABELS_PATH.read_text(encoding="utf-8").splitlines():
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
             r = json.loads(line)
             if r["label"] == "undo":
                 out.pop(r["id"], None)
@@ -103,12 +143,17 @@ def _instance(cid: str):
     c = by_id().get(cid)
     if c is None:
         raise HTTPException(404)
-    text = (SAM_DIR / "rust" / (Path(c["image"]).stem + ".txt")).read_text(encoding="utf-8")
-    inst = next(i for i in parse_output(text, 640, 640) if i.object_id == c["object_id"])
+    if BOXES:
+        from benchmark.box_verify import candidates
+        _, merged, records = candidates(c["image"])
+        inst = next(i for i, r in zip(merged, records) if r["id"] == cid)
+    else:
+        text = (SAM_DIR / "rust" / (Path(c["image"]).stem + ".txt")).read_text(encoding="utf-8")
+        inst = next(i for i in parse_output(text, 640, 640) if i.object_id == c["object_id"])
     return cv2.imread(str(RAW_DIR / c["image"]), cv2.IMREAD_COLOR), inst
 
 
-CROP_DIR = LABEL_DIR / "crops"
+CROP_DIR = LABEL_DIR / ("crops_boxes" if BOXES else "crops")
 
 
 def render(cid: str) -> None:
