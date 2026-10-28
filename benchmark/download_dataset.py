@@ -71,9 +71,18 @@ def info() -> dict:
 KEEP_SPLITS = ("valid", "test")  # train holds Roboflow-augmented copies; not used for evaluation
 
 
-def download(version: int) -> Path:
-    """Request the COCO-segmentation export and unzip only the valid/test splits into RAW_DIR."""
-    export = _get_json(f"{WORKSPACE}/{PROJECT}/{version}/{EXPORT_FORMAT}").get("export", {})
+def export_info(version: int) -> dict:
+    """The export's metadata (signed link and reported size); does not download anything."""
+    return _get_json(f"{WORKSPACE}/{PROJECT}/{version}/{EXPORT_FORMAT}").get("export", {})
+
+
+def download(version: int, splits: tuple[str, ...] = KEEP_SPLITS) -> Path:
+    """Request the COCO-segmentation export and unzip only ``splits`` into RAW_DIR.
+
+    The train split (Roboflow augmentations) is used only for training, never for evaluation, and only
+    after removing every near-duplicate cluster that touches dev or test (benchmark/train_pool.py).
+    """
+    export = export_info(version)
     link = export.get("link")
     if not link:
         raise SystemExit("export not ready; Roboflow may still be generating it, retry in a minute")
@@ -82,7 +91,7 @@ def download(version: int) -> Path:
     print(f"downloading export ({export.get('size', '?')} MB reported) ...", flush=True)
     urllib.request.urlretrieve(link, zip_path)  # signed link, not the API key
     with zipfile.ZipFile(zip_path) as z:
-        keep = [m for m in z.namelist() if "/" not in m or m.split("/")[0] in KEEP_SPLITS]
+        keep = [m for m in z.namelist() if "/" in m and m.split("/")[0] in splits]
         for member in keep:
             target = (RAW_DIR / member).resolve()
             if RAW_DIR.resolve() not in target.parents and target != RAW_DIR.resolve():
@@ -96,8 +105,12 @@ def download(version: int) -> Path:
 if __name__ == "__main__":
     if len(sys.argv) >= 2 and sys.argv[1] == "info":
         info()
-    elif len(sys.argv) >= 2 and sys.argv[1] == "download":
+    elif len(sys.argv) >= 2 and sys.argv[1] in ("download", "size"):
         v = int(sys.argv[sys.argv.index("--version") + 1]) if "--version" in sys.argv else 1
-        download(v)
+        if sys.argv[1] == "size":
+            print(f"export size reported: {export_info(v).get('size', '?')} MB")
+        else:
+            splits = tuple(sys.argv[sys.argv.index("--splits") + 1].split(",")) if "--splits" in sys.argv else KEEP_SPLITS
+            download(v, splits)
     else:
         print(__doc__)

@@ -6,6 +6,10 @@ Entry in the Meta Global AI Developer Hackathon (Indie Developer track, theme: P
 
 > Status: work in progress, built during the hackathon building period (Oct 27 – Nov 4, 2026).
 
+**Built with Muse Spark Open.** Walkdown's open-weights mode runs the verifier and the agent on Muse Spark Open (Muse Model License; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+
+**Decision support only.** Walkdown never operates or controls plant equipment. It proposes a defect register and a repair plan; every maintenance action needs approval by a qualified person. Read [Limitations and safe use](#limitations-and-safe-use) before relying on it.
+
 ### Where it fits
 - **Long cross-country pipelines** are inspected from the inside with in-line inspection tools ("pigs"). Walkdown is not a replacement for that.
 - Walkdown targets **plant piping and equipment that pigs cannot reach**: short, branched, small-bore and unpiggable lines, supports, flanges and tanks. These are inspected by people walking the plant, and the findings usually end up in notes and spreadsheets.
@@ -28,6 +32,17 @@ Every model turn and tool call is logged as a structured trace (timing, tokens, 
 
 See [`benchmark/RESULTS.md`](benchmark/RESULTS.md) (perception and verification) and [`benchmark/PLANNER_RESULTS.md`](benchmark/PLANNER_RESULTS.md) (CP-SAT vs a priority-sort baseline), with all limitations stated.
 
+## Limitations and safe use
+
+Walkdown assists inspectors; it does not replace them. These limitations apply in both modes (Cloud: hosted Meta models; On-prem: open-weight models).
+
+- **It misses corrosion.** On the held-out test split (1,444 annotated images; numbers in [`benchmark/RESULTS.md`](benchmark/RESULTS.md)), the SAM 3.1 text prompt alone found corrosion on 66% of images that have it and covered 37% of the annotated corrosion area. Adding Muse Spark box proposals raises this to 99.7% of images and 87% of the area, but only about a third of individually annotated corrosion patches are matched as separate instances (instance recall 0.32 at IoU 0.5). A clean register is not evidence of a clean asset.
+- **It flags things that are not corrosion.** Pixel precision is 0.75–0.92 depending on the pipeline, and box proposals add false alarms. The verifier removes some of them; the false-alarm rate on clean surfaces is not measured yet (pending the author's negative footage).
+- **Severity grades are not validated for accuracy.** There is no ground truth for severity. Grades are schema-validated and consistency-checked (contradictory grades are flagged for review), and repeat grading agreement is reported, but a grade is a triage suggestion, not an engineering assessment.
+- **Not a substitute for certified inspection programmes.** Walkdown does not perform or replace inspections under API 570 (piping), API 510 (pressure vessels), API 653 (tanks) or a risk-based inspection (RBI) programme, wall-thickness measurement or any regulatory requirement.
+- **Human approval is required.** The plan is a proposal. Crews, permits, isolations and shutdowns are decided by the site's responsible people. The planner's consequence factors per line service are stated assumptions, not site data.
+- **Scope.** Handheld visible-light footage of external surfaces. It cannot see under insulation, inside pipes or below paint.
+
 ## Built during the hackathon
 
 All code in this repository was written during the building period. A full breakdown will be added here.
@@ -39,7 +54,7 @@ All code in this repository was written during the building period. A full break
 |---|---|---|
 | SAM 3.1 (`sam-3.1`), Meta Model API | Meta Model API terms | Candidate segmentation |
 | Muse Spark (`muse-spark-1.3`), Meta Model API | Meta Model API terms | Verification, grading, agent tool calling |
-| Muse Spark Open (`meta-models/muse-spark-open-1026`) on Baseten | Baseten Model API terms; Meta open-weights licence | Hosted vs open-weights verifier comparison |
+| Muse Spark Open (`meta-models/muse-spark-open-1026`) on Baseten | Muse Model License (Muse Spark Open, Oct 15, 2026) and its Usage Policy; Baseten Model API terms | Open-weights mode: verifier and agent; teacher for the verifier distillation |
 
 ### Libraries
 | Library | Licence | Use |
@@ -61,4 +76,4 @@ All public visuals come from footage recorded by the author.
 
 ## Licence
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). Third-party licences and notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

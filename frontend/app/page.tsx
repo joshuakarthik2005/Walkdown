@@ -5,6 +5,7 @@ import { AgentTrail } from "@/components/AgentTrail";
 import { ChangePanel } from "@/components/ChangePanel";
 import { Gantt } from "@/components/Gantt";
 import { RegisterView } from "@/components/RegisterView";
+import { Attribution, SafetyNotice } from "@/components/SafetyNotice";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Unscheduled } from "@/components/Unscheduled";
 import * as api from "@/lib/api";
@@ -151,6 +152,8 @@ export default function Home() {
         </div>
       </header>
 
+      <SafetyNotice />
+
       {error && <div className="panel error-box">{error}</div>}
 
       <div className="hero">
@@ -245,6 +248,9 @@ export default function Home() {
         pipelines are inspected with in-line inspection tools; Walkdown complements them on unpiggable plant piping. Footage today is handheld;
         drone and robot footage is future work.
       </p>
+      <footer className="footer">
+        <Attribution /> · Decision support only: every maintenance action needs human approval · Hosted models via the Meta Model API
+      </footer>
     </main>
   );
 }
