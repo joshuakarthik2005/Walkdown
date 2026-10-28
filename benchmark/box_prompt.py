@@ -35,6 +35,7 @@ from benchmark.sam_eval import aggregate, image_stats
 from benchmark.splits import load_split
 
 CACHE = DATA_DIR / "runs" / "box_prompt"
+EFFORT = "minimal"  # --effort low uses its own cache, runs/box_prompt_low/
 RESULTS = Path(__file__).parent / "results"
 SIZE = 640
 MAX_BOXES = 16  # SAM 3.1 object-prompt limit
@@ -71,7 +72,7 @@ def propose_boxes(rel: str, ledger: CostLedger) -> list[Box]:
         return Boxes.model_validate_json(path.read_text(encoding="utf-8")).boxes
     url = "data:image/jpeg;base64," + base64.b64encode((RAW_DIR / rel).read_bytes()).decode()
     resp = with_retries(lambda: meta_client().chat.completions.create(
-        model="muse-spark-1.3", reasoning_effort="minimal", max_tokens=3000,
+        model="muse-spark-1.3", reasoning_effort=EFFORT, max_tokens=3000 if EFFORT == "minimal" else 6000,
         response_format={"type": "json_schema", "json_schema": {"name": "boxes", "strict": True, "schema": SCHEMA}},
         messages=[{"role": "system", "content": BOX_SYSTEM},
                   {"role": "user", "content": [{"type": "text", "text": "Find the corrosion."},
@@ -129,10 +130,11 @@ def free_ram_gb() -> float | None:
         return None
 
 
-def variant_stats(rel: str) -> dict:
-    """Per-image stats for all three variants, decoding each mask once (runs in a worker process)."""
+def variant_stats(rel: str, cache: Path | None = None) -> dict:
+    """Per-image stats for all three variants, decoding each mask once (runs in a worker process; ``cache`` is
+    passed explicitly because worker processes re-import this module with the default cache)."""
     text = parse_output((SAM_DIR / "rust" / (Path(rel).stem + ".txt")).read_text(encoding="utf-8"), SIZE, SIZE)
-    path = CACHE / "sam" / (Path(rel).stem + ".txt")
+    path = (cache or CACHE) / "sam" / (Path(rel).stem + ".txt")
     boxes = parse_output(path.read_text(encoding="utf-8"), SIZE, SIZE) if path.exists() else []
     truth = ground_truth([rel])[rel]
     return {"text_only": image_stats(truth, merge_instances(text)),
@@ -145,8 +147,14 @@ def main() -> int:
     ap.add_argument("split")
     ap.add_argument("--max-usd", type=float, required=True)
     ap.add_argument("--score-workers", type=int, default=6)
+    ap.add_argument("--effort", default="minimal", help="box-proposal reasoning effort (low: own cache)")
+    ap.add_argument("--max-images", type=int, default=None)
     args = ap.parse_args()
-    images = load_split(args.split)
+    global CACHE, EFFORT
+    EFFORT = args.effort
+    if EFFORT != "minimal":
+        CACHE = DATA_DIR / "runs" / f"box_prompt_{EFFORT}"
+    images = load_split(args.split)[:args.max_images]
     uncached = sum(not (CACHE / "boxes" / (Path(r).stem + ".json")).exists() for r in images)
     est = uncached * (0.0025 + 0.003)  # SAM call + one minimal Muse Spark call (dry-run estimate)
     print(f"{args.split}: {len(images)} images, {uncached} uncached, estimated ${est:.2f}", flush=True)
@@ -175,13 +183,14 @@ def main() -> int:
         print(f"scoring {i + len(chunk)}/{len(images)} with {workers} workers (free RAM "
               f"{'?' if free is None else f'{free:.1f}'} GB)", flush=True)
         with ProcessPoolExecutor(max_workers=workers) as pool:
-            per_image += list(pool.map(variant_stats, chunk, chunksize=4))
+            per_image += list(pool.map(variant_stats, chunk, [CACHE] * len(chunk), chunksize=4))
     out = dict(split=args.split, images=len(images), boxes_per_image=sum(n_boxes) / len(images),
                images_with_boxes=sum(n > 0 for n in n_boxes), new_usd=ledger.total(),
                usd_by_job={j: ledger.total(j) for j in ("box-propose", "box-sam")},
                variants={k: aggregate([s[k] for s in per_image]) for k in VARIANTS})
     RESULTS.mkdir(parents=True, exist_ok=True)
-    (RESULTS / f"box_prompt_{args.split}.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
+    tag = "" if EFFORT == "minimal" and args.max_images is None else f"_{EFFORT}" + (f"_n{args.max_images}" if args.max_images else "")
+    (RESULTS / f"box_prompt_{args.split}{tag}.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
     print(f"boxes/image {out['boxes_per_image']:.2f}, images with boxes {out['images_with_boxes']}, new ${ledger.total():.3f}")
     for k, s in out["variants"].items():
         i = s["instance"]["iou>=0.5"]
