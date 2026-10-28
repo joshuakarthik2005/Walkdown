@@ -453,3 +453,17 @@ What it shows:
 - **Not adopted.** v2 roughly halves the false alarms of the demo verifier. But it costs 3.5 points of audited recall with the hosted verifier (110 → 106 of 113) and 4.4 points with Muse Spark Open, both over the 3-point limit. v1 stays the default.
 - **Why no iteration.** Iterating the prompt on these evaluation sets would be tuning on them, which the protocol forbids, and FLUX-tune gives no signal. The trade-off is reported for the builder to decide.
 - **Context.** Switching the Cloud verifier from minimal to low effort is the other lever: on the real negatives, 12.0% → 6.8% of images (§9), at a measured recall cost in the audits (§8).
+
+## 12. Medium reasoning effort for the hosted verifier (overnight item 9)
+
+- **Setup.** The builder's audits (133 sure labels) and the first 1,000 text-prompt test candidates, verified by hosted Muse Spark at medium effort. Compared with the cached minimal and low verdicts on identical candidates and prompt.
+- Script: `benchmark/effort_study.py`; result: `results/effort_study_medium.json`. Cost: $8.27 + $0.86 dry run.
+
+| Effort | Audited real-rust recall (95% CI) | Audited not-rust rejected | TP retention, 1,000 test candidates (coverage labels) | Agreement with low | Cost per candidate | Reasoning tokens | Median latency |
+|---|---|---|---|---|---|---|---|
+| minimal | 97.3% (92.5–99.1) | 12 / 20 | – (not run on these) | – | ≈ $0.002 | – | – |
+| low | 90.3% (83.4–94.5) | 14 / 20 | 96.7% | – | $0.0043 (§2) | 754 | 5.3 s |
+| medium | 92.9% (86.6–96.4) | 14 / 20 | 94.4% | 92.8% | **$0.0082** | 1,671 | 8.3 s |
+
+- **Medium buys nothing measurable.** It rejects the same look-alikes as low (14 of 20), and its recall is within the interval of low. It keeps fewer coverage-labelled TPs, costs 1.9× low, and is 1.6× slower.
+- **Recommendation.** Do not use medium. The real choice is between minimal (best recall, weakest on look-alikes) and low (§8, §9).

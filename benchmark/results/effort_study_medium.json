@@ -1,0 +1,73 @@
+{
+ "effort": "medium",
+ "audited": {
+  "minimal": {
+   "n": 133,
+   "recall": 0.9734513274336283,
+   "recall_ci": [
+    0.925,
+    0.991
+   ],
+   "not_rust_rejected": 0.6,
+   "tp": 110,
+   "fn": 3,
+   "fp": 8,
+   "tn": 12,
+   "complete": true
+  },
+  "low": {
+   "n": 133,
+   "recall": 0.9026548672566371,
+   "recall_ci": [
+    0.834,
+    0.945
+   ],
+   "not_rust_rejected": 0.7,
+   "tp": 102,
+   "fn": 11,
+   "fp": 6,
+   "tn": 14,
+   "complete": true
+  },
+  "medium": {
+   "n": 133,
+   "recall": 0.9292035398230089,
+   "recall_ci": [
+    0.866,
+    0.964
+   ],
+   "not_rust_rejected": 0.7,
+   "tp": 105,
+   "fn": 8,
+   "fp": 6,
+   "tn": 14,
+   "complete": true
+  }
+ },
+ "test": {
+  "minimal": {
+   "candidates": 25,
+   "tp_retention": 1.0,
+   "accepted_share": 0.84,
+   "agreement_with_low": 0.84
+  },
+  "low": {
+   "candidates": 1000,
+   "tp_retention": 0.9672774869109948,
+   "accepted_share": 0.895,
+   "agreement_with_low": 1.0
+  },
+  "medium": {
+   "candidates": 1000,
+   "tp_retention": 0.943717277486911,
+   "accepted_share": 0.867,
+   "agreement_with_low": 0.928
+  }
+ },
+ "cost": {
+  "new_usd": 8.27,
+  "usd_per_candidate": 0.008229404457193293,
+  "reasoning_tokens_mean": 1670.8172992056486,
+  "latency_s_median": 8.327090799997677
+ }
+}
