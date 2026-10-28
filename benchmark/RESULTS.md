@@ -344,3 +344,35 @@ Reweighted over six strata (source × dataset label) to the default pipeline's c
 - The verifier rejects about two thirds of the look-alikes, and drops 2–7% of real rust, depending on the verifier.
 - The three verifiers' intervals overlap. Low effort trades a few more rejected look-alikes for more missed rust.
 - Still not measured: false alarms on clean surfaces with no rust at all (the negatives sets).
+
+## 9. False alarms on public negatives (191 non-corroded pipe images)
+
+- **Set.** 191 unique images of non-corroded pipes: painted, coated, stainless and galvanised (`docs/FOOTAGE_SOURCES.md`).
+  - Sources: Roboflow `corrosion-detection-sd` "Non-Corroded" classes, CC BY 4.0. Deduplicated by source name and dHash.
+  - Use: scoring only, never public, never trained on.
+  - Reported separately from the builder's own footage, which is still pending.
+- **Label caveat.** "Non-corroded" is the dataset's label, not a human audit. A contact sheet of the Cloud-accepted images shows mostly clean pipes, but a few have minor brown staining at supports or joint bands. Treat these rates as upper bounds on true false alarms.
+- **Metric.** Share of images with at least one candidate, or with at least one candidate the verifier accepts (what the register would show). Wilson 95% CIs.
+- **Pipelines:**
+  - Cloud: hosted SAM 3.1 plus Muse Spark boxes; verifier is Muse Spark at minimal effort (the live-demo setting).
+  - On-prem: SAM 3.1 open weights plus Muse Spark Open boxes; verifier is Muse Spark Open.
+- Script: `benchmark/negatives_fp.py`; results: `results/negatives_fp_public_{cloud,on-prem}.json`. Cost: Meta $1.20, Baseten ≈ $1.25, Modal ≈ $0.04.
+
+| Images with a false alarm (of 191) | Text only | Text + boxes | Text + boxes + verifier |
+|---|---|---|---|
+| Cloud | 4.2% (8; CI 2.1–8.0) | 31.9% (61; CI 25.7–38.8) | **12.0%** (23; CI 8.2–17.4) |
+| On-prem | 3.1% (6; CI 1.4–6.7) | 19.4% (37; CI 14.4–25.6) | **2.1%** (4; CI 0.8–5.3) |
+
+| Candidates per image | Text only | Text + boxes | Accepted |
+|---|---|---|---|
+| Cloud | 0.11 | 0.97 | 0.21 |
+| On-prem | 0.08 | 0.55 | 0.04 |
+
+What it shows:
+- **The text prompt alone rarely fires on clean pipes:** 3–4% of images.
+- **Box proposals are the main source of false alarms** on clean surfaces: 19–32% of images. This agrees with the box audit in §8.
+- **The verifier removes most of them, but not equally.**
+  - Cloud at minimal effort still accepts a look-alike on 12% of clean images (23 images, 41 candidates). Muse Spark Open accepts one on 2%.
+  - The Cloud verifier sees more box candidates: hosted per-box prompts produce more masks than the open-weights exemplar matching.
+  - The two verifiers judge different candidate sets, so this is a pipeline comparison, not a head-to-head of the verifiers.
+- **Implication for the demo.** On clean plant footage, Cloud mode at minimal effort can put a false defect in the register on roughly 1 frame in 8. The builder's own negatives footage will measure this on realistic frames. Low-effort verification or a stricter box filter would be the levers.
