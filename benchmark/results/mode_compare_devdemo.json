@@ -1,0 +1,57 @@
+[
+ {
+  "mode": "cloud",
+  "wall_s": 98.1,
+  "tool_seconds": {
+   "track_video": 0.0,
+   "segment_frames": 52.7,
+   "verify_candidate": 28.8,
+   "build_register": 0.0,
+   "plan_maintenance": 1.6,
+   "explain_plan": 0.0
+  },
+  "usd": 0.2012,
+  "usd_by_job": {
+   "agent-box-propose": 0.0195,
+   "agent-box-sam": 0.015,
+   "agent-llm": 0.0311,
+   "agent-sam": 0.015,
+   "agent-senior-review": 0.0323,
+   "agent-verify": 0.0883
+  },
+  "candidates": 50,
+  "accepted": 29,
+  "register": 29,
+  "jobs": 5,
+  "needs_review": 1,
+  "plan": "OPTIMAL",
+  "gap": 0.0,
+  "agent_turns": 8
+ },
+ {
+  "mode": "on-prem",
+  "wall_s": 73.1,
+  "tool_seconds": {
+   "track_video": 0.0,
+   "segment_frames": 30.4,
+   "verify_candidate": 27.0,
+   "build_register": 0.0,
+   "plan_maintenance": 1.4,
+   "explain_plan": 0.0
+  },
+  "usd": 0.1745,
+  "usd_by_job": {
+   "agent-llm": 0.0215,
+   "agent-sam-open": 0.0164,
+   "agent-verify": 0.1365
+  },
+  "candidates": 17,
+  "accepted": 17,
+  "register": 17,
+  "jobs": 5,
+  "needs_review": 0,
+  "plan": "OPTIMAL",
+  "gap": 0.0,
+  "agent_turns": 7
+ }
+]

@@ -184,3 +184,37 @@ What this shows:
 - **The 1.8% invalid replies were an output budget problem, not a model failure.** Muse Spark Open reasons for about twice as many tokens, and without strict decoding a long reasoning trace can use up 4,000 tokens before the JSON. At 8,000 tokens every one of them returned a valid grade. Of the 92: 65 accepted, 27 rejected; labels 47 TP, 41 FP, 4 ambiguous.
 - **The cost of open weights here** is about 2× tokens per candidate and about 2× median latency. (Its p90 latency is lower than the hosted run's, which had a slow phase; see §2's throughput note.)
 - Job cost: $47.15 of Baseten credit in total. That is the 4,000-token run ($42.27), the set-aside 8,000-token verdicts ($3.84) and the retry ($1.05).
+
+## 7. Cloud vs On-prem mode, end to end (F2)
+
+**Setup**
+- One live agent run per mode on the 6-photo dev clip (`devdemo`, dataset images, scoring only). Every model call is live: no perception or verdict cache. Verifier at minimal effort, as in the demo. Script: `benchmark/mode_compare.py`; result file: `results/mode_compare_devdemo.json`.
+- **Cloud:**
+  - hosted SAM 3.1: text prompt plus Muse Spark box proposals
+  - Muse Spark as verifier and agent
+  - Muse Wonder senior review
+- **On-prem:** open weights only.
+  - SAM 3.1 open weights on Modal: one L40S that scales to zero (`modal_apps/sam_open.py`), text prompt only
+  - Muse Spark Open on Baseten as verifier and agent
+  - no hosted model is called
+
+| devdemo, 6 photos | Cloud | On-prem |
+|---|---|---|
+| SAM candidates | 50 (text + boxes) | 17 (text only) |
+| Accepted by the verifier / register entries | 29 / 29 | 17 / 17 |
+| Walkdown jobs (work packages) | 5 | 5 |
+| Plan | OPTIMAL, gap 0 | OPTIMAL, gap 0 |
+| Entries needing review | 1 | 0 |
+| Agent turns | 8 | 7 |
+| Wall time, whole run | 98 s | 73 s (includes Modal cold start) |
+| of which segmentation | 52.7 s (text SAM + box proposals + box SAM) | 30.4 s (cold start + 6 frames) |
+| of which verification | 28.8 s | 27.0 s |
+| Cost | $0.201 | $0.175 (Modal GPU ≈ $0.016 at the L40S list rate, Baseten $0.158) |
+
+What it shows:
+- On-prem runs the whole loop on open weights and produces a plan to the same standard: perceive, verify, register, plan (OPTIMAL) and explain.
+- It finds fewer candidates because it has **no box proposals**. Box proposals use hosted Muse Spark with strict JSON, which the open stack does not have yet.
+- Segmentation recall should therefore be expected to match the text-only column of §4 (66% image detection on test), not the default pipeline's 98%.
+- SAM 3.1 open weights and hosted SAM 3.1 were not compared mask-for-mask on the test split. On this clip the open weights returned 17 instances against 28 from the hosted text prompt, at the predictor's default 0.5 output threshold.
+- This is one 6-image clip, so it is a functional check of the mode, not a benchmark.
+- Every Modal container scaled to zero after the run.

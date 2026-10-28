@@ -46,7 +46,7 @@ _load_env()
 hf_secret = modal.Secret.from_dict({"HF_TOKEN": os.environ.get("HF_TOKEN", "")})
 
 
-@app.cls(image=image, gpu="L40S", volumes={WEIGHTS: weights}, secrets=[hf_secret], scaledown_window=120,
+@app.cls(image=image, gpu="L40S", volumes={WEIGHTS: weights}, secrets=[hf_secret], scaledown_window=120, retries=0,
          timeout=1800, max_containers=1)
 class Sam31:
     @modal.enter()

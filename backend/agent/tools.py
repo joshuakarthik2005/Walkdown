@@ -208,6 +208,8 @@ def track_video(s: AgentSession, fps: float = 2.0) -> dict:
 
 def _verdict_cache(s: AgentSession, cid: str) -> Path:
     sub = s.verify_effort if s.provider == "meta" else f"{s.provider}-{s.verify_effort}"
+    if s.sam_backend != "meta":  # open-weights SAM gives different masks under the same candidate ids
+        sub += f"-sam-{s.sam_backend}"
     return s.clip.dir / "verify" / sub / f"{cid}.json"
 
 

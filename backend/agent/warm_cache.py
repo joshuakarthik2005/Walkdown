@@ -25,7 +25,8 @@ DEMO_MAX_JOBS = 6  # walkdown jobs (work packages); with the 12-job demo backlog
 def run_once(clip_id: str, effort: str, provider: str = "meta") -> dict:
     clip = Clip(clip_id)
     session = AgentSession(clip=clip, ledger=CostLedger(clip.dir / "cost_ledger.jsonl"), verify_effort=effort,
-                           provider=provider)
+                           provider=provider, sam_backend="modal" if provider == "baseten" else "meta",
+                           box_proposals=provider == "meta")  # On-prem mode: open weights only, as in the API
     agent = WalkdownAgent(session)
     t0 = time.time()
     agent.run(f"New walkdown clip of {clip.asset.asset_id} is uploaded. Inspect it, build the register, plan the "
