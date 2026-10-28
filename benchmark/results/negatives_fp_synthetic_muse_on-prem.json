@@ -1,0 +1,1925 @@
+{
+ "set": "synthetic_muse",
+ "mode": "on-prem",
+ "images_requested": 300,
+ "new_usd": 4.039905613387505,
+ "images": 300,
+ "images_with_alarm": {
+  "text": 0.13666666666666666,
+  "merged": 0.21,
+  "accepted": 0.15
+ },
+ "images_with_alarm_ci": {
+  "text": [
+   0.102,
+   0.18
+  ],
+  "merged": [
+   0.168,
+   0.26
+  ],
+  "accepted": [
+   0.114,
+   0.195
+  ]
+ },
+ "candidates_per_image": {
+  "text": 0.8366666666666667,
+  "merged": 1.0633333333333332,
+  "accepted": 0.6933333333333334
+ },
+ "by_lookalike": {
+  "a wooden plank leaning against it": {
+   "text": 0.0,
+   "merged": 0.15,
+   "accepted": 0.1,
+   "n": 20
+  },
+  "an orange flow-direction arrow painted on it": {
+   "text": 0.0,
+   "merged": 0.05263157894736842,
+   "accepted": 0.0,
+   "n": 19
+  },
+  "brown oil smudges": {
+   "text": 0.8947368421052632,
+   "merged": 0.8947368421052632,
+   "accepted": 0.8947368421052632,
+   "n": 19
+  },
+  "brown paint drips": {
+   "text": 0.47619047619047616,
+   "merged": 0.5714285714285714,
+   "accepted": 0.47619047619047616,
+   "n": 21
+  },
+  "copper-coloured tubing next to it": {
+   "text": 0.25925925925925924,
+   "merged": 0.25925925925925924,
+   "accepted": 0.037037037037037035,
+   "n": 27
+  },
+  "dark water stains running down the surface": {
+   "text": 0.0,
+   "merged": 0.42857142857142855,
+   "accepted": 0.3333333333333333,
+   "n": 21
+  },
+  "dried mud splashes": {
+   "text": 0.05555555555555555,
+   "merged": 0.05555555555555555,
+   "accepted": 0.05555555555555555,
+   "n": 18
+  },
+  "dust and leaf litter at the base": {
+   "text": 0.0,
+   "merged": 0.0,
+   "accepted": 0.0,
+   "n": 18
+  },
+  "fresh red-brown primer paint": {
+   "text": 0.05263157894736842,
+   "merged": 0.05263157894736842,
+   "accepted": 0.0,
+   "n": 19
+  },
+  "glossy orange safety paint": {
+   "text": 0.0,
+   "merged": 0.0,
+   "accepted": 0.0,
+   "n": 20
+  },
+  "orange identification tape and labels": {
+   "text": 0.0,
+   "merged": 0.0,
+   "accepted": 0.0,
+   "n": 18
+  },
+  "safety yellow paint with brown dirt smears": {
+   "text": 0.2777777777777778,
+   "merged": 0.6111111111111112,
+   "accepted": 0.3333333333333333,
+   "n": 18
+  },
+  "strong diagonal shadows": {
+   "text": 0.0,
+   "merged": 0.047619047619047616,
+   "accepted": 0.047619047619047616,
+   "n": 21
+  },
+  "warm sunset light reflections": {
+   "text": 0.0,
+   "merged": 0.0,
+   "accepted": 0.0,
+   "n": 21
+  },
+  "wet patches after rain": {
+   "text": 0.0,
+   "merged": 0.0,
+   "accepted": 0.0,
+   "n": 20
+  }
+ },
+ "rows": [
+  {
+   "image": "eval0000.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0001.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0002.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0003.jpg",
+   "text": 0,
+   "merged": 1,
+   "accepted": 0
+  },
+  {
+   "image": "eval0004.jpg",
+   "text": 16,
+   "merged": 16,
+   "accepted": 13
+  },
+  {
+   "image": "eval0005.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0006.jpg",
+   "text": 1,
+   "merged": 4,
+   "accepted": 1
+  },
+  {
+   "image": "eval0007.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0008.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0009.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0010.jpg",
+   "text": 7,
+   "merged": 5,
+   "accepted": 3
+  },
+  {
+   "image": "eval0011.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0012.jpg",
+   "text": 0,
+   "merged": 3,
+   "accepted": 2
+  },
+  {
+   "image": "eval0013.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0014.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0015.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0016.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0017.jpg",
+   "text": 10,
+   "merged": 5,
+   "accepted": 5
+  },
+  {
+   "image": "eval0018.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0019.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0020.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0021.jpg",
+   "text": 4,
+   "merged": 4,
+   "accepted": 3
+  },
+  {
+   "image": "eval0022.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0023.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0024.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0025.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0026.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0027.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0028.jpg",
+   "text": 7,
+   "merged": 9,
+   "accepted": 8
+  },
+  {
+   "image": "eval0029.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0030.jpg",
+   "text": 0,
+   "merged": 3,
+   "accepted": 0
+  },
+  {
+   "image": "eval0031.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0032.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0033.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0034.jpg",
+   "text": 0,
+   "merged": 4,
+   "accepted": 0
+  },
+  {
+   "image": "eval0035.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0036.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0037.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0038.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0039.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0040.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0041.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0042.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0043.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0044.jpg",
+   "text": 0,
+   "merged": 4,
+   "accepted": 3
+  },
+  {
+   "image": "eval0045.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0046.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0047.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0048.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0049.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0050.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0051.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0052.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0053.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0054.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0055.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0056.jpg",
+   "text": 0,
+   "merged": 1,
+   "accepted": 1
+  },
+  {
+   "image": "eval0057.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0058.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0059.jpg",
+   "text": 0,
+   "merged": 4,
+   "accepted": 2
+  },
+  {
+   "image": "eval0060.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0061.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0062.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0063.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0064.jpg",
+   "text": 1,
+   "merged": 1,
+   "accepted": 0
+  },
+  {
+   "image": "eval0065.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0066.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0067.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0068.jpg",
+   "text": 0,
+   "merged": 2,
+   "accepted": 0
+  },
+  {
+   "image": "eval0069.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0070.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0071.jpg",
+   "text": 8,
+   "merged": 8,
+   "accepted": 7
+  },
+  {
+   "image": "eval0072.jpg",
+   "text": 7,
+   "merged": 7,
+   "accepted": 5
+  },
+  {
+   "image": "eval0073.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0074.jpg",
+   "text": 0,
+   "merged": 2,
+   "accepted": 2
+  },
+  {
+   "image": "eval0075.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0076.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0077.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0078.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0079.jpg",
+   "text": 0,
+   "merged": 5,
+   "accepted": 2
+  },
+  {
+   "image": "eval0080.jpg",
+   "text": 16,
+   "merged": 12,
+   "accepted": 8
+  },
+  {
+   "image": "eval0081.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0082.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0083.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0084.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0085.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0086.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0087.jpg",
+   "text": 16,
+   "merged": 16,
+   "accepted": 13
+  },
+  {
+   "image": "eval0088.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0089.jpg",
+   "text": 3,
+   "merged": 3,
+   "accepted": 3
+  },
+  {
+   "image": "eval0090.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0091.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0092.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0093.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0094.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0095.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0096.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0097.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0098.jpg",
+   "text": 1,
+   "merged": 1,
+   "accepted": 1
+  },
+  {
+   "image": "eval0099.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0100.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0101.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0102.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0103.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0104.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0105.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0106.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0107.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0108.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0109.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0110.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0111.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0112.jpg",
+   "text": 6,
+   "merged": 9,
+   "accepted": 7
+  },
+  {
+   "image": "eval0113.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0114.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0115.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0116.jpg",
+   "text": 1,
+   "merged": 1,
+   "accepted": 0
+  },
+  {
+   "image": "eval0117.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0118.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0119.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0120.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0121.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0122.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0123.jpg",
+   "text": 10,
+   "merged": 11,
+   "accepted": 8
+  },
+  {
+   "image": "eval0124.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0125.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0126.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0127.jpg",
+   "text": 4,
+   "merged": 4,
+   "accepted": 4
+  },
+  {
+   "image": "eval0128.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0129.jpg",
+   "text": 6,
+   "merged": 6,
+   "accepted": 2
+  },
+  {
+   "image": "eval0130.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0131.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0132.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0133.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0134.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0135.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0136.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0137.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0138.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0139.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0140.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0141.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0142.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0143.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0144.jpg",
+   "text": 0,
+   "merged": 3,
+   "accepted": 1
+  },
+  {
+   "image": "eval0145.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0146.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0147.jpg",
+   "text": 2,
+   "merged": 2,
+   "accepted": 1
+  },
+  {
+   "image": "eval0148.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0149.jpg",
+   "text": 0,
+   "merged": 2,
+   "accepted": 0
+  },
+  {
+   "image": "eval0150.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0151.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0152.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0153.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0154.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0155.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0156.jpg",
+   "text": 5,
+   "merged": 5,
+   "accepted": 5
+  },
+  {
+   "image": "eval0157.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0158.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0159.jpg",
+   "text": 10,
+   "merged": 10,
+   "accepted": 7
+  },
+  {
+   "image": "eval0160.jpg",
+   "text": 3,
+   "merged": 7,
+   "accepted": 1
+  },
+  {
+   "image": "eval0161.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0162.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0163.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0164.jpg",
+   "text": 1,
+   "merged": 1,
+   "accepted": 0
+  },
+  {
+   "image": "eval0165.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0166.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0167.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0168.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0169.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0170.jpg",
+   "text": 0,
+   "merged": 2,
+   "accepted": 1
+  },
+  {
+   "image": "eval0171.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0172.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0173.jpg",
+   "text": 5,
+   "merged": 7,
+   "accepted": 5
+  },
+  {
+   "image": "eval0174.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0175.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0176.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0177.jpg",
+   "text": 12,
+   "merged": 15,
+   "accepted": 12
+  },
+  {
+   "image": "eval0178.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0179.jpg",
+   "text": 16,
+   "merged": 15,
+   "accepted": 10
+  },
+  {
+   "image": "eval0180.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0181.jpg",
+   "text": 10,
+   "merged": 7,
+   "accepted": 7
+  },
+  {
+   "image": "eval0182.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0183.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0184.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0185.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0186.jpg",
+   "text": 8,
+   "merged": 11,
+   "accepted": 8
+  },
+  {
+   "image": "eval0187.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0188.jpg",
+   "text": 0,
+   "merged": 3,
+   "accepted": 0
+  },
+  {
+   "image": "eval0189.jpg",
+   "text": 2,
+   "merged": 2,
+   "accepted": 0
+  },
+  {
+   "image": "eval0190.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0191.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0192.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0193.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0194.jpg",
+   "text": 5,
+   "merged": 7,
+   "accepted": 4
+  },
+  {
+   "image": "eval0195.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0196.jpg",
+   "text": 1,
+   "merged": 4,
+   "accepted": 1
+  },
+  {
+   "image": "eval0197.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0198.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0199.jpg",
+   "text": 1,
+   "merged": 1,
+   "accepted": 0
+  },
+  {
+   "image": "eval0200.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0201.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0202.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0203.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0204.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0205.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0206.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0207.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0208.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0209.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0210.jpg",
+   "text": 14,
+   "merged": 15,
+   "accepted": 13
+  },
+  {
+   "image": "eval0211.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0212.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0213.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0214.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0215.jpg",
+   "text": 0,
+   "merged": 2,
+   "accepted": 2
+  },
+  {
+   "image": "eval0216.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0217.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0218.jpg",
+   "text": 3,
+   "merged": 3,
+   "accepted": 2
+  },
+  {
+   "image": "eval0219.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0220.jpg",
+   "text": 2,
+   "merged": 4,
+   "accepted": 4
+  },
+  {
+   "image": "eval0221.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0222.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0223.jpg",
+   "text": 0,
+   "merged": 1,
+   "accepted": 0
+  },
+  {
+   "image": "eval0224.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0225.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0226.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0227.jpg",
+   "text": 4,
+   "merged": 4,
+   "accepted": 4
+  },
+  {
+   "image": "eval0228.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0229.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0230.jpg",
+   "text": 6,
+   "merged": 5,
+   "accepted": 4
+  },
+  {
+   "image": "eval0231.jpg",
+   "text": 0,
+   "merged": 1,
+   "accepted": 0
+  },
+  {
+   "image": "eval0232.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0233.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0234.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0235.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0236.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0237.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0238.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0239.jpg",
+   "text": 0,
+   "merged": 5,
+   "accepted": 0
+  },
+  {
+   "image": "eval0240.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0241.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0242.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0243.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0244.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0245.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0246.jpg",
+   "text": 1,
+   "merged": 1,
+   "accepted": 0
+  },
+  {
+   "image": "eval0247.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0248.jpg",
+   "text": 0,
+   "merged": 2,
+   "accepted": 1
+  },
+  {
+   "image": "eval0249.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0250.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0251.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0252.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0253.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0254.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0255.jpg",
+   "text": 0,
+   "merged": 2,
+   "accepted": 1
+  },
+  {
+   "image": "eval0256.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0257.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0258.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0259.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0260.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0261.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0262.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0263.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0264.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0265.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0266.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0267.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0268.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0269.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0270.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0271.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0272.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0273.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0274.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0275.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0276.jpg",
+   "text": 3,
+   "merged": 3,
+   "accepted": 0
+  },
+  {
+   "image": "eval0277.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0278.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0279.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0280.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0281.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0282.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0283.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0284.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0285.jpg",
+   "text": 1,
+   "merged": 1,
+   "accepted": 0
+  },
+  {
+   "image": "eval0286.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0287.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0288.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0289.jpg",
+   "text": 0,
+   "merged": 1,
+   "accepted": 0
+  },
+  {
+   "image": "eval0290.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0291.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0292.jpg",
+   "text": 0,
+   "merged": 2,
+   "accepted": 1
+  },
+  {
+   "image": "eval0293.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0294.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0295.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0296.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0297.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0298.jpg",
+   "text": 0,
+   "merged": 0,
+   "accepted": 0
+  },
+  {
+   "image": "eval0299.jpg",
+   "text": 12,
+   "merged": 12,
+   "accepted": 10
+  }
+ ]
+}

@@ -376,3 +376,26 @@ What it shows:
   - The Cloud verifier sees more box candidates: hosted per-box prompts produce more masks than the open-weights exemplar matching.
   - The two verifiers judge different candidate sets, so this is a pipeline comparison, not a head-to-head of the verifiers.
 - **Implication for the demo.** On clean plant footage, Cloud mode at minimal effort can put a false defect in the register on roughly 1 frame in 8. The builder's own negatives footage will measure this on realistic frames. Low-effort verification or a stricter box filter would be the levers.
+
+## 10. Synthetic look-alike stress test (Muse Image, evaluation only)
+
+- **Set.** 300 images from `muse-image-1.0`: plant pipes, tanks, valves and flanges with rust look-alikes and **no corrosion** by prompt.
+  - 15 look-alike categories (paint, tape, shadows, wet patches, stains, dirt, wood, copper tubing, …) × 5 plant settings; each image's prompt is in `G:/walkdown-data/synthetic/muse_eval/manifest.jsonl`.
+  - Hosted Meta outputs, so **evaluation only** (Meta Model API terms 10.1(ix)). Never trained on, never published. Cost $3.00.
+- **Labels are by prompt, not human-checked.** Four categories render marks a person may call rust staining: brown oil smudges, brown paint drips, dark water stains, and safety-yellow paint with brown dirt smears. Rates are given with and without them.
+- Script: `benchmark/negatives_fp.py synthetic_muse` (Cloud with `--all-verifiers`: the same Cloud candidates judged by every hosted verifier and by Muse Spark Open). Results: `results/negatives_fp_synthetic_muse_{cloud,on-prem}.json`. Cost: Meta ≈ $1.7, Baseten ≈ $4.0 (On-prem box proposals and verification).
+
+**Images with a false alarm (95% Wilson CI)**
+
+| Pipeline stage | Cloud, all 300 | Cloud, 221 without the 4 ambiguous categories | On-prem, all 300 | On-prem, 221 |
+|---|---|---|---|---|
+| Text prompt only | 15.3% (11.7–19.8) | 5.0% (2.8–8.7) | 13.7% (10.2–18.0) | 4.1% (2.2–7.6) |
+| Text + boxes | 40.0% (34.6–45.6) | 23.1% (18.0–29.1) | 21.0% (16.8–26.0) | 6.3% (3.8–10.4) |
+| + hosted Muse Spark, minimal (demo) | 25.7% (21.1–30.9) | 9.0% (5.9–13.6) | – | – |
+| + hosted Muse Spark, low | 21.7% (17.4–26.7) | 5.9% (3.5–9.8) | – | – |
+| + Muse Spark Open | 26.7% (22.0–31.9) | 8.1% (5.2–12.5) | 15.0% (11.4–19.5) | 2.3% (1.0–5.2) |
+
+- **Box proposals are again the main source of false alarms.** Cloud's hosted per-box prompts produce more candidates than On-prem's exemplar matching (1.6 vs 1.1 per image).
+- **The verifiers remove about half of the box look-alikes.** Low effort is the strictest.
+- **Clear look-alikes are easy.** Paint, tape, arrows, shadows, reflections and wet patches: 0–5% after any verifier.
+- **Brown stains, smudges and drips are not.** Oil smudges were accepted on 89–100% of images and paint drips on about 50–76%. Either the generator draws them like rust, or the verifiers can't tell them apart. Both are plausible without a human look.
