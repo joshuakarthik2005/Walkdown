@@ -36,15 +36,19 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-10-28 | Open-weights mode: agent + verifier on Muse Spark Open, devdemo clip (fill run: 28 verifications + agent turns; repeat run: agent turns only) | muse-spark-open-1026 (Baseten) | 2 runs | - | - | 0.289 (Baseten, at the listed $1.25 / $0.15 / $4.25 per 1M) | Meta unchanged |
 | 2026-10-28 | Box-candidate verification, test split: 5,385 new text+boxes candidates, reasoning low (first chunk 147 images, then 1,297 images with 3 processes) | muse-spark-1.3 | 5,385 | - | - | 23.02 | - |
 | 2026-10-28 | Default-pipeline switch: box proposals + box SAM on the 6 devdemo frames (latency measurement, fills the cache), then demo cache refresh (fill + repeat agent runs incl. 4 senior reviews) | muse-spark-1.3 + sam-3.1 + muse-wonder-1.0 | 6 frames, 2 runs | - | - | 0.26 | ≈58.9 (ledger total $58.85 + ~$0.05 early probes) |
+| 2026-10-28 | Adaptive packaging check on cached devdemo: one box candidate (F00005-b10) had no cached verdict after the F2 run (1 verify + senior check) | muse-spark-1.3 + muse-wonder-1.0 | 1 | - | - | < 0.02 (not ledgered: in-memory ledger) | - |
+| 2026-10-28 | Teacher labels, clean train pool (585 images): SAM 3.1 open weights on Modal (dry run at new-detection threshold 0.65 on 15 images, set aside; then all 585 at 0.5) | Modal L40S | 600 images | - | - | 0.22 (ledger, list rate) | Modal ≈ 0.4 incl. box-exemplar probes and redeploys |
+| 2026-10-28 | Teacher labels: Muse Spark Open verdicts on 1,298 open-weights candidates (dry runs 11 + 60 candidates included; 11 set aside with the 0.65 masks) | muse-spark-open-1026 (Baseten) | 1,309 | - | - | 10.95 (Baseten) | - |
+| 2026-10-28 | Human audit evaluation: hosted minimal-effort verdicts for the 100 audited candidates | muse-spark-1.3 | 100 | - | - | 0.24 | - |
 
 ## Credit pools: used vs target
 
-Updated 2026-10-28, after the box-candidate verification run. Meta and Baseten figures come from the local ledgers (`G:/walkdown-data/runs/cost_ledger.jsonl` plus per-clip ledgers), priced at list prices. The builder checks the provider dashboards.
+Updated 2026-10-28, after the teacher-label run. Meta and Baseten figures come from the local ledgers (`G:/walkdown-data/runs/cost_ledger.jsonl` plus per-clip ledgers), priced at list prices. The builder checks the provider dashboards.
 
 | Provider | Used | Target | Stop | Notes |
 |---|---|---|---|---|
-| Meta Model API | ≈ $67.5 | $120–135 | $140 | Box verification $23.02, F1 senior review $8.32, F2 comparison done |
-| Baseten (Muse Spark Open) | ≈ $48.5 | ≈ $82 | $90 | Includes the Phase 4 dry run (80 calls, priced afterwards at $0.0085 per call) and the open-weights demo run |
+| Meta Model API | ≈ $67.8 | $120–135 | $140 | Box verification $23.02, F1 senior review $8.32, F2 comparison done |
+| Baseten (Muse Spark Open) | ≈ $59.5 | ≈ $82 | $90 | Includes the Phase 4 dry run (80 calls, priced afterwards at $0.0085 per call) and the open-weights demo run |
 | Fireworks | $0 | ≈ $80 | $90 | Dataset uploads still disabled; inference-only use (zero-shot Glimmer baseline) |
-| Modal | ≈ $0.15 | ≈ $80 | $90 | SAM 3.1 open weights deployed (scale to zero, retries 0); no containers running after each job |
+| Modal | ≈ $0.6 | ≈ $80 | $90 | SAM 3.1 open weights deployed (scale to zero, retries 0); no containers running after each job |
 

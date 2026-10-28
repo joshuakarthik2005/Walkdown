@@ -1,0 +1,39 @@
+{
+ "split": "train_pool",
+ "sam": "SAM 3.1 open weights (Modal)",
+ "teacher": "Muse Spark Open (Baseten), low effort",
+ "images": 585,
+ "images_done": 585,
+ "candidates": 1298,
+ "invalid_reply_rate": 0.0,
+ "accepted": 1209,
+ "rejected": 89,
+ "accept_share_by_dataset_label": {
+  "TP": [
+   0.9453280318091452,
+   1006
+  ],
+  "FP": [
+   0.8810408921933085,
+   269
+  ],
+  "ambiguous": [
+   0.9130434782608695,
+   23
+  ]
+ },
+ "severity_histogram": {
+  "1": 6,
+  "2": 431,
+  "3": 543,
+  "4": 218,
+  "5": 11
+ },
+ "defect_types": {
+  "corrosion": 1146,
+  "rust_staining": 63
+ },
+ "usd_teacher": 10.8539,
+ "usd_per_candidate": 0.008362027927580893,
+ "latency_s_median": 13.413551649995497
+}
