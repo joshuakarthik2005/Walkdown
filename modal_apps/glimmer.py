@@ -72,10 +72,17 @@ def _load(adapter: str | None = None):
     from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndBytesConfig
     bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16,
                              bnb_4bit_use_double_quant=True,
-                             llm_int8_skip_modules=["vision_tower", "vision_model", "multi_modal_projector",
-                                                    "projector", "lm_head"])
+                             # transformers 5.21 matches skip patterns from the START of the full module path (or as
+                             # a suffix), so the vision path is named by its full prefix and stays in BF16.
+                             llm_int8_skip_modules=["model.vision_tower", "model.vision_adapter",
+                                                    "model.vision_projection", "lm_head"])
     model = AutoModelForImageTextToText.from_pretrained(BASE, quantization_config=bnb, dtype=torch.bfloat16,
                                                         device_map="cuda:0")
+    # Fail fast (before any generation) if a vision weight was quantized: 4-bit weights are stored as uint8 and
+    # the vision tower casts its input to the patch-embedding weight dtype.
+    bad = [n for n, p in model.named_parameters() if "vision" in n and p.dtype == torch.uint8]
+    if bad:
+        raise RuntimeError(f"vision weights quantized ({len(bad)}), e.g. {bad[:3]}")
     proc = AutoProcessor.from_pretrained(BASE)
     if adapter:
         from peft import PeftModel
