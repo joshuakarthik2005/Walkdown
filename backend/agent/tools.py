@@ -515,7 +515,8 @@ TOOL_SCHEMAS = [
         {"start_s": {"type": "number"}, "end_s": {"type": "number"}, "fps": {"type": "number"}}, []),
     _fn("track_video", "Video clips only: track corrosion through the whole clip with SAM 3.1 video tracking. "
         "Returns one candidate per tracked physical defect (on its best frame), so repeat sightings are already "
-        "merged. Prefer this over segment_frames for video; use segment_frames for photo sets.",
+        "merged. Text prompt only (no box proposals): on video, call it first and then segment_frames over the whole "
+        "clip, which adds box proposals; use only segment_frames for photo sets.",
         {"fps": {"type": "number"}}, []),
     _fn("verify_candidate", "Verify and grade SAM candidates with Muse Spark (rejects false positives, assigns "
         "severity 1-5, evidence and action). Pass up to 20 candidate ids per call.",

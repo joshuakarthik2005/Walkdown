@@ -371,3 +371,10 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - The Balanced prompt did not pass the overnight adoption rule as a *default* (−3.5 points of recall, over the 3-point limit). That is why it is opt-in.
   - On-prem recall was measured on the audited candidates, which have hosted-SAM masks; its false-alarm rate is measured on the full open-weights pipeline.
   - Verdicts of the two prompts are cached separately (`verify/<effort>-v2/`).
+
+## Video clips: tracking plus box proposals (2026-10-29)
+
+- **What happened.** F7 found that `track_video` crashed on every video (a parser `FrameReference` bug, now fixed). The agent had silently fallen back to frame sampling.
+- **What the fix exposed.** With tracking working, the agent used it alone. Video tracking uses only the SAM 3.1 text prompt, so on the tank-farm clip the register dropped from 17 entries to 1. Box proposals are where the default pipeline's recall comes from (RESULTS §4: text alone finds rust on 66% of images, text + boxes on 98%).
+- **Decision.** For video, the agent calls `track_video` first and then **always** `segment_frames` over the whole clip at 0.5–1 fps (text + box proposals). The register merges repeat sightings across frames.
+- **Measured on tank-farm, cached:** 17 entries, 2 jobs, OPTIMAL. The repeat run takes 50 s for $0.03.
