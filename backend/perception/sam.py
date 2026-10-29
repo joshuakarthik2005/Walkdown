@@ -68,7 +68,7 @@ class SegmentationResult:
 def _frame_index(ref) -> int:
     if ref is None:
         return 0
-    for name in ("index", "frame", "value", "number"):
+    for name in ("frame_index", "index", "frame", "value", "number"):  # meta_sam_parser FrameReference: frame_index
         if hasattr(ref, name):
             return int(getattr(ref, name))
     return int(ref)

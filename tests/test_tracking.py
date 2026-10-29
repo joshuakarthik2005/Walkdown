@@ -35,3 +35,9 @@ def test_track_video_makes_one_candidate_per_track(tmp_path, monkeypatch):
     assert s.candidates["T7"][0] == 10 and s.tracks["T7"] == [0, 10]  # best frame index (frame 2 -> index 10)
     assert (tmp_path / "sam_video" / "rust_2fps.txt").read_text() == "raw"
     assert tools.track_video(SimpleNamespace(clip=SimpleNamespace(source=None)))["error"]
+
+
+def test_frame_reference_from_the_parser_is_read_as_an_int():
+    import meta_sam_parser as msp
+    from backend.perception.sam import _frame_index
+    assert _frame_index(msp.FrameReference(frame_index=7)) == 7 and _frame_index(None) == 0 and _frame_index(3) == 3

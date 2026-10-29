@@ -45,6 +45,7 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-10-28 | False alarms on 191 public negatives, Cloud and On-prem (incl. 20-image dry runs) | sam-3.1 + muse-spark-1.3 / Modal + muse-spark-open-1026 | 191 x 2 | - | - | Meta 1.20, Baseten ≈ 1.25, Modal ≈ 0.04 | - |
 | 2026-10-28 | Glimmer stage 1: weights to private Modal volume (59.6 GB, 263 s, CPU) | Modal CPU | 1 | - | - | ≈ 0.02 | - |
 | 2026-10-28 | **Incident:** Glimmer smoke test stopped by the local low-memory guard during model load; the remote H100 kept running 21:06-21:09 IST until the ephemeral app was stopped (`modal app stop -y`), 0 containers confirmed. Since then every Modal GPU job runs with `modal run --detach` and a hard function timeout, results written to the volume, app/container lists checked after every job | Modal H100 | 1 | - | - | ≈ 0.2 | - |
+| 2026-10-29 | Fireworks on-demand deployment (Glimmer baseline) refused: HTTP 400 "payment method is required". Builder decision: **skip on-demand deployments**; Fireworks used only for serverless inference (Muse Spark Open comparison, full-test-split On-prem benchmark). Glimmer evaluation moved to Modal | Fireworks | 0 | - | - | 0.00 | - |
 
 ## Credit pools: used vs target
 

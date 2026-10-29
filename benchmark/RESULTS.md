@@ -513,3 +513,27 @@ What it shows:
 - **Verdict.** v1 is a strong high-recall, low-cost filter. It is **not** a drop-in replacement where false alarms matter.
 - **Fix to try next.** The obvious lever is real hard negatives in training: the builder's own negatives footage, and teacher-rejected real candidates from the train pool's box proposals. It is not run tonight.
 - **Weights:** private Modal volume only, never published.
+- **Positioning (builder decision, 2026-10-29).** Tuned Glimmer is an **optional fast, cheap, high-recall first pass** (99% audited recall, ≈ 6× cheaper than Muse Spark Open). It is **not the final verifier**, because of its higher false-alarm rate. It is not wired into the default pipeline. It will be retrained only if the builder's real negatives footage arrives.
+
+
+## 15. F7: live end-to-end agent runs (partial: 12 of 50)
+
+- **Setup.** Cloud mode, every model call live (no perception or verdict cache), verifier at minimal effort.
+  - Clips rotate: the dev photo clip and five stock demonstration clips. Every third run adds a constraint change (crew unavailable) and a replan.
+  - Script: `benchmark/f7_live_runs.py`; journal: `G:/walkdown-data/runs/f7_live_runs.jsonl`; result: `results/f7_live_runs.json`.
+
+| Runs | Success | Runs with a tool error | Max-steps hit | Replan runs (all succeeded) | Median wall time (p90) | Median cost (total) |
+|---|---|---|---|---|---|---|
+| 12 | **12 / 12** | 6 (each run still succeeded) | 0 | 4 | 152 s (228 s) | $0.18 ($3.18) |
+
+- **Success** means the run ended with a final answer, a built register, a plan, `explain_plan`, and the replan for the replan runs.
+- **Tool errors.** Two are expected: `track_video` called on the photo clip ("this clip is a set of photos; use segment_frames"), after which the agent switches tools.
+- **Four were a real bug, found by F7.** On the stock videos, `track_video` crashed while parsing SAM's video output (`TypeError: ... 'FrameReference'`: the parser's frame object exposes `frame_index`, which the code did not read).
+  - The agent recovered by sampling frames, so the runs still succeeded, but video tracking (one candidate per physical defect across frames) was silently lost, and the failed call was paid again on every run.
+  - **Fixed** in `backend/perception/sam.py`, with a test. `track_video` on the tank-farm clip now returns 2 tracks over 24 frames ($0.01).
+- **Bottlenecks:**
+  - Perception dominated wall time (the slowest run: tank-farm, 441 s).
+  - Part of that was decoding SAM's mask format in pure Python, about 4 s per 1280×720 mask. That is now cached on disk (commit afe5197), so repeat runs avoid it.
+  - Plan solving is capped at 30 s.
+- **Why only 12 runs.** The overnight job was stopped at 04:20 when the Claude Code session ended. That ended its background shell; there was no failure.
+  - At about 3 min per run, 50 runs need about 2.5 h. The remaining runs continue when the full On-prem benchmark is done (one heavy job at a time).
