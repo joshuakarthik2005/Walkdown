@@ -355,3 +355,19 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - Hosted minimal: candidate false alarms −49% on real negatives and −37% on the Muse Image set, but audited recall −3.5 points (97.3% → 93.8%).
   - Muse Spark Open: −4.4 points recall for a small false-alarm gain.
 - **Decision:** v1 stays the default. v2 stays in the code behind `prompt_version="v2"` for the builder to decide.
+
+## Detection sensitivity setting (2026-10-29, builder decision)
+
+- **Setting.** The UI and API (`POST /runs` `sensitivity`, `GET /sensitivity`) expose "Detection sensitivity" with its measured operating points next to each option (`backend/verify/sensitivity.py`):
+
+  | Option | Verifier | Audited real-rust recall (n = 113) | Real clean-pipe images with a false alarm (n = 191) |
+  |---|---|---|---|
+  | **High recall (default)** | Muse Spark, minimal effort, v1 prompt | 97.3% (110; CI 92.5–99.1) | 12.0% (23; CI 8.2–17.4) |
+  | Balanced | Muse Spark, minimal effort, v2 look-alike prompt | 93.8% (106; CI 87.8–97.0) | 6.8% (13; CI 4.0–11.3) |
+  | On-prem (fixed) | Muse Spark Open, v1 | 95.6% (108; CI 90.1–98.1) | 2.1% end to end (4; CI 0.8–5.3) |
+
+- **Why the default favours recall.** In inspection a missed defect is the dangerous error, and every flag is reviewed by a person anyway. A false alarm costs a reviewer a few seconds; a missed defect can mean a leak. The user can trade recall for fewer false alarms.
+- **Caveats on the numbers:**
+  - The Balanced prompt did not pass the overnight adoption rule as a *default* (−3.5 points of recall, over the 3-point limit). That is why it is opt-in.
+  - On-prem recall was measured on the audited candidates, which have hosted-SAM masks; its false-alarm rate is measured on the full open-weights pipeline.
+  - Verdicts of the two prompts are cached separately (`verify/<effort>-v2/`).

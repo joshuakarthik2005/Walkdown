@@ -6,6 +6,7 @@ import { ChangePanel } from "@/components/ChangePanel";
 import { Copilot } from "@/components/Copilot";
 import { Gantt } from "@/components/Gantt";
 import { PlanViews } from "@/components/PlanViews";
+import { SensitivityPicker } from "@/components/SensitivityPicker";
 import { RegisterView } from "@/components/RegisterView";
 import { VoiceNotes } from "@/components/VoiceNotes";
 import { Attribution, SafetyNotice } from "@/components/SafetyNotice";
@@ -46,6 +47,11 @@ export default function Home() {
   const [asset, setAsset] = useState({ asset_id: "UNIT2-LPG-RACK", asset_type: "pipe", pressurised: true, location: "", service: "lpg" });
   const [live, setLive] = useState(false);
   const [mode, setMode] = useState<api.Mode>("cloud");
+  const [sensitivity, setSensitivity] = useState<api.Sensitivity>("high_recall");
+  const [sensitivityOptions, setSensitivityOptions] = useState<Awaited<ReturnType<typeof api.getSensitivity>>["options"] | null>(null);
+  useEffect(() => {
+    api.getSensitivity().then((r) => setSensitivityOptions(r.options)).catch(() => setSensitivityOptions(null));
+  }, []);
   const [runId, setRunId] = useState<string | null>(null);
   const [status, setStatus] = useState<RunStatus | null>(null);
   const [events, setEvents] = useState<TraceEvent[]>([]);
@@ -121,7 +127,7 @@ export default function Home() {
     setFrames([]);
     cursor.current = 0;
     try {
-      const r = await api.startRun(clipId, live, mode);
+      const r = await api.startRun(clipId, live, mode, sensitivity);
       setStatus(null);
       setRunId(r.run_id);
       setPollKey((k) => k + 1);
@@ -219,6 +225,7 @@ export default function Home() {
                 ? "Hosted Meta models: SAM 3.1, Muse Spark (agent, verifier), Muse Wonder (second opinion on severe or uncertain grades; disagreements go to a person)."
                 : "Open weights only: SAM 3.1 open weights on a scale-to-zero GPU (Modal), box proposals, agent and verifier on Muse Spark Open (Baseten). Built with Muse Spark Open. No Muse Wonder second opinion."}
             </div>
+            <SensitivityPicker options={sensitivityOptions} mode={mode} value={sensitivity} busy={running} onChange={setSensitivity} />
             <div className="row" style={{ marginTop: 10 }}>
               <button onClick={run} disabled={!clipId || running}>Run the agent</button>
             </div>

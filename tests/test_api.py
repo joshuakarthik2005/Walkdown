@@ -50,3 +50,12 @@ def test_run_lifecycle_with_fake_agent(monkeypatch):
     assert client.get(f"/runs/{run_id}/plan").status_code == 409  # no plan yet
     change = {"change": {"type": "crew_unavailable", "crew_id": "C1", "start": 0, "end": 10}, "now_hour": 0}
     assert client.post(f"/runs/{run_id}/changes", json=change).status_code == 409
+
+
+def test_sensitivity_options_are_measured_operating_points():
+    r = client.get("/sensitivity").json()
+    assert r["default"] == "high_recall"
+    hr, bal = r["options"]["high_recall"], r["options"]["balanced"]
+    assert hr["recall"]["value"] > bal["recall"]["value"] and hr["false_alarm_images"]["value"] > bal["false_alarm_images"]["value"]
+    for o in r["options"].values():
+        assert o["recall"]["n"] == 113 and o["false_alarm_images"]["n"] == 191 and len(o["recall"]["ci"]) == 2

@@ -96,3 +96,4 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; }
 .exports a { color: var(--text); }
 .mode-switch { display: flex; gap: 6px; margin-top: 10px; }
 .mode-note { font-size: 12px; margin-top: 4px; }
+.sensitivity { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }

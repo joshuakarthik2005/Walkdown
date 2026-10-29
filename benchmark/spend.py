@@ -24,9 +24,15 @@ def provider(model: str) -> str:
     return "meta"
 
 
+def _lines():
+    """The main ledger plus every clip's agent-run ledger (clips/<id>/cost_ledger.jsonl)."""
+    for path in [LEDGER, *sorted((DATA_DIR / "clips").glob("*/cost_ledger.jsonl"))]:
+        yield from path.read_text(encoding="utf-8").splitlines()
+
+
 def since(start: float) -> dict[str, float]:
     out = {"meta": 0.0, "baseten": 0.0, "modal": 0.0, "fireworks": 0.0}
-    for line in LEDGER.read_text(encoding="utf-8").splitlines():
+    for line in _lines():
         try:
             r = json.loads(line)
         except ValueError:

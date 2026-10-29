@@ -41,6 +41,8 @@ from backend.agent.tools import AgentSession, compare_views
 from backend.clients.cost import CostLedger
 from backend.planner.models import ServiceType
 from backend.planner.packages import package_of
+from backend.verify.sensitivity import DEFAULT as SENSITIVITY_DEFAULT
+from backend.verify.sensitivity import OPERATING_POINTS
 
 app = FastAPI(title="Walkdown API", version="0.1.0")
 # Local UI only: any port on localhost / 127.0.0.1.
@@ -122,6 +124,16 @@ class RunRequest(BaseModel):
         "meta", description="meta: Cloud mode (hosted SAM 3.1, Muse Spark, Muse Wonder); baseten: On-prem mode, open "
                             "weights only (SAM 3.1 on Modal, Muse Spark Open on Baseten for agent and verifier).")
     message: str | None = None
+    sensitivity: Literal["high_recall", "balanced"] = Field(
+        "high_recall", description="Detection sensitivity (Cloud mode): high_recall (default) or balanced (look-alike "
+                                   "checklist prompt; about half the false alarms, ~3.5 points less recall). "
+                                   "GET /sensitivity lists the measured operating points.")
+
+
+@app.get("/sensitivity")
+def sensitivity_options() -> dict:
+    """Measured operating points of the detection-sensitivity setting (benchmark/RESULTS.md 8, 9, 11)."""
+    return dict(default=SENSITIVITY_DEFAULT, options=OPERATING_POINTS)
 
 
 @app.post("/runs")
@@ -136,7 +148,8 @@ def start_run(req: RunRequest) -> dict:
                            verify_effort=req.verify_effort, provider=req.provider,
                            # On-prem mode uses open weights only: SAM 3.1 open weights on Modal, box proposals from
                            # Muse Spark Open, and no senior review (Muse Wonder).
-                           sam_backend="modal" if req.provider == "baseten" else "meta")
+                           sam_backend="modal" if req.provider == "baseten" else "meta",
+                           sensitivity=req.sensitivity)
     state = RunState(run_id, WalkdownAgent(session, reasoning_effort=req.agent_effort))
     RUNS[run_id] = state
     message = req.message or (f"New walkdown clip of {clip.asset.asset_id}"
@@ -152,7 +165,8 @@ def run_status(run_id: str) -> dict:
     s = st.agent.s
     return dict(run_id=run_id, status=st.status, error=st.error, answers=st.answers,
                 steps=len(st.agent.trace), usd=s.ledger.total(), elapsed_s=time.time() - st.started_at,
-                now_hour=s.now)
+                now_hour=s.now, mode="on-prem" if s.provider == "baseten" else "cloud",
+                sensitivity="on_prem" if s.provider == "baseten" else s.sensitivity)
 
 
 @app.get("/runs/{run_id}/trace")

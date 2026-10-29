@@ -22,6 +22,7 @@ from backend.perception.sam_open import segment_boxes_open, segment_images_open,
 from backend.planner.cpsat import solve
 from backend.planner.generator import load_scenario
 from backend.planner.models import Change, Plan, PlannerConfig, Scenario
+from backend.verify.sensitivity import PROMPT_VERSION
 from backend.planner.packages import PackageConfig, build_packages, choose_view, package_of, plan_metrics, setup_hours_saved
 from backend.planner.replan import replan
 from backend.verify.schema import Grade
@@ -53,6 +54,9 @@ class AgentSession:
     packages: PackageConfig = field(default_factory=PackageConfig)  # work-package grouping of register defects
     provider: str = "meta"  # "meta" (hosted Muse Spark) or "baseten" (open-weight Muse Spark Open)
     senior_review: bool = True  # escalate severe/uncertain grades to Muse Wonder (Cloud mode only)
+    # Detection sensitivity (backend/verify/sensitivity.py): "high_recall" (default, prompt v1) or "balanced"
+    # (look-alike checklist prompt v2). Cloud mode only; On-prem always uses Muse Spark Open with v1.
+    sensitivity: str = "high_recall"
     # Demo path: 30 s per solve (status and gap are always reported; FEASIBLE is shown as such).
     planner_config: PlannerConfig = field(default_factory=lambda: PlannerConfig(time_limit_s=30))
     base_scenario: Scenario = field(default_factory=lambda: demo_backlog())
@@ -245,8 +249,14 @@ def track_video(s: AgentSession, fps: float = 2.0) -> dict:
                 truncated=len(new) > 40)
 
 
+def _prompt_version(s: AgentSession) -> str:
+    return PROMPT_VERSION.get(s.sensitivity, "v1") if s.provider == "meta" else "v1"
+
+
 def _verdict_cache(s: AgentSession, cid: str) -> Path:
     sub = s.verify_effort if s.provider == "meta" else f"{s.provider}-{s.verify_effort}"
+    if _prompt_version(s) != "v1":
+        sub += f"-{_prompt_version(s)}"
     if s.sam_backend != "meta":  # open-weights SAM gives different masks under the same candidate ids
         sub += f"-sam-{s.sam_backend}"
     return s.clip.dir / "verify" / sub / f"{cid}.json"
@@ -271,13 +281,15 @@ def _verify_one(s: AgentSession, cid: str) -> tuple[Verdict, SeniorReview | None
     """First-pass verdict (cached), then senior review when the grade needs it (cached separately)."""
     import cv2
     frame, inst = s.candidates[cid]
+    obj = cid.split("-", 1)[1] if "-" in cid else cid
     cand = lambda: Candidate(cid, cv2.imread(str(s.frame_paths[frame]), cv2.IMREAD_COLOR), inst.mask,  # noqa: E731
-                             inst.box, inst.confidence)
+                             inst.box, inst.confidence, source="box" if obj.startswith("b") else "text")
     cache = _verdict_cache(s, cid)
     if cache.exists() and not s.live:
         v = _load_verdict(json.loads(cache.read_text(encoding="utf-8")))
     else:
-        v = verify(cand(), provider=s.provider, reasoning_effort=s.verify_effort, ledger=s.ledger, job="agent-verify")
+        v = verify(cand(), provider=s.provider, reasoning_effort=s.verify_effort, ledger=s.ledger, job="agent-verify",
+                   prompt_version=_prompt_version(s))
         cache.parent.mkdir(parents=True, exist_ok=True)
         cache.write_text(json.dumps(_dump_verdict(v), indent=1), encoding="utf-8")
     if not (s.senior_review and s.provider == "meta"):

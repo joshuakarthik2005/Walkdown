@@ -27,12 +27,14 @@ export async function uploadClip(files: File[], asset: { asset_id: string; asset
 
 export type Mode = "cloud" | "onprem";
 
-export async function startRun(clip_id: string, live: boolean, mode: Mode = "cloud") {
+export type Sensitivity = "high_recall" | "balanced";
+
+export async function startRun(clip_id: string, live: boolean, mode: Mode = "cloud", sensitivity: Sensitivity = "high_recall") {
   return json<{ run_id: string }>(
     await fetch(`${API_URL}/runs`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clip_id, live, provider: mode === "onprem" ? "baseten" : "meta" }),
+      body: JSON.stringify({ clip_id, live, provider: mode === "onprem" ? "baseten" : "meta", sensitivity }),
     }),
   );
 }
@@ -77,3 +79,23 @@ export async function uploadVoice(id: string, file: File) {
   form.append("audio", file);
   return json<import("./types").VoiceNoteResult>(await fetch(`${API_URL}/runs/${id}/voice`, { method: "POST", body: form }));
 }
+
+export interface Measure {
+  value: number;
+  k: number;
+  n: number;
+  ci: [number, number];
+}
+
+export interface OperatingPoint {
+  label: string;
+  mode: "cloud" | "on-prem";
+  default: boolean;
+  verifier: string;
+  recall: Measure;
+  false_alarm_images: Measure;
+  note: string;
+}
+
+export const getSensitivity = async () =>
+  json<{ default: Sensitivity; options: Record<Sensitivity | "on_prem", OperatingPoint> }>(await fetch(`${API_URL}/sensitivity`));
