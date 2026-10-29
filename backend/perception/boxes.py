@@ -55,7 +55,8 @@ def box_system(width: int, height: int) -> str:
 
 OPEN_JSON_INSTRUCTION = (' Reply with only a JSON object and nothing else: {"boxes": [{"left": int, "top": int, '
                          '"right": int, "bottom": int}, ...]}.')
-OPEN_MAX_TOKENS = 8000  # Muse Spark Open reasons before answering and has no strict decoding (RESULTS.md section 6)
+OPEN_MAX_TOKENS = 8000
+FIREWORKS_SPARK_OPEN = "accounts/fireworks/models/muse-spark-open"  # Muse Spark Open reasons before answering and has no strict decoding (RESULTS.md section 6)
 
 
 def _parse_boxes(text: str) -> list[dict]:
@@ -76,10 +77,13 @@ def propose_boxes(image: Path, width: int, height: int, *, ledger: CostLedger | 
     url = f"data:{mime};base64," + base64.b64encode(image.read_bytes()).decode()
     user = {"role": "user", "content": [{"type": "text", "text": "Find the corrosion."},
                                         {"type": "image_url", "image_url": {"url": url}}]}
-    if provider == "baseten":
-        from backend.verify.verifier import BASETEN_MODEL, baseten_client
-        model = BASETEN_MODEL
-        resp = with_retries(lambda: baseten_client().chat.completions.create(
+    if provider in ("baseten", "fireworks"):
+        # Muse Spark Open on Baseten, or the same model on Fireworks serverless (97% identical verifier decisions,
+        # RESULTS 6); no structured output, JSON parsed from the reply.
+        from backend.verify.verifier import BASETEN_MODEL, baseten_client, fireworks_client
+        model, client = ((BASETEN_MODEL, baseten_client()) if provider == "baseten"
+                         else (FIREWORKS_SPARK_OPEN, fireworks_client()))
+        resp = with_retries(lambda: client.chat.completions.create(
             model=model, max_tokens=OPEN_MAX_TOKENS,
             messages=[{"role": "system", "content": box_system(width, height) + OPEN_JSON_INSTRUCTION}, user]))
     else:

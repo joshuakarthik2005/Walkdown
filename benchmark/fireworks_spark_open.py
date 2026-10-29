@@ -18,7 +18,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 from pathlib import Path
 
-from backend.clients.cost import CostEntry, CostLedger, muse_cost
+from backend.clients.cost import CostLedger
 from backend.verify.verifier import verify
 from benchmark.download_dataset import DATA_DIR
 from benchmark.fireworks_eval import test_candidates
@@ -43,13 +43,10 @@ def main() -> int:
         path = cache / (lazy.candidate_id.replace("#", "__") + ".json")
         if path.exists():
             return
-        v = verify(lazy.load(), provider="fireworks", model=MODEL, job="fireworks-spark-open")
+        v = verify(lazy.load(), provider="fireworks", model=MODEL, job="fireworks-spark-open", ledger=ledger)
         d = asdict(v)
         d["grade"] = v.grade.model_dump(mode="json") if v.grade else None
-        # serverless is billed per token at the listed Muse Spark Open rates (docs.fireworks.ai/serverless/pricing)
-        d["usd"] = muse_cost(v.input_tokens, v.output_tokens, v.cached_tokens)
-        ledger.add(CostEntry(job="fireworks-spark-open", model=f"fireworks {MODEL}", usd=d["usd"],
-                             input_tokens=v.input_tokens, output_tokens=v.output_tokens))
+        # serverless is billed per token at the listed Muse Spark Open rates; verify() records it in the ledger
         path.write_text(json.dumps(d), encoding="utf-8")
 
     with ThreadPoolExecutor(max_workers=8) as pool:

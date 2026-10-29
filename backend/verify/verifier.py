@@ -214,9 +214,10 @@ def verify(c: Candidate, *, provider: str = "meta", reasoning_effort: str = "low
             if finish == "length":
                 break  # a retry with the same budget would truncate again
     latency = time.perf_counter() - t0
-    # Baseten lists Muse Spark Open at the same per-token price as hosted Muse Spark (docs/COST_LOG.md). A Fireworks
-    # on-demand deployment bills per GPU hour, recorded by the caller, so per-call cost is 0 here.
-    usd = 0.0 if provider == "fireworks" else (wonder_cost if provider == "wonder" else muse_cost)(
+    # Baseten and Fireworks serverless list Muse Spark Open at the hosted Muse Spark per-token price
+    # (docs/COST_LOG.md). A Fireworks on-demand deployment bills per GPU hour, recorded by the caller: 0 here.
+    hourly = provider == "fireworks" and "/deployments/" in (model or "")
+    usd = 0.0 if hourly else (wonder_cost if provider == "wonder" else muse_cost)(
         tokens["input"], tokens["output"], tokens["cached"])
     if ledger is not None:
         ledger.add(CostEntry(job=job, model=model, usd=usd or 0.0, input_tokens=tokens["input"],
