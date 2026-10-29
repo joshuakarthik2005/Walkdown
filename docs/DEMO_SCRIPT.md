@@ -80,6 +80,8 @@ Use these only if the builder's own footage is not enough. On screen and in the 
 | `stock-welded-pipes` | Welded pipes with rust staining | 16 / 18 | 16 / 2 | FEASIBLE (gap 4%) / OPTIMAL | $0.35 / $0.19 |
 | `stock-clean-piping` | Clean painted plant piping | **0** | 0 | – | $0.12 / $0.04 |
 
+**Final choice (builder, 2026-10-29):** main clip **`stock-tank-farm`**; false-alarm beat **`stock-clean-piping`**; **`stock-valve-tank` only as backup**. `stock-vessel` is not used in the video; one of its frames illustrates the grille false alarm in the README Limitations.
+
 **Visual mask check (2026-10-29; overlays and notes in `G:/walkdown-data/demo_checks/`) changed the recommendation:**
 - **`stock-tank-farm` is now the main clip.** Light rust staining on tank seams, a rusty platform and a ladder; mostly plausible masks.
 - **`stock-clean-piping`** stays as the false-alarm beat (0 detections).

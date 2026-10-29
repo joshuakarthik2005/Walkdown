@@ -42,3 +42,5 @@ Pixabay and Coverr were searched too:
   - Roboflow "No Rust" (96 images, CC BY 4.0): no exportable version.
   - Kaggle: no rust/no-rust set found, and no Kaggle API key.
   - University repositories: no non-corroded pipe class with a clear licence.
+
+**Used in the repo:** one downscaled frame of `pexels_35069362.mp4` (Diego Castro Calderon), with Walkdown's mask overlay, is in `docs/images/false_alarm_perforated_grille.jpg` and illustrates a false-alarm limitation in the README. It is credited there; this is a modified use within a larger work, not standalone redistribution (Pexels License).

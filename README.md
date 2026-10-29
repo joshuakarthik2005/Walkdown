@@ -97,6 +97,14 @@ Walkdown assists inspectors; it does not replace them. These limitations apply i
   | On-prem | 95.6% (90.1–98.1) | 2.1% (0.8–5.3) |
 
   The default favours recall because a missed defect is the dangerous error, and every flag is reviewed by a person ([`docs/DECISIONS.md`](docs/DECISIONS.md)).
+- **Dusty or discoloured perforated grilles and panels can be flagged as corrosion.**
+  - On a stock clip of a vessel with perforated panels, the default setting put 11 entries in the register. The large ones (W01–W03 below) cover dusty grilles, not rust.
+  - Their evidence cites colour only ("uniform brown-orange discoloration over mesh").
+  - On the same clip, the **Balanced** setting, whose prompt requires a texture cue, kept 3 entries. One of those still looks like a grille panel. This is one clip, not a measured rate.
+
+  <img src="docs/images/false_alarm_perforated_grille.jpg" width="200" alt="Walkdown overlay: yellow masks W01-W03 on dusty perforated grille panels of a vessel, flagged as corrosion (false alarms)">
+
+  *Stock demonstration footage: "Industrial facility with large metallic cylinder" by Diego Castro Calderon, [Pexels](https://www.pexels.com/video/industrial-facility-with-large-metallic-cylinder-35069362/) (Pexels License), downscaled frame with Walkdown's mask overlay.*
 - **Brown stains are hard.** On generated stress images, brown oil smudges, paint drips and dirt smears are accepted as rust by every verifier ([RESULTS §10](benchmark/RESULTS.md)). Box proposals are the main source of false alarms (§9, §10).
 - **Severity grades are not validated for accuracy.** There is no ground truth for severity. Grades are schema-validated and consistency-checked, but a grade is a triage suggestion, not an engineering assessment.
 - **Not a substitute for certified inspection programmes.** Walkdown does not perform or replace inspections under API 570 (piping), API 510 (pressure vessels), API 653 (tanks), a risk-based inspection (RBI) programme, wall-thickness measurement or any regulatory requirement.
