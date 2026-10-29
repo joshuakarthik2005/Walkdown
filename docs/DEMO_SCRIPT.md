@@ -77,7 +77,14 @@ Use these only if the builder's own footage is not enough. On screen and in the 
 | `stock-welded-pipes` | Welded pipes with rust staining | 16 / 18 | 16 / 2 | FEASIBLE (gap 4%) / OPTIMAL | $0.35 / $0.19 |
 | `stock-clean-piping` | Clean painted plant piping | **0** | 0 | – | $0.12 / $0.04 |
 
-**Recommended for the video:**
+**Visual mask check (2026-10-29; overlays and notes in `G:/walkdown-data/demo_checks/`) changed the recommendation:**
+- **`stock-tank-farm` is now the main clip.** Light rust staining on tank seams, a rusty platform and a ladder; mostly plausible masks.
+- **`stock-clean-piping`** stays as the false-alarm beat (0 detections).
+- **`stock-vessel` is dropped.** Its large masks sit on dusty perforated grille panels, which are false alarms.
+- **`stock-valve-tank`** is usable only as the "disputed, needs human review" example: the lichen and worn-paint flags are questionable.
+- `stock-rusty-pipe` flags a galvanised bucket.
+
+**Original recommendation (before the visual check):**
 1. **`stock-valve-tank`** as the main walkdown: a real plant object, a readable register, 2 jobs and a provably optimal plan.
 2. **`stock-clean-piping`** as the false-alarm beat: "on clean painted piping, the register stays empty". The same piping is a false-alarm risk in RESULTS §9, so verify it again before recording.
 3. **`stock-vessel`** as a backup: a single job, and the repeat run is almost fully cached ($0.02).
