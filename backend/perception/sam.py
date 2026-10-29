@@ -14,6 +14,9 @@ before upload so only the sampled frames are billed.
 from __future__ import annotations
 
 import base64
+import json
+import os
+import threading
 import mimetypes
 import tempfile
 from dataclasses import dataclass, field
@@ -71,7 +74,42 @@ def _frame_index(ref) -> int:
     return int(ref)
 
 
+# Decoded-mask cache: meta_sam_parser decodes SAM's lossless mask codec in pure Python (~4 s per 1280x720 mask), so
+# the decoded masks of every output text are stored once as COCO RLE, keyed by a hash of the text and frame size.
+DECODED_CACHE = Path(os.environ.get("WALKDOWN_DATA_DIR", "G:/walkdown-data")) / "runs" / "decoded_masks"
+
+
 def parse_output(text: str, width: int, height: int, *, video: bool = False) -> list[Instance]:
+    """Parse SAM output text into full-frame instances (one per mask record); decoded masks are cached on disk."""
+    import hashlib
+
+    from pycocotools import mask as mask_utils
+    key = hashlib.sha1(f"{width}x{height}:{int(video)}:".encode() + text.encode()).hexdigest()
+    path = DECODED_CACHE / key[:2] / f"{key}.json"
+    if path.exists():
+        out = []
+        for r in json.loads(path.read_text(encoding="utf-8")):
+            rle = {"size": r["size"], "counts": r["counts"].encode()}
+            out.append(Instance(object_id=r["object_id"], box=tuple(r["box"]), mask=mask_utils.decode(rle).astype(bool),
+                                confidence=r["confidence"], frame=r["frame"]))
+        return out
+    instances = _parse_output(text, width, height, video=video)
+    try:
+        recs = []
+        for i in instances:
+            rle = mask_utils.encode(np.asfortranarray(i.mask.astype(np.uint8)))
+            recs.append(dict(object_id=i.object_id, box=list(i.box), confidence=i.confidence, frame=i.frame,
+                             size=rle["size"], counts=rle["counts"].decode()))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(f".{os.getpid()}.{threading.get_ident()}.tmp")  # concurrent writers
+        tmp.write_text(json.dumps(recs), encoding="utf-8")
+        os.replace(tmp, path)
+    except OSError:  # cache is an optimisation only
+        pass
+    return instances
+
+
+def _parse_output(text: str, width: int, height: int, *, video: bool = False) -> list[Instance]:
     """Parse SAM output text into full-frame instances (one per mask record)."""
     fmt = msp.video_segmentation_format() if video else msp.image_segmentation_format()
     parser = fmt.create_parser()
