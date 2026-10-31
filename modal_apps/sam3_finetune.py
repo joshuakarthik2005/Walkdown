@@ -121,11 +121,25 @@ def _patch_fused_mlp() -> None:
         open(path, "w", encoding="utf-8").write(src.replace(old, new))
 
 
+def _patch_single_gpu_ddp() -> None:
+    """One GPU: skip the DDP wrapper. With DDP, batches that leave two parameters without a gradient (e.g. a
+    negatives-only batch) fail at the next step ("Expected to have finished reduction in the prior iteration")."""
+    path = "/opt/sam3/sam3/train/trainer.py"
+    src = open(path, encoding="utf-8").read()
+    old = ("    def _setup_ddp_distributed_training(self, distributed_conf, accelerator):\n"
+           "        assert isinstance(self.model, torch.nn.Module)\n")
+    new = old + ("        if torch.distributed.get_world_size() == 1:  # walkdown patch: single GPU, no DDP\n"
+                 "            return\n")
+    if old in src and "walkdown patch" not in src:
+        open(path, "w", encoding="utf-8").write(src.replace(old, new))
+
+
 @app.function(image=image, gpu="H100", volumes={VOL: volume}, secrets=[hf_secret], timeout=3 * 3600, retries=0,
               max_containers=1)  # $11.85 max per run
 def train_run(epochs: int, run: str, lr_scale: float = 0.1) -> dict:
     t0 = time.time()
     _patch_fused_mlp()
+    _patch_single_gpu_ddp()
     config = _write_config(epochs, run, lr_scale)
     proc = subprocess.run(["python", "sam3/train/train.py", "-c", config, "--use-cluster", "0", "--num-gpus", "1"],
                           cwd="/opt/sam3", capture_output=True, text=True)
