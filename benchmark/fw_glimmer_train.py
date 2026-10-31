@@ -169,7 +169,7 @@ def _run(args, service, sdk, renderer, tokenizer, datums, evals, out_dir, log, g
             client.optim_step(adam).result()
             step += 1
             if not args.dry_run and step % CHECKPOINT_EVERY == 0:
-                path = client.save_state(f"walkdown-glimmer-fw-step{step}", overwrite=True).result().path
+                path = client.save_state(f"walkdown-glimmer-fw-step{step}").result().path
                 state_file.write_text(json.dumps(dict(step=step, path=path)), encoding="utf-8")
             m = dict(getattr(fb, "metrics", None) or {})
             loss = m.get("loss:sum", 0.0) / max(float(m.get("response_tokens") or 1.0), 1.0)
