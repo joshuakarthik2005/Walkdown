@@ -48,6 +48,9 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-10-29 | Fireworks on-demand deployment (Glimmer baseline) refused: HTTP 400 "payment method is required". Builder decision: **skip on-demand deployments**; Fireworks used only for serverless inference (Muse Spark Open comparison, full-test-split On-prem benchmark). Glimmer evaluation moved to Modal | Fireworks | 0 | - | - | 0.00 | - |
 | 2026-10-31 | On-prem full test split: Muse Spark Open box proposals + verification on Fireworks serverless (1,444 images, 7,318 candidates; resumed twice after memory-guard stops) | muse-spark-open (Fireworks serverless) + Modal L40S | 1,444 | - | - | Fireworks ≈ 79.0, Modal ≈ 1 | Fireworks total 82.27 |
 | 2026-10-31 | Glimmer LoRA on Fireworks Serverless Training (208 steps, images): training $0 (promotion); evaluation sampling on 318 rows; dry runs | muse-glimmer-30b (Fireworks serverless training) | 1,654 train / 318 eval | 334k prefill | 46k sampled | 0.89 | Fireworks ≈ 83.2 |
+| 2026-10-31 | Glimmer v2 on Modal: training (2,212 examples, 104 min) + evaluation (1,227 candidates, 50 min) | Glimmer 30B QLoRA, A100/H100 (Modal) | 2,212 / 1,227 | - | - | Modal ≈ 10.1 (+ ≈ 1.7 for the cancelled first attempt) | - |
+| 2026-10-31 | SAM 3 full fine-tune on Modal: base dev evaluation + 9 smoke attempts (none completed; RESULTS 18) | SAM 3 open weights, H100 (Modal) | 50 dev / 1,206 train | - | - | Modal ≈ 1.5 | - |
+| 2026-10-31 | F7: 50 live agent runs (resumed at run 22) | muse-spark-1.3 + sam-3.1 (Meta) | 50 runs | - | - | Meta 10.70 (all 50 runs) | - |
 
 ## Credit pools: used vs target
 

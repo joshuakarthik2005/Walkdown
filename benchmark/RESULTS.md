@@ -641,3 +641,27 @@ What it shows:
     - The individual plan was FEASIBLE with a 57% gap in 30 s.
   - **Adaptive default.** Group only when the individual plan cannot be proven within 5% in 30 s. Both plans are shown in the UI with exposure, makespan, gap and setup hours (docs/DECISIONS.md, "Work packages").
   - Example (stock valve-tank clip, browser test): grouping was used, OPTIMAL vs individual FEASIBLE (49% gap), +15.7% exposure, 20 setup hours saved.
+
+## 18. SAM 3 full fine-tune on Modal (negative result: training never completed)
+
+- **Goal.** Fine-tune SAM 3 (open weights, `facebookresearch/sam3` at commit f1647e8) on the clean train pool plus the FLUX-train look-alike images as negatives. Keep it only if it beats SAM 3.1 open weights on dev.
+  - Data: 585 annotated train-pool images (2,912 rust instances) + 621 FLUX negatives, as COCO, one category "rust" (`benchmark/sam3ft_data.py`). Never dev, test, audit, Muse Image or public-negative images.
+  - Recipe: the repo's own Roboflow full fine-tune config, with segmentation enabled and the mask loss the repo ships (commented) for segmentation. One H100, 1-epoch smoke run first (`modal_apps/sam3_finetune.py`).
+- **Base model on dev (50 images, text prompt "rust", same metrics as §1):**
+
+| Model | Image detection | Pixel precision | Pixel recall | Pixel IoU | Instance F1 (IoU ≥ 0.5) |
+|---|---|---|---|---|---|
+| SAM 3.1 open weights | 68% | 0.924 | 0.336 | 0.327 | 0.395 |
+| Hosted SAM 3.1 | 68% | 0.921 | 0.351 | 0.341 | 0.380 |
+| SAM 3 base (before fine-tuning) | 70% | 0.910 | 0.366 | 0.353 | 0.382 |
+
+- **Upstream training issues found and patched** (at the pinned commit, training this config on one GPU):
+  1. The derived config needs Hydra's `# @package _global_` header.
+  2. The ViT MLP always calls an inference-only fused kernel (`perflib.fused.addmm_act`), which raises "Expected grad to be disabled" in training. Patched to the equivalent plain `act(linear(x))` when gradients are on.
+  3. DDP on one GPU failed at step 2 ("Expected to have finished reduction…"; two parameters without a gradient). Patched to skip the DDP wrapper on a single GPU.
+- **Unresolved: the model produces non-finite values after about 300 steps.**
+  - bf16 at lr scale 0.1 and 0.02: NaN loss at step ≈ 305 and ≈ 385. Skipping the non-finite step (grad scaler skips the update) only moved the failure: NaN appeared in the forward outputs at step ≈ 305 (Hungarian matcher: "matrix contains invalid numeric entries").
+  - fp32 (mixed precision off): the same matcher error at step ≈ 15.
+  - The training data is clean (no zero-size, out-of-bounds or degenerate annotations), and the loss settings and gradient clipping (0.1) are the repo's.
+  - The cause is not found. It is independent of learning rate and precision; likely a data or augmentation path in this config that the upstream recipe does not hit with its 100-image subsets.
+- **Decision.** Stopped after 9 attempts (each ended within 1–3 min; total ≈ $1.5 of H100 time incl. the base evaluation, cap $25). No checkpoint, nothing to evaluate. **SAM 3.1 stays the perception model.** The base comparison shows SAM 3 and SAM 3.1 are close on dev, so the expected gain was mainly from the look-alike negatives; Glimmer v2 (§14) covers that at the verifier stage.
