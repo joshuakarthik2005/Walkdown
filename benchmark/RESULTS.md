@@ -238,52 +238,6 @@ What it shows:
 - This is one 6-image clip, so it is a functional check of the mode, not a benchmark.
 - Every Modal container scaled to zero after the run.
 
-## 8. Human-audited evaluation (n = 100)
-
-- **Sample.** 100 SAM 3.1 text-prompt candidates from the test split, stratified by the dataset coverage label (40 "TP", 40 "FP", 20 "ambiguous"; `benchmark/label_app.py`, seeded). The builder labelled each crop rust / not rust / unsure without seeing the dataset label or any verdict.
-- **Labels:** 82 rust, 7 not rust, **11 unsure** (9 of them dataset "FP", 2 dataset "TP"). Unsure is excluded from every metric below.
-- **Two views of every metric.** "Sample" counts the 89 sure labels as drawn. "Reweighted" corrects the stratified draw to the test split's candidate mix (3,616 TP / 1,325 FP / 125 ambiguous). 95% intervals: Wilson for the sample, stratified bootstrap for reweighted.
-- Script: `benchmark/audit_eval.py`; result: `results/audit_eval.json`. Cost: $0.24 (hosted minimal-effort verdicts for the 100 candidates; all other verdicts were cached).
-
-### Dataset labels vs the human (the annotation gap)
-
-| Dataset coverage label | Human: rust | not rust | unsure |
-|---|---|---|---|
-| "TP" (40) | 37 | 1 | 2 |
-| "FP" (40) | **26** | 5 | 9 |
-| "ambiguous" (20) | 19 | 1 | 0 |
-
-- **84% of dataset "false positives" are rust to a human** (26 of 31 sure labels; 95% CI 67–93%). The dataset's polygons miss much of the visible rust, so the "FP" label mostly marks unannotated rust, not false alarms.
-- The dataset "TP" label is reliable: 1 of 38 was not rust (CI 0.5–13.5%).
-- On TP/FP candidates, dataset label and human agree only **61%** of the time (42 of 69; CI 49–72%).
-- This confirms, with human labels, the finding in §2: FP rejection measured against dataset labels is not a valid metric, and pixel/instance precision against the masks understates real precision.
-
-### How many SAM text-prompt candidates are real rust
-
-- **92% of text-prompt candidates are rust** (82 of 89; CI 85–96%); reweighted to the test mix, **94%**.
-- So the text prompt "rust" mostly finds real rust. Its weakness is recall (§1), not precision.
-- **Text+boxes candidates were not audited.** The sample predates box proposals, so it contains text-prompt candidates only. The share of box-only candidates that is real rust is **not measured**. Box-only candidates are where §4 found the extra false alarms, so this is the open question. A 50-candidate audit of box-only candidates is proposed.
-
-### Verifiers vs the human (89 sure labels; invalid replies count as accept)
-
-| Verifier | TP | FP | FN | TN | Precision (sample, 95% CI) | Recall (sample, 95% CI) | Accuracy (sample, 95% CI) | Not-rust rejected | Reweighted P / R / accuracy |
-|---|---|---|---|---|---|---|---|---|---|
-| Hosted Muse Spark, low | 72 | 2 | 10 | 5 | 97.3% (90.7–99.3) | 87.8% (79.0–93.2) | 86.5% (77.9–92.1) | 5 of 7 | 97.7% / 90.0% / 88.6% |
-| Hosted Muse Spark, minimal (live demo setting) | 79 | 3 | 3 | 4 | 96.3% (89.8–98.7) | **96.3%** (89.8–98.7) | **93.3%** (86.1–96.9) | 4 of 7 | 97.0% / 97.0% / 94.3% |
-| Muse Spark Open (Baseten), low | 77 | 2 | 5 | 5 | 97.5% (91.2–99.3) | 93.9% (86.5–97.4) | 92.1% (84.6–96.1) | 5 of 7 | 97.8% / 94.4% / 92.7% |
-| Product with senior review (low + Muse Wonder, fail-safe) | 72 | 2 | 10 | 5 | 97.3% | 87.8% | 86.5% | 5 of 7 | same as low |
-
-- Raw intervals for every row and the reweighted bootstrap intervals are in the JSON.
-- **The verifier is mostly a recall cost on this sample.** 92% of the candidates are rust, so accepting everything would already score 92% precision.
-- The verifier rejected 4 or 5 of the 7 not-rust candidates, but **n = 7 is far too small to estimate false-positive rejection** (Wilson intervals 36–92% for low effort and Muse Spark Open, 25–84% for minimal).
-- What the audit does show is how much real rust each verifier wrongly rejects:
-  - hosted low effort rejected 12% (10 of 82);
-  - Muse Spark Open rejected 6%;
-  - minimal effort rejected 4%.
-- The differences between the verifiers are within the confidence intervals: low vs minimal recall intervals overlap. Treat them as indicative.
-- **Senior review.** 13 of the 89 were escalated; Muse Wonder agreed with the first pass on all 13, so on this sample it **overturned nothing**. Whether its overturned verdicts match a human therefore **cannot be assessed from this audit**. The §5 statement stands: it is a second opinion that surfaces disputes, with no measured accuracy gain.
-- **Not measured here:** false-positive rejection (needs many more not-rust candidates: the builder's negatives footage and public negatives sets), box-only candidates, severity accuracy.
-
 ### On-prem box proposals: dev check (50 dev images)
 
 - **Pipeline.** Same as Cloud's second perception path, open weights only. Muse Spark Open (Baseten) proposes rust boxes on the full frame, using the Cloud prompt with JSON parsed from text. SAM 3.1 open weights then segment them on Modal.
@@ -334,6 +288,52 @@ What it shows:
   - The open-weights model has no per-box prompt, so boxes are visual exemplars matched back to each box. That gives looser masks, and some boxes get no mask.
 - **The verifier behaves the same in both modes.** It raises pixel precision (0.70 → 0.78 On-prem) and instance precision (0.34 → 0.44), at a small cost in detection (97 → 92%).
 - **On clean surfaces On-prem has the fewest false alarms** (2.1% of real clean-pipe images, §9). It is the most conservative mode. Its recall is lower than Cloud's on annotated corrosion.
+
+## 8. Human-audited evaluation (100 text-prompt + 50 box-only candidates)
+
+- **Sample.** 100 SAM 3.1 text-prompt candidates from the test split, stratified by the dataset coverage label (40 "TP", 40 "FP", 20 "ambiguous"; `benchmark/label_app.py`, seeded). The builder labelled each crop rust / not rust / unsure without seeing the dataset label or any verdict.
+- **Labels:** 82 rust, 7 not rust, **11 unsure** (9 of them dataset "FP", 2 dataset "TP"). Unsure is excluded from every metric below.
+- **Two views of every metric.** "Sample" counts the 89 sure labels as drawn. "Reweighted" corrects the stratified draw to the test split's candidate mix (3,616 TP / 1,325 FP / 125 ambiguous). 95% intervals: Wilson for the sample, stratified bootstrap for reweighted.
+- Script: `benchmark/audit_eval.py`; result: `results/audit_eval.json`. Cost: $0.24 (hosted minimal-effort verdicts for the 100 candidates; all other verdicts were cached).
+
+### Dataset labels vs the human (the annotation gap)
+
+| Dataset coverage label | Human: rust | not rust | unsure |
+|---|---|---|---|
+| "TP" (40) | 37 | 1 | 2 |
+| "FP" (40) | **26** | 5 | 9 |
+| "ambiguous" (20) | 19 | 1 | 0 |
+
+- **84% of dataset "false positives" are rust to a human** (26 of 31 sure labels; 95% CI 67–93%). The dataset's polygons miss much of the visible rust, so the "FP" label mostly marks unannotated rust, not false alarms.
+- The dataset "TP" label is reliable: 1 of 38 was not rust (CI 0.5–13.5%).
+- On TP/FP candidates, dataset label and human agree only **61%** of the time (42 of 69; CI 49–72%).
+- This confirms, with human labels, the finding in §2: FP rejection measured against dataset labels is not a valid metric, and pixel/instance precision against the masks understates real precision.
+
+### How many SAM text-prompt candidates are real rust
+
+- **92% of text-prompt candidates are rust** (82 of 89; CI 85–96%); reweighted to the test mix, **94%**.
+- So the text prompt "rust" mostly finds real rust. Its weakness is recall (§1), not precision.
+- **Text+boxes candidates were not audited.** The sample predates box proposals, so it contains text-prompt candidates only. The share of box-only candidates that is real rust is **not measured**. Box-only candidates are where §4 found the extra false alarms, so this is the open question. A 50-candidate audit of box-only candidates is proposed.
+
+### Verifiers vs the human (89 sure labels; invalid replies count as accept)
+
+| Verifier | TP | FP | FN | TN | Precision (sample, 95% CI) | Recall (sample, 95% CI) | Accuracy (sample, 95% CI) | Not-rust rejected | Reweighted P / R / accuracy |
+|---|---|---|---|---|---|---|---|---|---|
+| Hosted Muse Spark, low | 72 | 2 | 10 | 5 | 97.3% (90.7–99.3) | 87.8% (79.0–93.2) | 86.5% (77.9–92.1) | 5 of 7 | 97.7% / 90.0% / 88.6% |
+| Hosted Muse Spark, minimal (live demo setting) | 79 | 3 | 3 | 4 | 96.3% (89.8–98.7) | **96.3%** (89.8–98.7) | **93.3%** (86.1–96.9) | 4 of 7 | 97.0% / 97.0% / 94.3% |
+| Muse Spark Open (Baseten), low | 77 | 2 | 5 | 5 | 97.5% (91.2–99.3) | 93.9% (86.5–97.4) | 92.1% (84.6–96.1) | 5 of 7 | 97.8% / 94.4% / 92.7% |
+| Product with senior review (low + Muse Wonder, fail-safe) | 72 | 2 | 10 | 5 | 97.3% | 87.8% | 86.5% | 5 of 7 | same as low |
+
+- Raw intervals for every row and the reweighted bootstrap intervals are in the JSON.
+- **The verifier is mostly a recall cost on this sample.** 92% of the candidates are rust, so accepting everything would already score 92% precision.
+- The verifier rejected 4 or 5 of the 7 not-rust candidates, but **n = 7 is far too small to estimate false-positive rejection** (Wilson intervals 36–92% for low effort and Muse Spark Open, 25–84% for minimal).
+- What the audit does show is how much real rust each verifier wrongly rejects:
+  - hosted low effort rejected 12% (10 of 82);
+  - Muse Spark Open rejected 6%;
+  - minimal effort rejected 4%.
+- The differences between the verifiers are within the confidence intervals: low vs minimal recall intervals overlap. Treat them as indicative.
+- **Senior review.** 13 of the 89 were escalated; Muse Wonder agreed with the first pass on all 13, so on this sample it **overturned nothing**. Whether its overturned verdicts match a human therefore **cannot be assessed from this audit**. The §5 statement stands: it is a second opinion that surfaces disputes, with no measured accuracy gain.
+- **Not measured here:** false-positive rejection (needs many more not-rust candidates: the builder's negatives footage and public negatives sets), box-only candidates, severity accuracy.
 
 ### Box-only candidates (second audit, n = 50)
 
@@ -564,3 +564,37 @@ What it shows:
   - Plan solving is capped at 30 s.
 - **Why only 12 runs.** The overnight job was stopped at 04:20 when the Claude Code session ended. That ended its background shell; there was no failure.
   - At about 3 min per run, 50 runs need about 2.5 h. The remaining runs continue when the full On-prem benchmark is done (one heavy job at a time).
+
+
+## 16. Detection sensitivity: the operating points offered in the product
+
+- **The setting.** "Detection sensitivity" (UI and API; `backend/verify/sensitivity.py`) picks the verifier prompt in Cloud mode. On-prem mode has one fixed point.
+- **Where the numbers come from:**
+  - recall: the builder's blind audits (§8: 113 real-rust candidates, unsure excluded);
+  - false alarms: the share of 191 real clean-pipe images with at least one accepted candidate, end to end (§9, §11).
+
+| Option | Verifier | Audited real-rust recall (95% CI) | Clean-pipe images with a false alarm (95% CI) |
+|---|---|---|---|
+| **High recall (default)** | Muse Spark, minimal effort, v1 prompt | 97.3% (92.5–99.1) | 12.0% (8.2–17.4) |
+| Balanced | Muse Spark, minimal effort, v2 look-alike prompt | 93.8% (87.8–97.0) | 6.8% (4.0–11.3) |
+| On-prem (fixed) | Muse Spark Open, v1 | 95.6% (90.1–98.1) | 2.1% (0.8–5.3) |
+
+- **Why the default favours recall.** A missed defect is the dangerous error, and every flag is reviewed by a person (docs/DECISIONS.md).
+- **Balanced** did not pass the 3-point recall rule for becoming the default (§11), so it is opt-in.
+- **One-clip illustration, not a rate.** On a stock clip of a vessel with dusty perforated grilles, High recall registered 11 entries, mostly grille panels, with colour-only evidence. Balanced registered 3.
+- **On-prem has the fewest false alarms but lower coverage** of annotated corrosion (§7 full test split).
+
+## 17. Planner and work packages
+
+- **CP-SAT against a severity-first priority sort.** Full tables are in [PLANNER_RESULTS.md](PLANNER_RESULTS.md).
+  - Across 60 generated scenarios in five regimes, CP-SAT is never worse.
+  - Median risk improvement: 5.8% in the default regime, 1.0–7.5% across regimes, up to 24.9%.
+  - The two-stage replan moves about half as many jobs as a replan from scratch after a crew outage on tight-capacity plants: median 7 vs 13.
+- **Work packages:**
+  - **Grouping rule.** Same asset, compatible shutdown and permit needs, one crew covering all skills, and never a severity ≥ 4 defect.
+  - **What grouping buys and costs** (packaged vs individual, devdemo):
+    - It turns 41 walkdown jobs into 7, proves the plan optimal in 2.2 s, and saves 34 setup hours.
+    - It costs **+8.7% risk exposure**, because members wait for their package.
+    - The individual plan was FEASIBLE with a 57% gap in 30 s.
+  - **Adaptive default.** Group only when the individual plan cannot be proven within 5% in 30 s. Both plans are shown in the UI with exposure, makespan, gap and setup hours (docs/DECISIONS.md, "Work packages").
+  - On the stock tank-farm clip the individual plan is OPTIMAL, so no grouping is used. On valve-tank, grouping was used: OPTIMAL vs individual FEASIBLE (49% gap), +15.7% exposure, 20 setup hours saved.
