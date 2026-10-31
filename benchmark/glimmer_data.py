@@ -44,7 +44,8 @@ SAM_TEXT = DATA_DIR / "runs" / "sam_open" / "rust"
 FLUX_DIR = DATA_DIR / "synthetic" / "flux_train"
 FLUX_SAM = DATA_DIR / "runs" / "sam_open" / "flux_train"
 HELDOUT_SHARE = 0.10
-MAX_SYNTHETIC_PER_IMAGE = 3  # largest look-alike masks first; avoids a few images dominating
+MAX_SYNTHETIC_PER_IMAGE = 3  # largest look-alike masks first; avoids a few images dominating (v1)
+REAL_REJECT_REPEAT = 4  # v2 (--v2): real teacher rejections repeated, all FLUX-train masks, 1:1 with all accepts
 SEED = 20261028
 # Look-alikes a person (or the image generator) can render as real rust staining: never used as "not a defect".
 AMBIGUOUS_LOOKALIKES = {"dark water stains running down the surface", "brown paint drips", "brown oil smudges",
@@ -101,7 +102,7 @@ def synthetic_examples() -> list[dict]:
         image = cv2.imread(str(FLUX_DIR / m["file"]), cv2.IMREAD_COLOR)
         h, w = image.shape[:2]
         insts = sorted(to_instances(json.loads(sam.read_text(encoding="utf-8")), frame=0), key=lambda i: -i.area)
-        for inst in insts[:MAX_SYNTHETIC_PER_IMAGE]:
+        for inst in insts[:MAX_SYNTHETIC_PER_IMAGE if "--v2" not in sys.argv else None]:
             pct = 100 * inst.mask.sum() / (h * w)
             target = {"is_defect": False, "defect_type": "none", "severity": 1, "confidence": 0.9,
                       "evidence": {"visual_cues": [f"{m['lookalike']} on intact metal, not corrosion",
@@ -129,12 +130,19 @@ def main() -> int:
     real_rej = [e for e in rej if e["source"] != "synthetic"]
     syn_rej = [e for e in rej if e["source"] == "synthetic"]
     rng.shuffle(syn_rej)
-    n = min(len(acc), len(rej))  # balanced: both classes capped at the smaller one; real rejects kept first
-    rej_kept = (real_rej + syn_rej)[:n]
+    if "--v2" in sys.argv:
+        # v2: every FLUX-train look-alike mask, the 86 real teacher rejections repeated REAL_REJECT_REPEAT times (real
+        # look-alikes weigh more), and all teacher accepts; the reject side is cut to the accept count (1:1).
+        n = len(acc)
+        rej_kept = (real_rej * REAL_REJECT_REPEAT + syn_rej)[:n]
+    else:
+        n = min(len(acc), len(rej))  # balanced: both classes capped at the smaller one; real rejects kept first
+        rej_kept = (real_rej + syn_rej)[:n]
     balanced = rej_kept + acc[:n]
     rng.shuffle(balanced)
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, rows in (("train", balanced), ("heldout", heldout)):
+    tag = "_v2" if "--v2" in sys.argv else ""
+    for name, rows in ((f"train{tag}", balanced), ("heldout", heldout)):
         with (OUT / f"{name}.jsonl").open("w", encoding="utf-8") as f:
             for e in rows:
                 f.write(json.dumps(e) + "\n")
@@ -143,8 +151,9 @@ def main() -> int:
                    train_before_balance=dict(accept=len(acc), reject=len(rej),
                                              synthetic_reject=sum(e["source"] == "synthetic" for e in rej)),
                    train=len(balanced), train_accept=sum(e["accept"] for e in balanced),
-                   mb={n: round((OUT / f"{n}.jsonl").stat().st_size / 1e6, 1) for n in ("train", "heldout")})
-    (OUT / "summary.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
+                   real_reject_rows=sum(e["source"] != "synthetic" and not e["accept"] for e in balanced),
+                   mb={n: round((OUT / f"{n}.jsonl").stat().st_size / 1e6, 1) for n in (f"train{tag}", "heldout")})
+    (OUT / f"summary{tag}.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
     print(json.dumps(summary, indent=1))
     return 0
 

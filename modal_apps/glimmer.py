@@ -235,11 +235,11 @@ def smoke_run(zero_shot_n: int = 20, train_steps: int = 10) -> dict:
 
 
 @app.function(image=gpu_image, gpu="H100", volumes={VOL: volume}, timeout=3 * 3600, retries=0, max_containers=1)  # $11.85 max
-def train_run(budget_min: float, epochs: float = 2.0, lr: float = 1e-4, run: str = "v1") -> dict:
+def train_run(budget_min: float, epochs: float = 2.0, lr: float = 1e-4, run: str = "v1", data: str = "train") -> dict:
     t0 = time.time()
     model, proc = _load()
     model, targets = _peft(model)
-    rows = _read("train")
+    rows = _read(data)
     tr = _train_loop(model, proc, rows, epochs=epochs, lr=lr, accum=16, budget_s=budget_min * 60 - (time.time() - t0) - 300)
     path = f"{ADAPTERS}/{run}"
     model.save_pretrained(path)
@@ -324,5 +324,5 @@ def smoke(zero_shot_n: int = 20, train_steps: int = 10) -> None:
 
 
 @app.local_entrypoint()
-def train(budget_min: float = 180, epochs: float = 2.0, run: str = "v1") -> None:
-    print(json.dumps(train_run.remote(budget_min, epochs, run=run)))
+def train(budget_min: float = 180, epochs: float = 2.0, run: str = "v1", data: str = "train") -> None:
+    print(json.dumps(train_run.remote(budget_min, epochs, run=run, data=data)))
