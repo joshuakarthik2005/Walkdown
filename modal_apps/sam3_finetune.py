@@ -133,9 +133,15 @@ def _patch_single_gpu_ddp() -> None:
     if old in src and "walkdown patch" not in src:
         src = src.replace(old, new)
     # A few images give a non-finite loss (about 1 in 300 steps, at any learning rate); upstream stops training.
-    # Skip that step instead (gradients were zeroed before the forward pass, so the optimizer step is a no-op);
-    # each skip is logged as "Loss is nan" and counted in the run result.
+    # Skip that step instead: backpropagate the non-finite loss so the AMP grad scaler finds inf/NaN gradients and
+    # skips the optimizer update (a bare return leaves no gradients and the scaler asserts). Each skip is logged as
+    # "Loss is nan" and counted in the run result.
     src = src.replace("        raise_on_error: bool = True,", "        raise_on_error: bool = False,  # walkdown patch")
+    src = src.replace("                    if raise_on_error:\n                        raise FloatingPointError(error_msg)\n"
+                      "                    else:\n                        return\n",
+                      "                    if raise_on_error:\n                        raise FloatingPointError(error_msg)\n"
+                      "                    else:  # walkdown patch: grad scaler skips this update\n"
+                      "                        self.scaler.scale(loss).backward()\n                        return\n")
     open(path, "w", encoding="utf-8").write(src)
 
 
