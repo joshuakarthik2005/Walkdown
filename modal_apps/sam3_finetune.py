@@ -107,8 +107,6 @@ def _save(name: str, result: dict) -> dict:
     return result
 
 
-@app.function(image=image, gpu="H100", volumes={VOL: volume}, secrets=[hf_secret], timeout=3 * 3600, retries=0,
-              max_containers=1)  # $11.85 max per run
 def _patch_fused_mlp() -> None:
     """Upstream bug at the pinned commit: the ViT MLP always calls ``perflib.fused.addmm_act``, an inference-only
     fused kernel that raises "Expected grad to be disabled." during training. When gradients are on, fall back to
@@ -123,6 +121,8 @@ def _patch_fused_mlp() -> None:
         open(path, "w", encoding="utf-8").write(src.replace(old, new))
 
 
+@app.function(image=image, gpu="H100", volumes={VOL: volume}, secrets=[hf_secret], timeout=3 * 3600, retries=0,
+              max_containers=1)  # $11.85 max per run
 def train_run(epochs: int, run: str, lr_scale: float = 0.1) -> dict:
     t0 = time.time()
     _patch_fused_mlp()
