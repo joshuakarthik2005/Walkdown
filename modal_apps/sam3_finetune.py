@@ -131,7 +131,12 @@ def _patch_single_gpu_ddp() -> None:
     new = old + ("        if torch.distributed.get_world_size() == 1:  # walkdown patch: single GPU, no DDP\n"
                  "            return\n")
     if old in src and "walkdown patch" not in src:
-        open(path, "w", encoding="utf-8").write(src.replace(old, new))
+        src = src.replace(old, new)
+    # A few images give a non-finite loss (about 1 in 300 steps, at any learning rate); upstream stops training.
+    # Skip that step instead (gradients were zeroed before the forward pass, so the optimizer step is a no-op);
+    # each skip is logged as "Loss is nan" and counted in the run result.
+    src = src.replace("        raise_on_error: bool = True,", "        raise_on_error: bool = False,  # walkdown patch")
+    open(path, "w", encoding="utf-8").write(src)
 
 
 @app.function(image=image, gpu="H100", volumes={VOL: volume}, secrets=[hf_secret], timeout=3 * 3600, retries=0,
@@ -148,7 +153,9 @@ def train_run(epochs: int, run: str, lr_scale: float = 0.1) -> dict:
     for dp, _, fs in os.walk(f"{VOL}/runs/{run}"):
         ckpts += [os.path.join(dp, f) for f in fs if f.endswith((".pt", ".pth"))]
     wall = time.time() - t0
+    log = proc.stdout + proc.stderr
     return _save(f"train_{run}", dict(run=run, epochs=epochs, lr_scale=lr_scale, returncode=proc.returncode,
+                                      skipped_nonfinite_steps=log.count("attempting to stop training"),
                                       stdout_tail=proc.stdout[-3000:], stderr_tail=proc.stderr[-6000:],
                                       checkpoints=ckpts, wall_s=round(wall), usd_estimate=round(wall * H100_PER_SECOND, 2)))
 
