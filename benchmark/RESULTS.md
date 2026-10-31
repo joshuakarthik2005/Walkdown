@@ -597,4 +597,4 @@ What it shows:
     - It costs **+8.7% risk exposure**, because members wait for their package.
     - The individual plan was FEASIBLE with a 57% gap in 30 s.
   - **Adaptive default.** Group only when the individual plan cannot be proven within 5% in 30 s. Both plans are shown in the UI with exposure, makespan, gap and setup hours (docs/DECISIONS.md, "Work packages").
-  - On the stock tank-farm clip the individual plan is OPTIMAL, so no grouping is used. On valve-tank, grouping was used: OPTIMAL vs individual FEASIBLE (49% gap), +15.7% exposure, 20 setup hours saved.
+  - Example (stock valve-tank clip, browser test): grouping was used, OPTIMAL vs individual FEASIBLE (49% gap), +15.7% exposure, 20 setup hours saved.
