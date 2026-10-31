@@ -66,5 +66,39 @@
    "agreement_with_hosted_low": 0.9385342789598109,
    "agreement_with_muse_spark_open": 0.933806146572104
   }
+ },
+ "fw-tuned": {
+  "tag": "fw-tuned",
+  "replies": 318,
+  "of": 1227,
+  "unparsed": 0,
+  "audit": {
+   "n": 133,
+   "recall": 0.9911504424778761,
+   "recall_ci": [
+    0.952,
+    0.998
+   ],
+   "precision": 0.8818897637795275,
+   "not_rust_rejected": "5 / 20"
+  },
+  "public": {
+   "candidates": 185,
+   "accepted": 52,
+   "images": 61,
+   "images_with_alarm": 25
+  },
+  "muse_eval": {
+   "candidates": 0,
+   "accepted": 0,
+   "images": 0,
+   "images_with_alarm": 0
+  },
+  "test": {
+   "n": 0,
+   "tp_retention": null,
+   "agreement_with_hosted_low": null,
+   "agreement_with_muse_spark_open": null
+  }
  }
 }

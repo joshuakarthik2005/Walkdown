@@ -46,6 +46,8 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-10-28 | Glimmer stage 1: weights to private Modal volume (59.6 GB, 263 s, CPU) | Modal CPU | 1 | - | - | ≈ 0.02 | - |
 | 2026-10-28 | **Incident:** Glimmer smoke test stopped by the local low-memory guard during model load; the remote H100 kept running 21:06-21:09 IST until the ephemeral app was stopped (`modal app stop -y`), 0 containers confirmed. Since then every Modal GPU job runs with `modal run --detach` and a hard function timeout, results written to the volume, app/container lists checked after every job | Modal H100 | 1 | - | - | ≈ 0.2 | - |
 | 2026-10-29 | Fireworks on-demand deployment (Glimmer baseline) refused: HTTP 400 "payment method is required". Builder decision: **skip on-demand deployments**; Fireworks used only for serverless inference (Muse Spark Open comparison, full-test-split On-prem benchmark). Glimmer evaluation moved to Modal | Fireworks | 0 | - | - | 0.00 | - |
+| 2026-10-31 | On-prem full test split: Muse Spark Open box proposals + verification on Fireworks serverless (1,444 images, 7,318 candidates; resumed twice after memory-guard stops) | muse-spark-open (Fireworks serverless) + Modal L40S | 1,444 | - | - | Fireworks ≈ 79.0, Modal ≈ 1 | Fireworks total 82.27 |
+| 2026-10-31 | Glimmer LoRA on Fireworks Serverless Training (208 steps, images): training $0 (promotion); evaluation sampling on 318 rows; dry runs | muse-glimmer-30b (Fireworks serverless training) | 1,654 train / 318 eval | 334k prefill | 46k sampled | 0.89 | Fireworks ≈ 83.2 |
 
 ## Credit pools: used vs target
 

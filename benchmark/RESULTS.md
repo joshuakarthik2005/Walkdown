@@ -543,6 +543,31 @@ What it shows:
 - **Positioning (builder decision, 2026-10-29).** Tuned Glimmer is an **optional fast, cheap, high-recall first pass** (99% audited recall, ≈ 6× cheaper than Muse Spark Open). It is **not the final verifier**, because of its higher false-alarm rate. It is not wired into the default pipeline. It will be retrained only if the builder's real negatives footage arrives.
 
 
+### Same distillation on Fireworks Serverless Training (images, no dataset upload, no deployment)
+
+- **Why a custom loop.** The fw-ai cookbook recipe "Muse Glimmer First Fine-Tune" (`examples/sft/muse_glimmer_starter.py`, serverless surface) is **text-only**.
+  - Its renderer has no image processor ("Muse Glimmer image content requires an image processor").
+  - Its datum and report code rejects image chunks (`to_ints()`), even with an image processor injected (`benchmark/fw_glimmer_sft.py` shows this).
+  - The Serverless Training API itself accepts image datums.
+  - So `benchmark/fw_glimmer_train.py` runs the recipe's own calls with the cookbook's image-enabled Muse Glimmer renderer: LoRA training client, `forward_backward` with cross-entropy on the last assistant turn, Adam `optim_step`, `save_weights_for_sampler`, and a sampling client with image placeholders and data URLs.
+- **Same data and settings as the Modal run:** 1,654 balanced examples from `benchmark/glimmer_data.py`, LoRA r = 16 / α = 32, lr 1e-4, batch 16, 2 epochs (208 steps), "Reasoning strength: low". It trains in BF16 on Fireworks, against QLoRA 4-bit on Modal.
+- **Cost and time:** training took 45 min and cost $0 (Glimmer LoRA SFT promotion until Nov 30). Evaluation sampling cost $0.88: 334k prefill and 46k sampled tokens.
+- **Evaluation set:** the audits (133) and the real public negatives (185 Cloud candidates). Test-split candidates were not sampled, to stay within the Fireworks budget.
+
+| Glimmer 30B verifier | Audited recall (n = 113 rust; 95% CI) | Audited not-rust rejected | Real negatives: candidates accepted / images with an alarm (of 185 / 61) |
+|---|---|---|---|
+| Zero-shot (Modal) | 85.0% (77.2–90.4) | 16 / 20 | 31 / 16 |
+| Tuned on Modal (QLoRA 4-bit) | 99.1% (95.2–99.8) | 10 / 20 | 53 / 28 |
+| **Tuned on Fireworks (LoRA, BF16)** | **99.1%** (95.2–99.8) | 5 / 20 | 52 / 25 |
+
+- **The two platforms agree on the outcome.** The same data gives the same near-perfect recall and the same weakness: real-world look-alikes are accepted.
+  - The Fireworks model rejected even fewer of the 20 audited not-rust candidates (5 against 10). With n = 20 this difference is within noise.
+  - The limit is the training data, not the platform (too few real look-alike rejections). See Glimmer v2 below.
+- **Reinforcement fine-tuning (RL) on Fireworks: assessed, not run.**
+  - RL is not covered by the promotion. A modest GRPO run (1,000 train-pool prompts × 4 samples) would cost ≈ $50: ≈ 5M prefill tokens × $1.96/M + ≈ 1.2M sampled × $4.88/M + ≈ 6M trained × $5.86/M.
+  - That is over the remaining Fireworks budget (≈ $2 under the $85 cap).
+  - The reward would come from teacher accept/reject labels on the train pool only, which carry the same accept bias.
+
 ## 15. F7: live end-to-end agent runs (partial: 12 of 50)
 
 - **Setup.** Cloud mode, every model call live (no perception or verdict cache), verifier at minimal effort.
