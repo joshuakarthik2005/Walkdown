@@ -93,7 +93,9 @@ def _write_config(epochs: int, run: str, lr_scale: float) -> str:
     cfg.launcher.gpus_per_node = 1
     cfg.submitit.use_cluster = False
     os.makedirs(f"{cfg_dir}/walkdown", exist_ok=True)
-    OmegaConf.save(cfg, f"{cfg_dir}/walkdown/walkdown_ft.yaml")
+    # Hydra needs the "@package _global_" header the original file starts with, or every key nests under "walkdown".
+    with open(f"{cfg_dir}/walkdown/walkdown_ft.yaml", "w", encoding="utf-8") as f:
+        f.write("# @package _global_\n" + OmegaConf.to_yaml(cfg))
     return "configs/walkdown/walkdown_ft.yaml"
 
 
