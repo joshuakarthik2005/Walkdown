@@ -1,0 +1,26 @@
+{
+ "run": "v2",
+ "adapter": "/vol/adapters/v2",
+ "lora_targets": [
+  "q_proj",
+  "k_proj",
+  "v_proj",
+  "o_proj",
+  "gate_proj",
+  "up_proj",
+  "down_proj"
+ ],
+ "train": {
+  "examples": 4424,
+  "skipped_too_long": 0,
+  "tokens": 5446146,
+  "wall_s": 6182,
+  "tokens_per_s": 881,
+  "examples_per_s": 0.716,
+  "loss_first10": 1.6646,
+  "loss_last10": 0.3431,
+  "completed": true
+ },
+ "wall_s": 6229,
+ "usd_estimate": 6.84
+}
