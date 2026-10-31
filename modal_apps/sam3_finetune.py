@@ -74,7 +74,7 @@ SEG_LOSS = {
 }
 
 
-def _write_config(epochs: int, run: str, lr_scale: float) -> str:
+def _write_config(epochs: int, run: str, lr_scale: float, amp: bool = True) -> str:
     from omegaconf import OmegaConf
     cfg_dir = "/opt/sam3/sam3/train/configs"
     cfg = OmegaConf.load(f"{cfg_dir}/roboflow_v100/roboflow_v100_full_ft_100_images.yaml")
@@ -87,6 +87,7 @@ def _write_config(epochs: int, run: str, lr_scale: float) -> str:
     cfg.scratch.enable_segmentation = True
     cfg.scratch.lr_scale = lr_scale
     cfg.scratch.num_train_workers = 4
+    cfg.trainer.optim.amp.enabled = amp  # bf16 autocast gave NaN forward outputs at ~step 300 (smoke runs)
     cfg.trainer.max_epochs = epochs
     cfg.trainer.val_epoch_freq = epochs
     cfg.trainer.skip_saving_ckpts = False
@@ -147,11 +148,11 @@ def _patch_single_gpu_ddp() -> None:
 
 @app.function(image=image, gpu="H100", volumes={VOL: volume}, secrets=[hf_secret], timeout=3 * 3600, retries=0,
               max_containers=1)  # $11.85 max per run
-def train_run(epochs: int, run: str, lr_scale: float = 0.1) -> dict:
+def train_run(epochs: int, run: str, lr_scale: float = 0.1, amp: bool = True) -> dict:
     t0 = time.time()
     _patch_fused_mlp()
     _patch_single_gpu_ddp()
-    config = _write_config(epochs, run, lr_scale)
+    config = _write_config(epochs, run, lr_scale, amp)
     proc = subprocess.run(["python", "sam3/train/train.py", "-c", config, "--use-cluster", "0", "--num-gpus", "1"],
                           cwd="/opt/sam3", capture_output=True, text=True)
     volume.commit()
@@ -160,7 +161,7 @@ def train_run(epochs: int, run: str, lr_scale: float = 0.1) -> dict:
         ckpts += [os.path.join(dp, f) for f in fs if f.endswith((".pt", ".pth"))]
     wall = time.time() - t0
     log = proc.stdout + proc.stderr
-    return _save(f"train_{run}", dict(run=run, epochs=epochs, lr_scale=lr_scale, returncode=proc.returncode,
+    return _save(f"train_{run}", dict(run=run, epochs=epochs, lr_scale=lr_scale, amp=amp, returncode=proc.returncode,
                                       skipped_nonfinite_steps=log.count("attempting to stop training"),
                                       stdout_tail=proc.stdout[-3000:], stderr_tail=proc.stderr[-6000:],
                                       checkpoints=ckpts, wall_s=round(wall), usd_estimate=round(wall * H100_PER_SECOND, 2)))
