@@ -308,6 +308,33 @@ What it shows:
 - **Decision (builder, 2026-10-28): On-prem mode is now text + boxes + verifier.**
 - **Test split: not run yet.** The full 1,444 images with verification would cost ≈ $35 on Baseten (≈ $17 proposals + ≈ $18 verifying the new candidates), which would cross the $90 Baseten stop. Options are in the checkpoint report.
 
+### On-prem mode on the full test split, verified (1,444 images)
+
+- **Pipeline: open weights only, as in the product's On-prem mode.**
+  - SAM 3.1 open weights (Modal) with the text prompt "rust";
+  - Muse Spark Open box proposals, segmented by SAM 3.1 open weights as box exemplars;
+  - merge;
+  - Muse Spark Open verifier (max_tokens 8,000).
+- **Where Muse Spark Open ran.** On Fireworks serverless for this benchmark. It is the same model as on Baseten, with 97% identical verifier decisions (§6); Baseten stays the live demo path.
+- **Cloud comparison.** Cloud figures are on the same 1,444 images, taken from the §4 run (hosted SAM 3.1 + Muse Spark boxes + hosted low-effort verifier).
+- Script: `benchmark/onprem_test.py` (seeded random image order, resumable; it was stopped twice by the local memory guard and resumed from cache). Result: `results/onprem_test.json`.
+- **Volume and cost:** 7,318 candidates (5.1 per image), 0 invalid replies. Fireworks ≈ $80 (proposals ≈ $16, verification ≈ $64), Modal ≈ $1.
+
+| Test split, 1,444 images | Image detection | Pixel precision | Pixel recall | Pixel IoU | Instance P / R / F1 @0.5 | Candidates / image |
+|---|---|---|---|---|---|---|
+| On-prem text only | 66.4% | 0.925 | 0.360 | 0.350 | 0.520 / 0.248 / 0.336 | 3.24 |
+| On-prem text + boxes | 97.1% | 0.702 | 0.652 | 0.510 | 0.339 / 0.253 / 0.289 | 5.07 |
+| **On-prem text + boxes + verifier** | **92.4%** | 0.779 | 0.620 | 0.527 | 0.435 / 0.237 / 0.307 | 3.70 |
+| Cloud text + boxes (same images) | 99.7% | 0.751 | 0.865 | 0.672 | 0.385 / 0.318 / 0.348 | 5.62 |
+| **Cloud text + boxes + verifier (same images)** | **97.9%** | 0.774 | 0.836 | 0.672 | 0.471 / 0.301 / 0.367 | 4.34 |
+
+- **Box proposals close most of the image-detection gap.** The open-weights text prompt finds corrosion on 66% of images, the same as hosted SAM 3.1 (§1). Open-weights boxes bring On-prem to 97%, and 92% after verification.
+- **The remaining gap to Cloud is coverage, not detection.**
+  - On-prem verified covers 62% of the annotated pixels, against 84% for Cloud.
+  - The open-weights model has no per-box prompt, so boxes are visual exemplars matched back to each box. That gives looser masks, and some boxes get no mask.
+- **The verifier behaves the same in both modes.** It raises pixel precision (0.70 → 0.78 On-prem) and instance precision (0.34 → 0.44), at a small cost in detection (97 → 92%).
+- **On clean surfaces On-prem has the fewest false alarms** (2.1% of real clean-pipe images, §9). It is the most conservative mode. Its recall is lower than Cloud's on annotated corrosion.
+
 ### Box-only candidates (second audit, n = 50)
 
 - **Sample.** 50 box-only candidates from the test split: merged text + boxes candidates that are new, not a reused text-prompt candidate. Stratified by dataset label: 20 "TP", 20 "FP", 10 "ambiguous" (`benchmark.label_app --set boxes`, seeded, same blind protocol).
