@@ -568,6 +568,25 @@ What it shows:
   - That is over the remaining Fireworks budget (≈ $2 under the $85 cap).
   - The reward would come from teacher accept/reject labels on the train pool only, which carry the same accept bias.
 
+### Glimmer v2 on Modal: more look-alike rejections, real ones weighted
+
+- **Training data** (`benchmark/glimmer_data.py --v2`):
+  - every FLUX-train look-alike mask, not 3 per image;
+  - the 86 real teacher rejections repeated 4×;
+  - 1:1 with all 1,106 teacher accepts, 2,212 examples in total.
+- **Training run:** same recipe as v1 (QLoRA r = 16, 2 epochs). It took 104 min and ≈ $6.84, and was started as a spawned call on the deployed app. A first attempt was cancelled when the memory guard killed its local `modal run --detach` client.
+- **Evaluation:** same 1,227 evaluation candidates as v1, 2.41 s per candidate, ≈ $3.29.
+
+| Glimmer 30B | Audited recall (n = 113; 95% CI) | Audited not-rust rejected | Real negatives: accepted / images with an alarm (of 185 / 61) | Muse Image: accepted / images (of 486 / 120) | Test TP retention | Agreement with hosted low / Muse Spark Open |
+|---|---|---|---|---|---|---|
+| v1 | 99.1% (95.2–99.8) | 10 / 20 | 53 / 28 | 219 / 76 | 99.3% | 93.9% / 93.4% |
+| **v2** | 94.7% (88.9–97.5) | 10 / 20 | **39 / 17** | **169 / 59** | 97.7% | **95.7%** / 92.9% |
+| Teacher, Muse Spark Open (§8, §9) | 95.6% (90.1–98.1) | 13 / 20 | 12 / 8 | – | 96.4% | – |
+
+- **More look-alike rejections cut false alarms, at a recall cost.** Accepted clean-pipe candidates fall 26% and images with an alarm fall 39%. Recall drops 4.4 points, close to the teacher's own recall.
+- This is the same trade-off as the Balanced prompt (§11, §16). v2 now agrees with hosted Muse Spark (low) more often than v1 does.
+- **It still accepts about 3× more look-alikes than its teacher.** The synthetic look-alikes help, but the gap needs real hard negatives: the builder's own negatives footage. Glimmer stays an optional first pass, not the default verifier.
+
 ## 15. F7: live end-to-end agent runs (partial: 12 of 50)
 
 - **Setup.** Cloud mode, every model call live (no perception or verdict cache), verifier at minimal effort.

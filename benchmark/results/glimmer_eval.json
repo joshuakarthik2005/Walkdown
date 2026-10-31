@@ -67,6 +67,40 @@
    "agreement_with_muse_spark_open": 0.933806146572104
   }
  },
+ "tuned-v2": {
+  "tag": "tuned-v2",
+  "replies": 1227,
+  "of": 1227,
+  "unparsed": 0,
+  "audit": {
+   "n": 133,
+   "recall": 0.9469026548672567,
+   "recall_ci": [
+    0.889,
+    0.975
+   ],
+   "precision": 0.9145299145299145,
+   "not_rust_rejected": "10 / 20"
+  },
+  "public": {
+   "candidates": 185,
+   "accepted": 39,
+   "images": 61,
+   "images_with_alarm": 17
+  },
+  "muse_eval": {
+   "candidates": 486,
+   "accepted": 169,
+   "images": 120,
+   "images_with_alarm": 59
+  },
+  "test": {
+   "n": 423,
+   "tp_retention": 0.9770491803278688,
+   "agreement_with_hosted_low": 0.9574468085106383,
+   "agreement_with_muse_spark_open": 0.9290780141843972
+  }
+ },
  "fw-tuned": {
   "tag": "fw-tuned",
   "replies": 318,
