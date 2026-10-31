@@ -122,6 +122,10 @@ def main() -> int:
     try:
         return _run(args, service, sdk, renderer, tokenizer, datums, evals, out_dir, log, get_text_content)
     finally:  # serverless allows one concurrent Glimmer training run per account: always release the session
+        try:  # close() alone keeps the run slot busy; deleting the session releases it (sampler snapshots persist)
+            service.delete_training_session()
+        except Exception as err:  # noqa: BLE001
+            print(f"session delete failed: {err}", flush=True)
         try:
             service.close()
         except Exception as err:  # noqa: BLE001
