@@ -112,3 +112,12 @@ Task reports, appended after every task.
 ## 2026-10-27 — Phase 3/4/5 summary entries
 - SAM test split scored (1,444 images, prompt "rust", $3.61): instance F1 0.34 at IoU 0.5; pixel precision 0.92, recall 0.36; image detection 65.6%. Written up in `benchmark/RESULTS.md` §1, including the granularity mismatch.
 - Verifier dev dry runs (hosted and open), minimal-vs-low trial, agent loop, API, epsilon Pareto: see DECISIONS.md entries dated 2026-10-27.
+
+## 2026-10-31 – 2026-11-01 — Experiments closed, voice note, final results
+- Fireworks Serverless Training: Glimmer LoRA with images through a custom loop (the cookbook recipe is text-only); 208 steps, $0 training, $0.88 evaluation; audited recall 99.1%, same look-alike weakness as Modal (RESULTS 14).
+- Glimmer v2 on Modal: clean-pipe images with an alarm 28 → 17, recall 99.1 → 94.7%; not adopted in On-prem mode (DECISIONS, 2026-11-01).
+- F7: 50 / 50 live runs succeeded, 16 replans (RESULTS 15).
+- SAM 3 full fine-tune: 9 attempts, three upstream training issues patched, NaN after ~300 steps at any learning rate or precision; negative result, ≈ $1.5 (RESULTS 18).
+- F4 voice note: builder's 12 s recording transcribed and structured (P-401, LPG, coating damage near the flange, CUI check); shown in the UI under the register; cached by audio hash for the demo (RESULTS 19).
+- COST_LOG final per-provider table (Meta and Modal from dashboards; Baseten and Fireworks from the ledger).
+- README headline numbers and RESULTS summary updated; 108 tests pass.
