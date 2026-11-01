@@ -16,7 +16,7 @@ All numbers come from runs in this repository; the raw result files are in `benc
 | Live agent runs (F7) | 50 / 50 succeeded, 16 with a replan; median 143 s, $0.19 | §15 |
 | Planner (60 scenarios) | never worse than severity-first sort; median 5.8% lower risk | §17, PLANNER_RESULTS |
 | SAM 3 full fine-tune | negative result: training never completed (NaN after ≈ 300 steps) | §18 |
-| Voice note (F4), builder's 12 s recording | asset tag, line service, remark and follow-up extracted | §19 |
+| Voice note (F4), builder's 12 s recording (n = 1) | all extracted fields correct; transcript had two repeated phrases | §19 |
 
 Negative results kept in full: §3 (tiling and prompt unions), §5 (Muse Wonder does not improve grade agreement), §11 (v2 prompt), §12 (medium reasoning effort), §14 (Glimmer look-alikes), §18 (SAM 3 fine-tune).
 
@@ -702,4 +702,8 @@ What it shows:
 
 - **Cost and time:** ≈ $0.002 (12 s of audio at $0.18 per hour, plus one extraction call).
 - **In the product.** Attached to a run, the note appears under the defect register in the UI, in the copilot's context and in the PDF report. Results are cached by the audio's hash (transcript and fields only), so the demo replays it without an API call.
-- **Not measured.** This is one recording, checked by the builder against what was said; there is no word-error-rate benchmark. The repeated words ("header header", "Check for Check for") are in the transcript as returned.
+- **Builder's check (single sample, n = 1).**
+  - **All extracted fields are correct** (asset tag, line service, remark, follow-up).
+  - **The transcript has two repeated phrases.** The builder's phone transcript of the same recording reads "Line 4, LPG header, insulated, coating damage near the flange, check for corrosion under insulation. Asset tag P401." Muse Voice Transcribe returned "header header" and "Check for Check for". The repetitions did not affect the extracted fields.
+  - No claim of transcription accuracy is made beyond this one recording; there is no word-error-rate benchmark.
+- **Input formats.** The upload accepts WAV, m4a/AAC, mp3, ogg, flac and webm; non-WAV files are decoded on the server with PyAV. Decoding this m4a on the server gives byte-identical WAV to the offline conversion, so it hits the same cache entry.

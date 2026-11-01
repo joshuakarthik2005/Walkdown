@@ -88,3 +88,29 @@ def test_process_caches_by_audio_hash(monkeypatch, tmp_path):
     assert (first["cached"], second["cached"]) == (False, True)
     assert second["note"]["asset_tag"] == "P-101" and len(calls) == 1
     assert not any(p.suffix == ".wav" for p in tmp_path.iterdir())  # only the transcript and fields, never audio
+
+
+def aac_tone(seconds=0.5, rate=48000) -> bytes:
+    """A short stereo AAC (.m4a) test tone, encoded in memory with PyAV (format test only)."""
+    import av
+
+    buf = io.BytesIO()
+    with av.open(buf, "w", format="mp4") as out:
+        stream = out.add_stream("aac", rate=rate, layout="stereo")
+        t = np.arange(int(rate * seconds)) / rate
+        x = (0.3 * np.sin(2 * np.pi * 440 * t)).astype(np.float32)
+        frame = av.AudioFrame.from_ndarray(np.stack([x, x]), format="fltp", layout="stereo")
+        frame.sample_rate = rate
+        for packet in stream.encode(frame):
+            out.mux(packet)
+        for packet in stream.encode(None):
+            out.mux(packet)
+    return buf.getvalue()
+
+
+def test_m4a_is_decoded_to_api_wav():
+    wav = notes.as_wav(aac_tone())
+    with wave.open(io.BytesIO(wav)) as w:
+        assert (w.getnchannels(), w.getsampwidth(), w.getframerate()) == (1, 2, 16000)
+        assert 0.4 * 16000 < w.getnframes() < 0.7 * 16000
+    assert notes.as_wav(tone_wav()) == tone_wav()  # WAV passes through unchanged

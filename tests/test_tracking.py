@@ -41,3 +41,21 @@ def test_frame_reference_from_the_parser_is_read_as_an_int():
     import meta_sam_parser as msp
     from backend.perception.sam import _frame_index
     assert _frame_index(msp.FrameReference(frame_index=7)) == 7 and _frame_index(None) == 0 and _frame_index(3) == 3
+
+
+def test_fixed_sampling_overrides_agent_choice(monkeypatch):
+    """Demo clips with ``fixed_sampling`` in clip.json segment one fixed grid, whatever fps the agent asks for."""
+    from types import SimpleNamespace
+
+    from backend.agent import tools
+
+    calls = []
+    clip = SimpleNamespace(meta={"fixed_sampling": {"segment_fps": 2.0}}, source="x.mp4",
+                           frames=lambda start, end, fps: calls.append((start, end, fps)) or [])
+    s = SimpleNamespace(clip=clip, sam_backend="meta", box_proposals=False, candidates={}, frame_paths={})
+    out = tools.segment_frames(s, start_s=3.0, end_s=5.0, fps=0.5)
+    assert calls == [(0.0, None, 2.0)]
+    assert "fixed sampling grid" in out["note"]
+    clip.meta = {}
+    tools.segment_frames(s, start_s=3.0, end_s=5.0, fps=0.5)
+    assert calls[-1] == (3.0, 5.0, 0.5)

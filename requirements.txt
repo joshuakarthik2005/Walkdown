@@ -14,3 +14,4 @@ python-multipart==0.0.32
 httpx==0.28.1
 modal==1.6.3
 reportlab==4.4.4
+av==19.0.2

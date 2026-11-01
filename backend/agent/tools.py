@@ -169,6 +169,9 @@ def segment_frames(s: AgentSession, start_s: float = 0.0, end_s: float | None = 
     Text and box perception for a frame run in parallel; their masks are merged by overlap (text + boxes,
     the default pipeline; ``s.box_proposals=False`` gives text only).
     """
+    fixed = getattr(s.clip, "meta", {}).get("fixed_sampling", {}).get("segment_fps")
+    if fixed:  # demo clips: one fixed frame grid over the whole clip, so the register is the same on every run
+        start_s, end_s, fps = 0.0, None, float(fixed)
     fps = max(0.2, min(fps, 4.0))
     frames = s.clip.frames(start_s, end_s, fps)
     if s.sam_backend == "modal":
@@ -191,8 +194,11 @@ def segment_frames(s: AgentSession, start_s: float = 0.0, end_s: float | None = 
                                 area_pct=round(100 * inst.area / (h * w), 2),
                                 sam_confidence=round(inst.confidence or 0, 2),
                                 source="text" if not obj.startswith("b") else "box"))
-    return dict(frames_segmented=len(frames), new_candidates=len(new), total_candidates=len(s.candidates),
-                candidates=new[:40], truncated=len(new) > 40)
+    out = dict(frames_segmented=len(frames), new_candidates=len(new), total_candidates=len(s.candidates),
+               candidates=new[:40], truncated=len(new) > 40)
+    if fixed:
+        out["note"] = f"this clip uses a fixed sampling grid ({fps:g} fps over the whole clip); further calls add nothing"
+    return out
 
 
 def best_track_frames(instances: list[Instance]) -> dict[str, tuple[Instance, list[int]]]:
@@ -211,6 +217,7 @@ def track_video(s: AgentSession, fps: float = 2.0) -> dict:
     """F3: SAM 3.1 video tracking over the whole clip; one candidate per physical defect (track), on its best frame."""
     if s.clip.source is None:
         return dict(error="this clip is a set of photos; use segment_frames")
+    fps = float(getattr(s.clip, "meta", {}).get("fixed_sampling", {}).get("track_fps") or fps)  # demo clips: fixed grid
     fps = max(0.5, min(fps, 4.0))
     frames = s.clip.frames(0.0, None, fps)  # the same time grid as the resampled clip: frame i at i / fps s
     cache = s.clip.dir / "sam_video" / f"rust_{fps:g}fps.txt"

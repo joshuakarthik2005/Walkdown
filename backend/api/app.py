@@ -9,7 +9,7 @@ Endpoints:
   GET  /runs/{id}/plan           current maintenance plan (assignments, stats, explanations)
   POST /runs/{id}/changes        constraint change + epsilon; the agent replans and explains
   POST /runs/{id}/ask            inspector copilot: question about the register and plan (read-only tools)
-  POST /runs/{id}/voice          inspector voice note (WAV): transcribed and structured, attached to the run
+  POST /runs/{id}/voice          inspector voice note (WAV, m4a, mp3): transcribed and structured, attached to the run
   GET  /runs/{id}/report.pdf     inspection report; /work_orders.csv and .json: CMMS-style work orders
 
 Runs live in memory (one process); caches and clips are on WALKDOWN_DATA_DIR.
@@ -229,15 +229,18 @@ def post_change(run_id: str, req: ChangeRequest) -> dict:
 
 @app.post("/runs/{run_id}/voice")
 async def voice_note(run_id: str, audio: UploadFile = File(...)) -> dict:
-    """Transcribe an inspector's WAV voice note (Muse Voice Transcribe) and extract structured fields."""
-    from backend.voice.notes import process
+    """Transcribe an inspector's voice note (WAV, m4a, mp3, ...; Muse Voice Transcribe) and extract structured fields."""
+    from backend.voice.notes import AUDIO_EXT, process
     st = _run(run_id)
-    if Path(audio.filename or "").suffix.lower() != ".wav":
-        raise HTTPException(400, "voice notes must be WAV")
+    if Path(audio.filename or "").suffix.lower() not in AUDIO_EXT:
+        raise HTTPException(400, f"voice notes must be one of {', '.join(sorted(AUDIO_EXT))}")
     data = await audio.read()
     if len(data) > 50 << 20:
         raise HTTPException(413, "file too large")
-    result = process(data, ledger=st.agent.s.ledger)
+    try:
+        result = process(data, ledger=st.agent.s.ledger)
+    except (ValueError, OSError) as err:  # undecodable audio (PyAV raises OSError subclasses)
+        raise HTTPException(400, f"could not read the audio file: {err}") from err
     st.agent.s.voice_notes.append(result)
     return result
 

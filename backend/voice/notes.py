@@ -2,7 +2,8 @@
 
 1. ``transcribe``: POST /v1/asr/transcribe (multipart: a JSON ``request`` part and a WAV ``audio`` part), as in
    https://dev.meta.ai/docs/speech-to-text. The API takes mono integer PCM WAV at 16 or 24 kHz; other WAVs are
-   converted locally (downmix, linear resample to 16 kHz, 16-bit). Other formats must be converted first.
+   converted locally (downmix, linear resample to 16 kHz, 16-bit). Phone formats (m4a/AAC, mp3, ...) are
+   decoded locally with PyAV first.
    Plant vocabulary is passed as ``keywords`` to bias recognition.
 2. ``extract``: Muse Spark with a strict JSON schema turns the transcript into a ``VoiceNote``: asset tag, line
    service, defect remarks and follow-ups. Fields not said in the recording stay null or empty; the prompt
@@ -55,6 +56,35 @@ def to_api_wav(data: bytes) -> bytes:
         w.setframerate(target)
         w.writeframes((np.clip(y, -1, 1) * 32767).astype(np.int16).tobytes())
     return out.getvalue()
+
+
+AUDIO_EXT = {".wav", ".m4a", ".mp3", ".aac", ".ogg", ".flac", ".webm"}
+
+
+def decode_to_wav(data: bytes) -> bytes:
+    """Any phone recording (m4a/AAC, mp3, ogg, ...) to mono 16-bit PCM WAV at 16 kHz, decoded locally with PyAV."""
+    import av  # PyAV bundles FFmpeg; imported here so WAV-only use needs no decoder
+
+    chunks = []
+    with av.open(io.BytesIO(data)) as container:
+        stream = container.streams.audio[0]
+        resampler = av.AudioResampler(format="s16", layout="mono", rate=16000)
+        for frame in container.decode(stream):
+            chunks += [f.to_ndarray().reshape(-1) for f in resampler.resample(frame)]
+        chunks += [f.to_ndarray().reshape(-1) for f in resampler.resample(None)]
+    pcm = np.concatenate(chunks).astype(np.int16) if chunks else np.zeros(0, np.int16)
+    out = io.BytesIO()
+    with wave.open(out, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(16000)
+        w.writeframes(pcm.tobytes())
+    return out.getvalue()
+
+
+def as_wav(data: bytes) -> bytes:
+    """The recording as WAV: WAV files pass through (converted later by ``to_api_wav``), others are decoded."""
+    return data if data[:4] == b"RIFF" and data[8:12] == b"WAVE" else decode_to_wav(data)
 
 
 def transcribe(audio: bytes, *, ledger: CostLedger | None = None, job: str = "voice-transcribe",
@@ -138,6 +168,7 @@ def process(audio: bytes, *, ledger: CostLedger | None = None, use_cache: bool =
     Results are cached on WALKDOWN_DATA_DIR by the SHA-256 of the audio bytes (the transcript and fields only,
     never the audio), so a repeat of the same recording, e.g. in the demo, needs no API call.
     """
+    audio = as_wav(audio)
     path = CACHE_DIR / f"{hashlib.sha256(audio).hexdigest()}.json"
     if use_cache and path.exists():
         return {**json.loads(path.read_text(encoding="utf-8")), "cached": True}

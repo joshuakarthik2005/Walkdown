@@ -46,8 +46,8 @@ export function VoiceNotes({ runId, notes, onAdded }: { runId: string; notes: Vo
         </div>
       ))}
       <label className="row">
-        <span>{busy ? "Transcribing…" : "Attach a voice note (WAV)"}</span>
-        <input type="file" accept=".wav,audio/wav" disabled={busy} onChange={(e) => upload(e.target.files?.[0])} />
+        <span>{busy ? "Transcribing…" : "Attach a voice note (WAV, m4a, mp3)"}</span>
+        <input type="file" accept=".wav,.m4a,.mp3,.aac,.ogg,.flac,.webm,audio/*" disabled={busy} onChange={(e) => upload(e.target.files?.[0])} />
       </label>
       {error && <div className="error-box">{error}</div>}
     </div>
