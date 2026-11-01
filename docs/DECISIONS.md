@@ -378,3 +378,20 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 - **What the fix exposed.** With tracking working, the agent used it alone. Video tracking uses only the SAM 3.1 text prompt, so on the tank-farm clip the register dropped from 17 entries to 1. Box proposals are where the default pipeline's recall comes from (RESULTS §4: text alone finds rust on 66% of images, text + boxes on 98%).
 - **Decision.** For video, the agent calls `track_video` first and then **always** `segment_frames` over the whole clip at 0.5–1 fps (text + box proposals). The register merges repeat sightings across frames.
 - **Measured on tank-farm, cached:** 17 entries, 2 jobs, OPTIMAL. The repeat run takes 50 s for $0.03.
+
+## Glimmer v2 is not offered in On-prem mode (2026-11-01)
+
+- **Question.** Should the distilled Muse Glimmer 30B verifier (v2, RESULTS 14) be offered as an optional fast first pass in On-prem mode?
+- **What the numbers show** (audited set, real clean-pipe negatives; RESULTS 14 and 6):
+
+| On-prem verifier | Audited recall (n = 113) | Clean-pipe images with an alarm (of 61) | Cost per candidate | Speed |
+|---|---|---|---|---|
+| Muse Spark Open (current) | 95.6% | 8 | $0.0083 (Baseten) | 10.9 s median per call |
+| Glimmer v2 (Modal, A100, batch 16) | 94.7% | 17 | ≈ $0.0027 | 2.41 s per candidate in a batch |
+
+- **Decision: not adopted.**
+  - **As a replacement** it is about 3× cheaper and faster, but it raises false alarms on clean pipe about 2× (17 vs 8 images) for a similar recall. False alarms are the weakness reviewers notice first.
+  - **As a first pass** (Glimmer rejects, Muse Spark Open checks the rest) it would save little: Glimmer v2 accepts most candidates, so most still go to Muse Spark Open. Each rejection it makes is a second chance to lose real rust.
+  - **Serving.** It runs only as a Modal batch job today (a 60 GB model load per cold start). Making it an interactive service is new work, and features freeze on Nov 2.
+- **What stays.** Glimmer v1 and v2 remain documented research results: the distillation recipe, the Modal and Fireworks training runs, and the evaluation. Fine-tuned weights are never published.
+- **What would change this.** Real hard negatives (the builder's own clean-plant footage) in the training data, to bring its clean-pipe false alarms down to the teacher's level.
