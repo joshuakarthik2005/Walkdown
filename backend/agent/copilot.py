@@ -9,7 +9,7 @@ hosted Muse Spark; On-prem: Muse Spark Open), because it follows the session's p
 from __future__ import annotations
 
 from backend.agent.loop import WalkdownAgent
-from backend.agent.tools import AgentSession, _fn, explain_plan
+from backend.agent.tools import AgentSession, _fn, explain_plan, job_ids_for
 
 COPILOT_PROMPT = """You are the Walkdown inspector copilot. A walkdown has already been processed: there is a \
 defect register and a maintenance plan. Answer the inspector's question using ONLY your tools, which read the \
@@ -38,7 +38,8 @@ def get_register(s: AgentSession, defect_ids: list[str] | None = None, min_sever
         if needs_review_only and not e.needs_review:
             continue
         senior = next((d.senior for d in e.detections if d.senior), None)
-        out.append(dict(defect_id=e.defect_id, asset=e.asset.asset_id, service=e.asset.service,
+        out.append(dict(defect_id=e.defect_id, work_package=e.package_id if e.package_id != e.defect_id else None,
+                        asset=e.asset.asset_id, service=e.asset.service,
                         defect_type=g.defect_type.value, severity=g.severity, confidence=round(g.confidence, 2),
                         recommended_action=g.recommended_action.value, evidence=g.evidence.visual_cues[:3],
                         location=g.evidence.location, frames=e.frames, needs_review=e.needs_review,
@@ -54,7 +55,10 @@ def get_schedule(s: AgentSession, defect_ids: list[str] | None = None, crew_id: 
     """Plan status/gap and assignments, optionally filtered by defect, crew or time window."""
     if s.plan is None or s.scenario is None:
         return dict(error="no plan yet")
-    walkdown = {e.defect_id for e in s.register}
+    walkdown = {e.package_id or e.defect_id for e in s.register}
+    grouped: dict[str, str] = {}
+    if defect_ids:  # a defect grouped into a work package is scheduled as that package
+        defect_ids, grouped = job_ids_for(s, defect_ids)
     rows = []
     for a in sorted(s.plan.assignments, key=lambda a: a.start):
         if defect_ids and a.defect_id not in defect_ids:
@@ -68,7 +72,8 @@ def get_schedule(s: AgentSession, defect_ids: list[str] | None = None, crew_id: 
     return dict(status=s.plan.stats.status, gap=None if s.plan.stats.gap is None else round(s.plan.stats.gap, 4),
                 scheduled=len(s.plan.assignments), unscheduled=s.plan.unscheduled,
                 critical_unscheduled=s.plan.critical_unscheduled, moved_by_last_replan=s.plan.moved_jobs,
-                assignments=rows[:60], truncated=len(rows) > 60)
+                assignments=rows[:60], truncated=len(rows) > 60,
+                **(dict(repaired_in_work_package=grouped) if grouped else {}))
 
 
 def get_resources(s: AgentSession) -> dict:
@@ -87,8 +92,9 @@ COPILOT_SCHEMAS = [
         "Filters are optional.",
         {"defect_ids": {"type": "array", "items": {"type": "string"}}, "min_severity": {"type": "integer"},
          "needs_review_only": {"type": "boolean"}}, []),
-    _fn("get_schedule", "Read the plan: solver status and gap, assignments (defect, crew, start/end hour), "
-        "unscheduled and moved jobs. Filters are optional.",
+    _fn("get_schedule", "Read the plan: solver status and gap, assignments (job, crew, start/end hour), "
+        "unscheduled and moved jobs. A defect grouped into a work package (WP...) is scheduled as that package; "
+        "filtering by its defect id returns the package's assignment. Filters are optional.",
         {"defect_ids": {"type": "array", "items": {"type": "string"}}, "crew_id": {"type": "string"},
          "from_hour": {"type": "integer"}, "to_hour": {"type": "integer"}}, []),
     _fn("explain_plan", "The planner's structured reasons (codes, delays, blocking jobs, priority terms) for "

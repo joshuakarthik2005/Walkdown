@@ -482,15 +482,30 @@ def replan_tool(s: AgentSession, change: dict, now_hour: int, epsilon: float | N
     return out
 
 
+def job_ids_for(s: AgentSession, ids: list[str]) -> tuple[list[str], dict[str, str]]:
+    """Planner job ids for register defect ids: a defect grouped into a work package is planned as that package.
+
+    Returns the job ids (order kept, no duplicates) and a {defect id: package id} map for the grouped ones."""
+    owner = {e.defect_id: e.package_id for e in s.register if e.package_id and e.package_id != e.defect_id}
+    jobs = list(dict.fromkeys(owner.get(d, d) for d in ids))
+    return jobs, {d: owner[d] for d in ids if d in owner}
+
+
 def explain_plan(s: AgentSession, defect_ids: list[str] | None = None) -> dict:
     """The planner's own structured reasons for the given defects (default: walkdown + moved + unscheduled)."""
     if s.plan is None:
         return dict(error="no plan yet")
+    grouped: dict[str, str] = {}
     if not defect_ids:
         defect_ids = sorted(_walkdown_job_ids(s) | set(s.plan.moved_jobs) | set(s.plan.unscheduled))
+    else:
+        defect_ids, grouped = job_ids_for(s, defect_ids)
     ex = {e.defect_id: e for e in s.plan.explanations}
-    return dict(explanations=[ex[d].model_dump(mode="json") for d in defect_ids if d in ex][:30],
-                unknown_ids=[d for d in defect_ids if d not in ex])
+    out = dict(explanations=[ex[d].model_dump(mode="json") for d in defect_ids if d in ex][:30],
+               unknown_ids=[d for d in defect_ids if d not in ex])
+    if grouped:
+        out["repaired_in_work_package"] = grouped
+    return out
 
 
 # ---- tool schemas (Chat Completions format) ----------------------------------

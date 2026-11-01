@@ -46,6 +46,18 @@ def test_schedule_filters():
     assert [a["defect_id"] for a in cp.get_schedule(s, from_hour=20)["assignments"]] == ["B03"]
 
 
+def test_grouped_defect_is_found_through_its_work_package():
+    """In the grouped plan a defect is scheduled as its package: asking about the defect returns the package."""
+    s = session()
+    s.register[1].package_id = "WP1"
+    s.plan.assignments.append(Assignment(defect_id="WP1", crew_id="C1", start=50, end=60))
+    out = cp.get_schedule(s, defect_ids=["W02"])
+    assert [a["defect_id"] for a in out["assignments"]] == ["WP1"] and out["assignments"][0]["from_walkdown"]
+    assert out["repaired_in_work_package"] == {"W02": "WP1"}
+    assert cp.get_register(s, defect_ids=["W02"])["entries"][0]["work_package"] == "WP1"
+    assert cp.explain_plan(s, ["W02"])["repaired_in_work_package"] == {"W02": "WP1"}
+
+
 def test_copilot_uses_only_read_only_tools(monkeypatch):
     calls = iter([
         SimpleNamespace(tool_calls=[SimpleNamespace(id="t1", function=SimpleNamespace(
