@@ -52,14 +52,18 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-10-31 | SAM 3 full fine-tune on Modal: base dev evaluation + 9 smoke attempts (none completed; RESULTS 18) | SAM 3 open weights, H100 (Modal) | 50 dev / 1,206 train | - | - | Modal ≈ 1.5 | - |
 | 2026-10-31 | F7: 50 live agent runs (resumed at run 22) | muse-spark-1.3 + sam-3.1 (Meta) | 50 runs | - | - | Meta 10.70 (all 50 runs) | - |
 
-## Credit pools: used vs target
+| 2026-11-01 | F4 voice note, end to end: builder's 12 s recording (AAC, converted locally to 16 kHz mono WAV), transcription + structured extraction; repeats served from the voice-note cache | muse-voice-transcribe-1.0 + muse-spark-1.3 (Meta) | 1 | - | - | ≈ 0.002 | - |
+| 2026-11-01 | UI check: cached tank-farm run + voice note attached | muse-spark-1.3 + sam-3.1 (Meta) | 1 run | - | - | 0.03 | - |
 
-Updated 2026-10-28, after the teacher-label run. Meta and Baseten figures come from the local ledgers (`G:/walkdown-data/runs/cost_ledger.jsonl` plus per-clip ledgers), priced at list prices. The builder checks the provider dashboards.
+## Credit pools: final used vs total (2026-11-01)
 
-| Provider | Used | Target | Stop | Notes |
-|---|---|---|---|---|
-| Meta Model API | ≈ $67.8 | $120–135 | $140 | Box verification $23.02, F1 senior review $8.32, F2 comparison done |
-| Baseten (Muse Spark Open) | ≈ $59.5 | ≈ $82 | $90 | Includes the Phase 4 dry run (80 calls, priced afterwards at $0.0085 per call) and the open-weights demo run |
-| Fireworks | $0 | ≈ $80 | $90 | Dataset uploads still disabled; inference-only use (zero-shot Glimmer baseline) |
-| Modal | ≈ $0.6 | ≈ $80 | $90 | SAM 3.1 open weights deployed (scale to zero, retries 0); no containers running after each job |
+Sources: **dashboard** = the provider's billing page, read by the builder on 2026-11-01; **ledger** = this repo's local cost ledgers (`G:/walkdown-data/runs/cost_ledger.jsonl`, per-clip ledgers and the Modal/Fireworks job logs), priced at list prices. Where both exist, the dashboard is the source of truth.
 
+| Provider | Total credit | Used | Left | Source | Notes |
+|---|---|---|---|---|---|
+| Meta Model API | $150 | ≈ $105.5 | $44.46 | **dashboard** | The local ledger says ≈ $110, ≈ $4.5 more than the dashboard: the ledger prices every call at list price and may count retried or cached-prefix tokens at the full rate. Builder stop stays $140. |
+| Baseten (Muse Spark Open) | $100 | ≈ $75.4 | ≈ $24.6 | ledger | No dashboard view for the hackathon key. |
+| Fireworks | $100 | ≈ $83.2 | ≈ $16.8 | ledger | Builder cap $85. Glimmer LoRA training was $0 (serverless promotion); only sampling was billed. No deployments. |
+| Modal | hackathon credit + Modal's $30 monthly free credit | $32.06 (October) | $127.94 balance | **dashboard** | October usage fully covered by credits. The balance includes the $30 monthly free credit that renewed on Nov 1 plus the remaining hackathon credit. Ledger estimate for October was ≈ $33. |
+
+Earlier snapshot (2026-10-28, ledger only): Meta ≈ $67.8, Baseten ≈ $59.5, Fireworks $0, Modal ≈ $0.6.
