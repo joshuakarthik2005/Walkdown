@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import os
@@ -28,6 +29,7 @@ from backend.planner.models import ServiceType
 
 ASR_URL = "https://api.meta.ai/v1/asr/transcribe"
 ASR_MODEL = "muse-voice-transcribe-1.0"
+CACHE_DIR = Path(os.environ.get("WALKDOWN_DATA_DIR", "G:/walkdown-data")) / "runs" / "voice_notes"
 KEYWORDS = ["LPG", "hydrogen", "crude", "steam", "cooling water", "fire water", "nitrogen", "flange", "weld",
             "pipe support", "insulation", "corrosion", "pitting", "scale", "leak", "valve", "tank", "header"]
 
@@ -130,11 +132,22 @@ def extract(transcript: str, *, ledger: CostLedger | None = None, job: str = "vo
     return VoiceNote.model_validate_json(resp.choices[0].message.content or "{}")
 
 
-def process(audio: bytes, *, ledger: CostLedger | None = None) -> dict:
-    """Transcribe and extract one recording; returns transcript, duration and the structured note."""
+def process(audio: bytes, *, ledger: CostLedger | None = None, use_cache: bool = True) -> dict:
+    """Transcribe and extract one recording; returns transcript, duration and the structured note.
+
+    Results are cached on WALKDOWN_DATA_DIR by the SHA-256 of the audio bytes (the transcript and fields only,
+    never the audio), so a repeat of the same recording, e.g. in the demo, needs no API call.
+    """
+    path = CACHE_DIR / f"{hashlib.sha256(audio).hexdigest()}.json"
+    if use_cache and path.exists():
+        return {**json.loads(path.read_text(encoding="utf-8")), "cached": True}
     t = transcribe(audio, ledger=ledger)
     note = extract(t["transcript"], ledger=ledger) if t["transcript"].strip() else None
-    return dict(transcript=t["transcript"], audio_ms=t["audio_ms"], note=note.model_dump(mode="json") if note else None)
+    out = dict(transcript=t["transcript"], audio_ms=t["audio_ms"], note=note.model_dump(mode="json") if note else None)
+    if use_cache:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(out, indent=1), encoding="utf-8")
+    return {**out, "cached": False}
 
 
 def process_file(path: Path, *, ledger: CostLedger | None = None) -> dict:

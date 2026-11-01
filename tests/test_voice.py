@@ -75,3 +75,16 @@ def test_extract_validates_structured_note(monkeypatch):
 def test_schema_allows_unknown_service():
     s = notes.note_schema()
     assert None in s["properties"]["line_service"]["enum"] and set(s["required"]) == set(s["properties"])
+
+
+def test_process_caches_by_audio_hash(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(notes, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(notes, "transcribe", lambda audio, ledger=None: calls.append(1) or dict(transcript=TRANSCRIPT, audio_ms=500))
+    monkeypatch.setattr(notes, "extract", lambda t, ledger=None: notes.VoiceNote(
+        asset_tag="P-101", line_service="lpg", remarks=[], follow_ups=[], summary="s"))
+    first = notes.process(tone_wav())
+    second = notes.process(tone_wav())
+    assert (first["cached"], second["cached"]) == (False, True)
+    assert second["note"]["asset_tag"] == "P-101" and len(calls) == 1
+    assert not any(p.suffix == ".wav" for p in tmp_path.iterdir())  # only the transcript and fields, never audio
