@@ -61,7 +61,7 @@ Sources: **dashboard** = the provider's billing page, read by the builder on 202
 
 | Provider | Total credit | Used | Left | Source | Notes |
 |---|---|---|---|---|---|
-| Meta Model API | $150 | ≈ $105.5 | $44.46 | **dashboard** | The local ledger says ≈ $110, ≈ $4.5 more than the dashboard: the ledger prices every call at list price and may count retried or cached-prefix tokens at the full rate. Builder stop stays $140. |
+| Meta Model API | $150 | ≈ $105.5 | $44.46 | **dashboard** | The local ledger says ≈ $110, ≈ $4.5 more than the dashboard (cause not verified; the ledger is an estimate at list prices, so it errs high). Builder stop stays $140. |
 | Baseten (Muse Spark Open) | $100 | ≈ $75.4 | ≈ $24.6 | ledger | No dashboard view for the hackathon key. |
 | Fireworks | $100 | ≈ $83.2 | ≈ $16.8 | ledger | Builder cap $85. Glimmer LoRA training was $0 (serverless promotion); only sampling was billed. No deployments. |
 | Modal | hackathon credit + Modal's $30 monthly free credit | $32.06 (October) | $127.94 balance | **dashboard** | October usage fully covered by credits. The balance includes the $30 monthly free credit that renewed on Nov 1 plus the remaining hackathon credit. Ledger estimate for October was ≈ $33. |
