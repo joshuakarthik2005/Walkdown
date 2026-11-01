@@ -387,7 +387,7 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
 | On-prem verifier | Audited recall (n = 113) | Clean-pipe images with an alarm (of 61) | Cost per candidate | Speed |
 |---|---|---|---|---|
 | Muse Spark Open (current) | 95.6% | 8 | $0.0083 (Baseten) | 10.9 s median per call |
-| Glimmer v2 (Modal, A100, batch 16) | 94.7% | 17 | ≈ $0.0027 | 2.41 s per candidate in a batch |
+| Glimmer v2 (Modal, H100, batch 16) | 94.7% | 17 | ≈ $0.0027 | 2.41 s per candidate in a batch |
 
 - **Decision: not adopted.**
   - **As a replacement** it is about 3× cheaper and faster, but it raises false alarms on clean pipe about 2× (17 vs 8 images) for a similar recall. False alarms are the weakness reviewers notice first.

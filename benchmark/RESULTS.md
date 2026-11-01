@@ -2,6 +2,24 @@
 
 All numbers come from runs in this repository; the raw result files are in `benchmark/results/`. Dataset images are used **only for scoring**: none are shown here or anywhere public (see `docs/DECISIONS.md`). Planner results are in [`PLANNER_RESULTS.md`](PLANNER_RESULTS.md).
 
+**Summary (final, 2026-11-01)**
+
+| Area | Result | Section |
+|---|---|---|
+| Perception, Cloud default (test split, 1,444 images) | 97.9% of images with corrosion found; pixel P / R 0.77 / 0.84; instance recall 0.30 | §4, §7 |
+| Perception, On-prem (open weights only, same images) | 92.4% of images found; pixel P / R 0.78 / 0.62 | §7 |
+| Verifier vs blind human labels (133 candidates) | 91–93% of accepted candidates are real rust | §8 |
+| False alarms on 191 real clean-pipe images | Cloud High recall 12.0%, Balanced 6.8%, On-prem 2.1% of images | §9, §16 |
+| Open vs hosted verifier (5,066 candidates) | 93.4% same decision | §6 |
+| Glimmer 30B distilled (Modal QLoRA; Fireworks serverless LoRA with images) | 99.1% audited recall on both platforms; accepts more look-alikes than its teacher | §14 |
+| Glimmer v2 (more look-alike rejections) | clean-pipe images with an alarm 28 → 17 (−39%), recall 99.1 → 94.7%; not adopted | §14 |
+| Live agent runs (F7) | 50 / 50 succeeded, 16 with a replan; median 143 s, $0.19 | §15 |
+| Planner (60 scenarios) | never worse than severity-first sort; median 5.8% lower risk | §17, PLANNER_RESULTS |
+| SAM 3 full fine-tune | negative result: training never completed (NaN after ≈ 300 steps) | §18 |
+| Voice note (F4), builder's 12 s recording | asset tag, line service, remark and follow-up extracted | §19 |
+
+Negative results kept in full: §3 (tiling and prompt unions), §5 (Muse Wonder does not improve grade agreement), §11 (v2 prompt), §12 (medium reasoning effort), §14 (Glimmer look-alikes), §18 (SAM 3 fine-tune).
+
 ## 1. Perception: SAM 3.1 alone
 
 **Setup**
@@ -541,6 +559,7 @@ What it shows:
 - **Fix to try next.** The obvious lever is real hard negatives in training: the builder's own negatives footage, and teacher-rejected real candidates from the train pool's box proposals. It is not run tonight.
 - **Weights:** private Modal volume only, never published.
 - **Positioning (builder decision, 2026-10-29).** Tuned Glimmer is an **optional fast, cheap, high-recall first pass** (99% audited recall, ≈ 6× cheaper than Muse Spark Open). It is **not the final verifier**, because of its higher false-alarm rate. It is not wired into the default pipeline. It will be retrained only if the builder's real negatives footage arrives.
+- **Update (2026-11-01).** After v2 (below), Glimmer is **not offered in On-prem mode** either: v2 raises clean-pipe false alarms about 2× over Muse Spark Open at similar recall, and as a first pass it would save few calls (docs/DECISIONS.md, "Glimmer v2 is not offered in On-prem mode").
 
 
 ### Same distillation on Fireworks Serverless Training (images, no dataset upload, no deployment)
@@ -575,7 +594,7 @@ What it shows:
   - the 86 real teacher rejections repeated 4×;
   - 1:1 with all 1,106 teacher accepts, 2,212 examples in total.
 - **Training run:** same recipe as v1 (QLoRA r = 16, 2 epochs). It took 104 min and ≈ $6.84, and was started as a spawned call on the deployed app. A first attempt was cancelled when the memory guard killed its local `modal run --detach` client.
-- **Evaluation:** same 1,227 evaluation candidates as v1, 2.41 s per candidate, ≈ $3.29.
+- **Evaluation:** same 1,227 evaluation candidates as v1, H100, 2.41 s per candidate, ≈ $3.29 (≈ $0.0027 per candidate, about 3× cheaper than Muse Spark Open on Baseten).
 
 | Glimmer 30B | Audited recall (n = 113; 95% CI) | Audited not-rust rejected | Real negatives: accepted / images with an alarm (of 185 / 61) | Muse Image: accepted / images (of 486 / 120) | Test TP retention | Agreement with hosted low / Muse Spark Open |
 |---|---|---|---|---|---|---|
@@ -665,3 +684,22 @@ What it shows:
   - The training data is clean (no zero-size, out-of-bounds or degenerate annotations), and the loss settings and gradient clipping (0.1) are the repo's.
   - The cause is not found. It is independent of learning rate and precision; likely a data or augmentation path in this config that the upstream recipe does not hit with its 100-image subsets.
 - **Decision.** Stopped after 9 attempts (each ended within 1–3 min; total ≈ $1.5 of H100 time incl. the base evaluation, cap $25). No checkpoint, nothing to evaluate. **SAM 3.1 stays the perception model.** The base comparison shows SAM 3 and SAM 3.1 are close on dev, so the expected gain was mainly from the look-alike negatives; Glimmer v2 (§14) covers that at the verifier stage.
+
+## 19. F4 voice note: the builder's own recording, end to end (2026-11-01)
+
+- **Input.** One 12.2 s phone recording by the builder (AAC, 48 kHz stereo), converted locally to 16 kHz mono 16-bit WAV, the format the speech-to-text API takes. The audio stays on the data drive and is never committed.
+- **Pipeline** (`backend/voice/notes.py`): Muse Voice Transcribe (`muse-voice-transcribe-1.0`, plant keywords as recognition hints), then Muse Spark with a strict JSON schema extracts the asset tag, line service, remarks and follow-ups. The prompt forbids inferring fields that were not said.
+- **Transcript (verbatim):** "line four, LPG header header, insulated. Coating damage near the flange. Check for Check for corrosion under insulation. Asset tag P401."
+- **Extracted fields:**
+
+| Field | Value |
+|---|---|
+| Asset tag | P-401 |
+| Line service | lpg |
+| Remark | near the flange: coating damage on insulated LPG header (no severity words said) |
+| Follow-up | check for corrosion under insulation |
+| Summary | Line 4 LPG header (P-401), insulated, with coating damage near the flange; check for corrosion under insulation. |
+
+- **Cost and time:** ≈ $0.002 (12 s of audio at $0.18 per hour, plus one extraction call).
+- **In the product.** Attached to a run, the note appears under the defect register in the UI, in the copilot's context and in the PDF report. Results are cached by the audio's hash (transcript and fields only), so the demo replays it without an API call.
+- **Not measured.** This is one recording, checked by the builder against what was said; there is no word-error-rate benchmark. The repeated words ("header header", "Check for Check for") are in the transcript as returned.

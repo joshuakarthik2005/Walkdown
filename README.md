@@ -47,7 +47,7 @@ An agent (Muse Spark with tool calling) runs the whole loop and decides what to 
 - an inspector copilot that answers only from the register, the plan and the planner's reasons;
 - an inspection report (PDF);
 - work orders (CSV and JSON);
-- voice notes attached to defects (Muse Voice Transcribe).
+- inspector voice notes (Muse Voice Transcribe, then Muse Spark extracts the asset tag, line service, remarks and follow-ups; tested on the builder's own recording, [RESULTS §19](benchmark/RESULTS.md)).
 
 ## Results
 
@@ -55,10 +55,13 @@ Full details, including the negative results, are in [`benchmark/RESULTS.md`](be
 
 **Perception on a held-out test split** (1,444 annotated images):
 
-| Pipeline | Images with corrosion found | Annotated corrosion area covered |
-|---|---|---|
-| SAM 3.1 text prompt only | 66% | 37% |
-| Default (text + Muse Spark boxes + verifier) | 97.9% | 84% |
+| Pipeline | Images with corrosion found | Pixel precision | Annotated corrosion area covered (pixel recall) |
+|---|---|---|---|
+| SAM 3.1 text prompt only | 66% | 0.92 | 36% |
+| **Cloud** default (text + Muse Spark boxes + verifier) | 97.9% | 0.77 | 84% |
+| **On-prem**, open weights only (same pipeline on SAM 3.1 open weights + Muse Spark Open) | 92.4% | 0.78 | 62% |
+
+On-prem finds corrosion on most of the same images but covers less of it: open-weights SAM 3.1 has no per-box prompt, so its masks from box proposals are looser ([RESULTS §7](benchmark/RESULTS.md)).
 
 **Verification against blind human labels** (133 candidates labelled by the builder; [RESULTS §8](benchmark/RESULTS.md)):
 - 91–93% of the candidates the verifier accepts are real rust.
@@ -74,7 +77,14 @@ Full details, including the negative results, are in [`benchmark/RESULTS.md`](be
 
 **Open weights:**
 - Muse Spark Open agrees with hosted Muse Spark on 93.4% of 5,066 verification decisions ([RESULTS §6](benchmark/RESULTS.md)).
-- A Muse Glimmer 30B verifier distilled on Modal keeps 99% of audited real rust at about 6× lower cost than Muse Spark Open. It accepts more look-alikes, so it is positioned as an optional fast first pass, not the final verifier ([RESULTS §14](benchmark/RESULTS.md)).
+- **Muse Glimmer 30B distilled as a verifier**, from open-weights teacher labels only ([RESULTS §14](benchmark/RESULTS.md)):
+  - Trained twice with the same data: QLoRA on Modal, and LoRA with images on Fireworks Serverless Training (free promotional training; the published recipe is text-only, so Walkdown drives the training API directly). Both keep **99.1%** of audited real rust.
+  - Both accept more look-alikes than their teacher. Glimmer v2, with more look-alike rejections, cuts clean-pipe images with an alarm by **39%** at **94.7%** recall, still about 2× the teacher's false alarms.
+  - So it is **not used in the product**; it stays a documented research result ([DECISIONS](docs/DECISIONS.md)).
+
+**Reliability:** 50 of 50 live end-to-end agent runs succeeded, 16 of them with a replan after a crew outage; median 143 s and $0.19 per run ([RESULTS §15](benchmark/RESULTS.md)). These runs found one real bug (video tracking), now fixed.
+
+**Negative results we kept:** SAM 3 full fine-tuning never completed (NaN after about 300 steps at any learning rate or precision, after patching three upstream training issues), so SAM 3.1 stays the perception model ([RESULTS §18](benchmark/RESULTS.md)). Muse Wonder's second opinion does not improve grade agreement (§5). More reasoning effort and a hardened prompt did not pay off (§11, §12).
 
 **Planning:**
 - CP-SAT is never worse than a severity-first priority sort on 60 generated scenarios: median 5.8% lower risk in the default regime, up to 24.9%.
@@ -141,7 +151,9 @@ Everything in this repository was written during the building period. The git hi
   - false-alarm tests on real and synthetic negatives;
   - effort studies;
   - the Cloud vs On-prem comparison;
-  - Muse Glimmer distillation (teacher labels from open weights only, QLoRA on Modal) and its evaluation.
+  - Muse Glimmer distillation (teacher labels from open weights only): QLoRA on Modal, LoRA with images on Fireworks Serverless Training, and its evaluation;
+  - a SAM 3 full fine-tune harness on Modal (negative result);
+  - 50 live end-to-end agent runs.
 - **Web UI** (Next.js) and the **FastAPI** back end.
 
 ## Third-party libraries, models and datasets
@@ -157,6 +169,8 @@ Everything in this repository was written during the building period. The git hi
 | SAM 3.1 open weights (`facebook/sam3.1`, code `facebookresearch/sam3`) on Modal | SAM License; Modal terms | On-prem segmentation |
 | Muse Spark Open (`meta-models/muse-spark-open-1026` on Baseten; `muse-spark-open` on Fireworks serverless) | Muse Model License and Usage Policy; Baseten / Fireworks terms | On-prem agent, verifier and box proposals; teacher for the Glimmer distillation; full-test-split On-prem benchmark (Fireworks) |
 | Muse Glimmer 30B (`meta-models/Muse-Glimmer-30B`) on Modal | Apache 2.0 and the Muse Glimmer Usage Policy; trained on Muse Spark Open outputs, so the Muse Model License applies too | Distilled verifier experiment; weights private, never published |
+| Muse Glimmer 30B on Fireworks Serverless Training (`accounts/fireworks/models/muse-glimmer-30b`) | Apache 2.0 and the Muse Glimmer Usage Policy; Fireworks terms | Same distillation trained as a LoRA with images; tuned snapshot private, used only for evaluation |
+| SAM 3 open weights (`facebook/sam3`, code `facebookresearch/sam3`) on Modal | SAM License; Modal terms | Fine-tuning attempt (negative result, no checkpoint kept) and base-model comparison |
 | FLUX.1-schnell (`black-forest-labs/FLUX.1-schnell`) on Modal | Apache 2.0 | Synthetic look-alike images for training only |
 
 ### Libraries
@@ -170,6 +184,8 @@ Everything in this repository was written during the building period. The git hi
 | Modal client | Apache-2.0 | GPU jobs |
 | transformers, PEFT, bitsandbytes, diffusers (in the Modal images only) | Apache-2.0 / Apache-2.0 / MIT / Apache-2.0 | Glimmer fine-tuning, FLUX generation |
 | Next.js, React, TypeScript | MIT / MIT / Apache-2.0 | Web UI |
+| `fireworks-ai[training]` SDK and the fw-ai cookbook's Muse Glimmer renderer (separate venv on the data drive, not in `requirements.txt`) | Apache-2.0 / Apache-2.0 | Glimmer training on Fireworks Serverless Training (`benchmark/fw_glimmer_train.py`) |
+| PyAV (bundles FFmpeg) | BSD-3-Clause (FFmpeg: LGPL) | One-off local conversion of the builder's voice note to WAV; not a project dependency |
 
 ### Datasets and footage
 | Data | Source | Licence | Use |
