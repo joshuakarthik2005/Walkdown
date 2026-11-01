@@ -23,6 +23,14 @@ data/raw/
 *.avi
 *.mkv
 *.zip
+footage/
+*.m4a
+*.mp3
+*.wav
+*.aac
+*.ogg
+*.flac
+*.webm
 
 # OS / editor
 .DS_Store
