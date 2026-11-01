@@ -5,8 +5,8 @@ Rules for both videos:
 - Every on-screen number must come from `docs/IMPACT_SOURCES.md` (Verified) or `benchmark/RESULTS.md` / `PLANNER_RESULTS.md`.
 - Footage and screenshots come from the builder's own recordings. If those are not enough, use the checked stock clips (below), captioned **"stock demonstration footage"**. **No dataset images anywhere** (DECISIONS.md, rights rule).
 - Use a cached demo clip, so the run is fast and repeatable. Say once, on screen, that it is cached; the live flag exists.
-  - Measured (2026-10-29, after the decoded-mask cache): a cached repeat run of `stock-tank-farm` takes **50 s for $0.03**, with 17 entries, 2 jobs, OPTIMAL.
-  - A first, uncached run takes 3–7 min. Run the clip twice before recording.
+  - The three demo clips use a **fixed frame grid** (`fixed_sampling` in each clip's `clip.json`), so the agent segments the same frames on every run and the register is identical between runs (checked: three tank-farm runs, identical 24-entry register).
+  - All timings below were measured on 2026-11-01 from a fresh start of backend and frontend, in Cloud mode, cached.
 
 Legend: **[BUILT]** = built during the hackathon (Oct 27 – Nov 4, 2026). **[META]** = a Meta model called through the API (third-party, used, not built). **[LIB]** = an open-source library used.
 
@@ -24,21 +24,38 @@ Do not add other numbers in this section. C1–C5 in IMPACT_SOURCES are not veri
 
 ## 0:30–2:30 · Live run (the agent is the product)
 
-| Time | On screen | Voice-over | Built? |
-|---|---|---|---|
-| 0:30–0:45 | Walkdown UI. Upload the builder's clip; set asset `UNIT2-LPG-RACK`, line service **LPG**, pressurised. Click **Run the agent**. | "I upload a 30-second walkdown clip of an LPG pipe rack and hand it to the agent." | UI, upload, asset/service form **[BUILT]** |
-| 0:45–1:10 | **Agent decision flow** fills in step by step: "Tracks the clip" (SAM 3.1 video tracking), then "Looks at the clip" (text prompt + Muse Spark box proposals), "Checks each finding" (Muse Spark), "second opinion (Muse Wonder)" on the severe or uncertain ones. Point at the per-step time/cost and "cached". Before clicking Run, point at **Detection sensitivity: High recall (default)**, with recall 97.3% and clean images flagged 12.0% shown next to it. | "The agent decides what to look at. SAM 3.1 tracks rust through the video; Muse Spark checks each finding, rejects look-alikes like paint or shadows, and grades severity with evidence. Severe or uncertain calls get a second opinion from Muse Wonder; where the two models disagree, the defect stays in the register and goes to a human." | Agent loop, tools, trace, tracking, tiered verification **[BUILT]** · SAM 3.1, Muse Spark, Muse Wonder **[META]** |
-| 1:10–1:30 | **Verified defect register**: the builder's frames with severity-coloured masks; rows with type, severity, evidence, action; a **second opinion** badge (a disputed one says "needs human review"); the inspector's voice note under the table (tag, service, follow-up). The yellow **Decision support only** notice is visible. | "Every finding becomes a register entry with evidence. The inspector's voice note is transcribed and filed with it. Contradictory grades get flagged for a human, and every action still needs a person's approval." | Register, overlays, consistency checks, voice-note extraction, safe-use notice **[BUILT]** · Muse Voice Transcribe **[META]** |
-| 1:30–1:55 | **Repair plan** Gantt: crews, shutdown windows, walkdown jobs among the existing backlog; the status badge and gap are always shown. Click **Grouped jobs / Individual defects**: the table shows the trade-off. Grouped is proven optimal with fewer jobs and setup hours saved, but with higher risk exposure; individual is FEASIBLE with a gap. Hover a package to see its defects. | "It merges the new defects into the plant's backlog and schedules them with a constraint solver: crews, skills, permits, shutdown windows, and risk weighted by what the line carries. Nearby defects can be one job for one crew. It shows the cost of grouping instead of hiding it, and it never calls a plan optimal unless the solver proved it." | CP-SAT model, adaptive work packages, risk = likelihood × consequence **[BUILT]** · OR-Tools **[LIB]** |
-| 1:55–2:20 | **"Something changed on site?"**: cancel shutdown window SD1 (or take crew C1 out for 72 h), slider **ε = 0.02**, click **Replan**. The flow shows "Replans after the change"; the Gantt redraws with moved jobs dashed. | "Now the shutdown is cancelled. The agent replans: work already started stays fixed, it finds the lowest-risk plan, then moves as few jobs as possible. This slider trades stability against risk." | Two-stage replan, ε control **[BUILT]** |
-| 2:20–2:25 | **"What the agent concluded"** panel: plain-language explanation citing reason codes ("waiting for shutdown window", "not enough coating crew hours"). | "And it explains why, using only the solver's own reasons. Nothing invented." | Structured explanations, prompt rules **[BUILT]** |
-| 2:25–2:30 | **Copilot** box: type "Why is W03 not scheduled?"; answer cites crew hours; "from get schedule, explain plan". Then click **Inspection report (PDF)**. | "Inspectors can ask follow-up questions, answered only from the plan, and export the report and work orders." | Inspector copilot, PDF report, CMMS-style export **[BUILT]** |
+### Before recording (about 5 min)
+
+1. Start the API: `.venv\Scripts\python -m uvicorn backend.api.app:app --port 8000` (ready in about 2 s).
+2. Start the UI: `cd frontend && npm run dev`, then open http://localhost:3000. The first page load compiles the app, about 15 s; load it once before recording.
+3. Do one full rehearsal of the click path below on `stock-tank-farm`, so every cache is warm, then reload the page.
+4. Keep `G:\walkdown-data\footage\voice_note_01.m4a` ready for the file dialog (the upload also takes WAV and mp3). Its transcript and fields are cached, so attaching it costs nothing and takes under a second.
+
+### Click path with measured timings
+
+Real time is what the screen shows. Two waits (the run and the replan) are long for a 3-minute video: record them in real time and speed them up in the edit, with a small "sped up" caption.
+
+| Video time | Click / action | Real time | What appears (measured on the rehearsal run) | Voice-over (approx.) | Built? |
+|---|---|---|---|---|---|
+| 0:30–0:38 | Paste `stock-tank-farm` into **"or paste a clip id"**. Point at **Detection sensitivity: High recall (default) · recall 97.3% · clean images flagged 12.0%**. Leave **Cloud** selected. Click **Run the agent**. | 5 s | Caption: "stock demonstration footage". | "Here's a walkdown of a tank farm. I hand it to the agent." | UI, sensitivity setting **[BUILT]** |
+| 0:38–1:00 | Watch **The agent** flow fill in. | 51–56 s (show at ≈ 2.5×) | "Tracks the clip" (SAM 3.1 video), "Looks at the clip" (24 frames, text + boxes), "Checks each finding" ×3 (Muse Spark; 8 senior reviews by Muse Wonder), "Writes the defect register: 24 entries, 9 need review", "Plans the repairs" (≈ 30 s, the slow step), "Reads the planner's reasons". Header: run cost ≈ $0.04. | "The agent decides what to look at. SAM 3.1 tracks rust through the video and Muse Spark proposes boxes it missed. Muse Spark checks every finding, rejects look-alikes and grades severity with evidence. Severe or uncertain calls get a second opinion from Muse Wonder; where they disagree, a human decides." | Agent loop, tools, trace **[BUILT]** · SAM 3.1, Muse Spark, Muse Wonder **[META]** |
+| 1:00–1:20 | Scroll to **Verified defect register**: frames with masks, rows with type, severity, evidence, action; point at a **second opinion** badge and a **disputed: needs human review** row. Click **Attach a voice note (WAV, m4a, mp3)** and pick `voice_note_01.m4a`. | under 1 s for the note | 24 entries on STOCK-TANK-FARM, crude service; 18 candidates rejected as false positives. The **Inspector note** appears under the table: 12 s, tag P-401, LPG service, "coating damage near the flange", follow-up "check for corrosion under insulation". | "Every finding becomes a register entry with its evidence. The inspector adds a voice note from their phone; Muse Voice Transcribe and Muse Spark turn it into a tag, a service and a follow-up." | Register, overlays, voice-note extraction **[BUILT]** · Muse Voice Transcribe **[META]** |
+| 1:20–1:40 | Scroll to **Repair plan the agent produced**. Click **Individual defects**, then **Grouped jobs (used)**. Hover a package bar. | instant | Grouped: **OPTIMAL, gap 0.0%**, 14 jobs, 22 setup hours saved. Individual: **FEASIBLE** with a gap (16–18% on the rehearsal runs; it varies with the 30 s time limit), 36 jobs. The reason line says why grouped was used. | "It merges the new defects into the plant's backlog and schedules them with a constraint solver: crews, permits, shutdown windows, risk weighted by what the line carries. Grouping nearby defects saves 22 setup hours, at a risk cost it shows instead of hiding. It only says optimal when the solver proved it." | CP-SAT model, adaptive work packages **[BUILT]** · OR-Tools **[LIB]** |
+| 1:40–2:05 | Panel **Something changed on site?**: Change = **Crew becomes unavailable**, current hour **24**, crew **C1 · coating, insulation**, **72** hours, slider **ε = 0.02**. Click **Replan**. | 40 s (show at ≈ 3×) | Flow adds "Replans after the change: OPTIMAL, 14 scheduled, 0 unscheduled, 4 moved". Header: "risk: OPTIMAL, stability: OPTIMAL", gap 0.4%. | "A coating crew is out for three days. The agent replans: started work stays fixed, it finds the lowest-risk plan, then moves as few jobs as possible. The 0.4% is the risk it accepts to keep the plan stable, inside the 2% this slider allows." | Two-stage replan, ε control **[BUILT]** |
+| 2:05–2:15 | Point at **What the agent concluded · after change 1**. | – | "C1 unavailable hours 24–96 forced replan…", WP1 and WP2 with their delay reasons (outside_shift, crew_unavailable), moved jobs D05, D08, WP1, WP2. | "And it explains why, using only the solver's own reasons." | Structured explanations **[BUILT]** |
+| 2:15–2:25 | **Ask about the register or plan**: type "Why is W09 waiting?", press Enter. | 7–10 s (show at ≈ 2×) | "W09 … is repaired as part of group WP2 … scheduled with Crew A from hour 106 … waiting because: outside shift, crew unavailable (hours 24–96), deferred by optimiser … plan status OPTIMAL with gap 0.0038", with the tools it used listed. | "Inspectors can ask follow-up questions, answered only from the register and the plan." | Inspector copilot **[BUILT]** |
+| 2:25–2:30 | Click **Inspection report (PDF)**. | 1.7 s | A 3-page PDF report; the work orders (CSV, JSON) are next to it. | "And export the report and work orders for approval." | PDF, CMMS-style export **[BUILT]** |
+
+**False-alarm beat** (optional; use in 2:30–2:45 or cut): reload, paste `stock-clean-piping`, **Run the agent**. 10–14 s, ≈ $0.006: "Found no corrosion … 0 candidates, register empty". Voice-over: "On clean painted piping, the register stays empty." Do not claim a rate from this: the measured rate is in RESULTS §9 (12.0% of clean-pipe images flagged at High recall).
+
+**Backup clip:** `stock-valve-tank`, same click path; 50–52 s per run, 21 entries. Use it only if tank-farm fails; its lichen and worn-paint flags are questionable, so present them as "needs human review" examples.
+
+**Measured cost of one full rehearsal** (run + voice note + replan + copilot + PDF): ≈ $0.06 of Meta credit.
 
 Demo prerequisites (all **[BUILT]**):
-1. Warm the cache for the demo clip with `python -m backend.agent.warm_cache <clip_id>`.
+1. Warm the cache for a new clip with `python -m backend.agent.warm_cache <clip_id>`; the three demo clips are already warm.
 2. Rehearse the full flow with `python -m backend.agent.rehearse <clip_id>`.
-3. Confirm the plan badge and gap you want to show. Grouping is used automatically when the per-defect plan cannot be proven within 5% in 30 s.
-4. Check the overlays by eye: `G:/walkdown-data/demo_checks/NOTES.md` (vessel is dropped; tank-farm is the main stock clip).
+3. Check the overlays by eye: `G:/walkdown-data/demo_checks/NOTES.md`.
 
 ## 2:30–3:00 · Results and what it unlocks
 
@@ -95,5 +112,6 @@ Use these only if the builder's own footage is not enough. On screen and in the 
 3. **`stock-vessel`** as a backup: a single job, and the repeat run is almost fully cached ($0.02).
 
 **Caveats:**
-- **The repeat runs are not fully cached** (valve-tank, tank-farm, welded-pipes). The agent chooses different sampling rates on each run, so some new frames get segmented and verified. For the recorded demo, run the chosen clip once more right before recording and keep that run.
+- **Repeat runs are now stable.** Since 2026-11-01 the demo clips use a fixed frame grid, so the register does not change between runs (the earlier caveat about different sampling rates no longer applies). The 17-entry figures above were measured before that change; the current tank-farm register has 24 entries.
+- **The individual plan's gap varies between runs** (16–18% on the rehearsal runs), because it stops at the 30 s time limit. Do not voice its exact gap; the grouped plan is proven optimal every time.
 - **Check the masks before recording.** These numbers are pipeline output with no human check: each register entry needs a look on the overlay.

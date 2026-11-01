@@ -121,3 +121,10 @@ Task reports, appended after every task.
 - F4 voice note: builder's 12 s recording transcribed and structured (P-401, LPG, coating damage near the flange, CUI check); shown in the UI under the register; cached by audio hash for the demo (RESULTS 19).
 - COST_LOG final per-provider table (Meta and Modal from dashboards; Baseten and Fireworks from the ledger).
 - README headline numbers and RESULTS summary updated; 108 tests pass.
+
+## 2026-11-01 — Item 5 polish (moved up from Nov 3)
+- Demo clips use a fixed frame grid (`fixed_sampling` in clip.json): three tank-farm runs gave an identical 24-entry register; clean-piping 0 entries; valve-tank 21 entries.
+- Voice notes accept m4a/mp3/ogg/flac/webm (server-side PyAV decode); the builder's m4a hits the cached result.
+- Bug fixed: the copilot and explain_plan now map a grouped defect to its work package (it answered "no assignment for W09").
+- Fresh start: API ready in 2 s, UI first page 15 s. Click path timed in the browser; DEMO_SCRIPT.md rewritten with measured timings.
+- Logged-out check: repo public, README and raw files return 200, no .env, audio, video or weights in the tree.
