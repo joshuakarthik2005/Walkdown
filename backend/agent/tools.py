@@ -215,7 +215,7 @@ def best_track_frames(instances: list[Instance]) -> dict[str, tuple[Instance, li
 
 def track_video(s: AgentSession, fps: float = 2.0) -> dict:
     """F3: SAM 3.1 video tracking over the whole clip; one candidate per physical defect (track), on its best frame."""
-    if s.clip.source is None:
+    if not getattr(s.clip, "is_video", s.clip.source is not None):
         return dict(error="this clip is a set of photos; use segment_frames")
     fps = float(getattr(s.clip, "meta", {}).get("fixed_sampling", {}).get("track_fps") or fps)  # demo clips: fixed grid
     fps = max(0.5, min(fps, 4.0))
@@ -233,6 +233,8 @@ def track_video(s: AgentSession, fps: float = 2.0) -> dict:
     elif cache.exists() and not s.live:
         h, w = frames[0].image().shape[:2]
         instances = parse_output(cache.read_text(encoding="utf-8"), w, h, video=True)
+    elif s.clip.source is None:
+        return dict(error="no cached tracking for this bundled demo clip; use segment_frames")
     else:
         res = segment_video(s.clip.source, PROMPT, sample_fps=fps, ledger=s.ledger, job="agent-sam-video")
         cache.parent.mkdir(exist_ok=True)
@@ -359,7 +361,7 @@ def build_register_tool(s: AgentSession) -> dict:
         review = s.reviews.get(cid)
         dets.append(Detection(cid, frame, inst.box, grade, v.flags, review.to_dict() if review else None,
                               s.tracks.get(cid, [])))
-    s.register = build_register(dets, s.clip.asset, merge_across_frames=s.clip.source is not None)
+    s.register = build_register(dets, s.clip.asset, merge_across_frames=getattr(s.clip, "is_video", s.clip.source is not None))
     rejected = sum(1 for v in s.verdicts.values() if v.grade and not v.grade.is_defect)
     return dict(register_entries=len(s.register), rejected_candidates=rejected,
                 needs_review=[e.defect_id for e in s.register if e.needs_review],

@@ -51,9 +51,18 @@ class Clip:
         self.source = next((p for p in self.dir.iterdir() if p.suffix.lower() in VIDEO_EXT), None)
         self.photos = sorted(p for p in (self.dir / "photos").glob("*") if p.suffix.lower() in PHOTO_EXT) \
             if (self.dir / "photos").exists() else []
+        # A bundled demo clip ships its extracted frames and caches but not the source video (stock footage is
+        # not redistributed): clip.json "video" = {"duration_s": ...} stands in for the file.
+        self.bundled = self.source is None and "video" in self.meta
+
+    @property
+    def is_video(self) -> bool:
+        return self.source is not None or self.bundled
 
     @property
     def duration_s(self) -> float:
+        if self.bundled:
+            return float(self.meta["video"]["duration_s"])
         if self.source is None:
             return float(len(self.photos))
         cap = cv2.VideoCapture(str(self.source))
@@ -64,9 +73,12 @@ class Clip:
     def frames(self, start_s: float = 0.0, end_s: float | None = None, fps: float = 1.0) -> list[Frame]:
         """Frames in ``[start_s, end_s]`` at about ``fps``; extracted once and cached as JPG."""
         end_s = self.duration_s if end_s is None else min(end_s, self.duration_s)
-        if self.source is None:
+        if self.source is None and not self.bundled:
             return [Frame(i, float(i), p) for i, p in enumerate(self.photos) if start_s <= i <= end_s]
         out_dir = self.dir / "frames"
+        if self.bundled:  # frames were extracted before bundling; same 0.1 s grid ids
+            return [Frame(int(round(t * 10)), float(t), out_dir / f"t{int(round(t * 10)):05d}.jpg")
+                    for t in np.arange(start_s, end_s + 1e-9, 1.0 / fps)]
         out_dir.mkdir(exist_ok=True)
         cap = cv2.VideoCapture(str(self.source))
         native = cap.get(cv2.CAP_PROP_FPS) or 30.0
