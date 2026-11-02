@@ -128,3 +128,28 @@ Task reports, appended after every task.
 - Bug fixed: the copilot and explain_plan now map a grouped defect to its work package (it answered "no assignment for W09").
 - Fresh start: API ready in 2 s, UI first page 15 s. Click path timed in the browser; DEMO_SCRIPT.md rewritten with measured timings.
 - Logged-out check: repo public, README and raw files return 200, no .env, audio, video or weights in the tree.
+
+## 2026-11-02: public demo mode and judge-first UI
+
+- **Demo mode** (`DEMO_MODE=true`):
+  - samples use cached results only, and On-prem runs are switched off;
+  - uploads are limited to 50 MB, 60 s and 20 photos;
+  - per-IP hourly rate limits;
+  - a global daily spend cap ($5 by default) charged by every paid call and persisted per UTC day;
+  - friendly error messages throughout.
+- **New endpoints:** `/samples` (credited Pexels clips with thumbnails), `/examples` and `/examples/{id}`. The finished examples are tank-farm (with the voice note and the crew-out replan), valve-tank and clean-piping. They load instantly as runs of their own.
+- **Built the examples:** tank-farm 24 entries, OPTIMAL ($0.043); valve-tank 21 entries ($0.027); clean-piping 0 entries ($0.006). A first attempt with a broken clip loader cost about $0.03 and produced empty examples; I rebuilt them after the fix.
+- **Bundled clips:** frames and caches without the source video, with `clip.json` "video" giving the duration.
+- **UI v2:**
+  - sample cards and "Open finished example" first, with upload as a drop zone;
+  - one primary "Run the agent" button above the fold at 1080p;
+  - a neutral Cloud / On-prem segmented control, and the asset form only for uploads;
+  - shareable `?sample=`, `?example=` and `?run=` links that survive a refresh, with a fallback when the server no longer has the run;
+  - polling backoff and a "stopped" state, plus friendly errors;
+  - a one-line safety notice with the full disclosure expandable;
+  - one headline metric (audited recall), with "What these numbers mean" expandable;
+  - a "For judges" panel, logo and favicon;
+  - the phone-width overflow fixed (tables scroll).
+- **Checked in the browser:** the example loads, a refresh restores the run, an expired run falls back to the example, a live valve-tank sample run in the new UI (21 entries, OPTIMAL), a replan and a copilot question on a loaded example, and the production build. Screenshots are in `G:/walkdown-data/demo_checks/ui_v2/`.
+- **Deployment:** skipped (DECISIONS 2026-11-02).
+- **Tests:** test_demo.py, 10 tests.

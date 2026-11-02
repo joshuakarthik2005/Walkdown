@@ -16,7 +16,7 @@ export function VoiceNotes({ runId, notes, onAdded }: { runId: string; notes: Vo
       await api.uploadVoice(runId, file);
       onAdded();
     } catch (e) {
-      setError(String(e));
+      setError(api.message(e));
     } finally {
       setBusy(false);
     }

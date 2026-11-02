@@ -395,3 +395,13 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - **Serving.** It runs only as a Modal batch job today (a 60 GB model load per cold start). Making it an interactive service is new work, and features freeze on Nov 2.
 - **What stays.** Glimmer v1 and v2 remain documented research results: the distillation recipe, the Modal and Fireworks training runs, and the evaluation. Fine-tuned weights are never published.
 - **What would change this.** Real hard negatives (the builder's own clean-plant footage) in the training data, to bring its clean-pipe false alarms down to the teacher's level.
+
+## Public demo mode; no public hosting (2026-11-02, builder decision)
+
+- **Built:** `DEMO_MODE=true` (backend/api/demo.py): cached results on the sample walkdowns, upload limits (50 MB, 60 s, 20 photos), per-IP hourly rate limits, and a global daily spend cap across all providers (default $5) that every paid call charges. Also finished examples that load instantly (backend/api/examples.py), and sample cards with Pexels credits. Bundled clips ship extracted frames and caches, never the stock video (Pexels License: no standalone redistribution).
+- **Hosting tried:**
+  - Paid hosts (Fly.io, Railway) were ruled out by the builder (no budget).
+  - Hugging Face Docker Spaces now need a paid plan to create (HF Spaces docs, checked 2026-11-02).
+  - The Gradio-on-ZeroGPU workaround was rejected as a possible platform-policy issue.
+  - Render's free tier (512 MB RAM, sleeps after 15 min idle) was the fallback, time-boxed to the end of Nov 2 IST. That time box ran out before demo mode and the UI were finished, so deployment was skipped as agreed.
+- **Consequence:** the demo video is recorded on a local production build. The README has a "Run it locally" section. Judges see the video and the code; the product runs from the repo with the builder's or their own keys.

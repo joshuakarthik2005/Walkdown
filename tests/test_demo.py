@@ -106,7 +106,7 @@ def test_demo_samples_use_cached_results_and_onprem_is_examples_only(demo):
     r = client.post("/runs", json={"clip_id": "clip-abc", "live": True})
     assert r.status_code == 200 and demo.seen["session"].live is True  # uploads have no cache to fall back on
     r = client.post("/runs", json={"clip_id": "stock-tank-farm", "provider": "baseten"})
-    assert r.status_code == 403 and "finished examples" in r.json()["detail"]
+    assert r.status_code == 403 and "finished example" in r.json()["detail"]
 
 
 def test_demo_budget_blocks_paid_endpoints(demo):

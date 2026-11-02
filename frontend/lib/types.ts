@@ -28,6 +28,8 @@ export interface RunStatus {
   usd: number;
   elapsed_s: number;
   now_hour: number;
+  example: string | null;
+  clip_id: string;
 }
 
 export interface Grade {

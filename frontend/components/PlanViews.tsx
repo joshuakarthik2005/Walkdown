@@ -42,6 +42,7 @@ export function PlanViews({
         The agent uses the {LABEL[comparison.chosen].toLowerCase()} plan: {comparison.reason}. Grouped jobs share setup but every defect in a
         group waits for the whole group, so risk exposure can be higher.
       </p>
+      <div className="table-scroll">
       <table>
         <thead>
           <tr>
@@ -64,6 +65,7 @@ export function PlanViews({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

@@ -4,8 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentTrail } from "@/components/AgentTrail";
 import { ChangePanel } from "@/components/ChangePanel";
 import { Copilot } from "@/components/Copilot";
+import { DropZone } from "@/components/DropZone";
+import { ForJudges } from "@/components/ForJudges";
 import { Gantt } from "@/components/Gantt";
+import { HeadlineMetric } from "@/components/HeadlineMetric";
+import { Logo } from "@/components/Logo";
 import { PlanViews } from "@/components/PlanViews";
+import { SampleGallery } from "@/components/SampleGallery";
 import { SensitivityPicker } from "@/components/SensitivityPicker";
 import { RegisterView } from "@/components/RegisterView";
 import { VoiceNotes } from "@/components/VoiceNotes";
@@ -17,6 +22,9 @@ import type { FrameInfo, PlanResponse, PlanView, Register, RunStatus, TraceEvent
 import { usd } from "@/lib/format";
 
 const POLL_MS = 1200;
+const POLL_MAX_MS = 15000;
+const GIVE_UP_MS = 120000; // polling stops after this long without reaching the server
+const WAKE_MAX_MS = 90000; // how long the first connection keeps retrying (a sleeping server takes ~1 min)
 
 const SERVICES: [string, string][] = [
   ["", "unknown"],
@@ -41,18 +49,37 @@ const ASSET_TYPES: [string, string][] = [
   ["railing", "railing / walkway"],
 ];
 
+const label = (pairs: [string, string][], v: string | null) => pairs.find(([k]) => k === (v ?? ""))?.[1] ?? v ?? "";
+
+type Server = "connecting" | "waking" | "ok" | "down";
+type Params = { run?: string; sample?: string; example?: string };
+
+/** Keep the address bar shareable: ?run=, ?sample=, ?example= (no reload). */
+function setUrl(p: Params) {
+  const q = new URLSearchParams();
+  Object.entries(p).forEach(([k, v]) => v && q.set(k, v));
+  const s = q.toString();
+  window.history.replaceState(null, "", s ? `?${s}` : window.location.pathname);
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export default function Home() {
-  const [clipId, setClipId] = useState("");
+  const [server, setServer] = useState<Server>("connecting");
+  const [config, setConfig] = useState<api.ServerConfig | null>(null);
+  const [samples, setSamples] = useState<api.Sample[]>([]);
+  const [examples, setExamples] = useState<api.Example[]>([]);
+  const [sensitivityOptions, setSensitivityOptions] = useState<Awaited<ReturnType<typeof api.getSensitivity>>["options"] | null>(null);
+
+  const [sampleId, setSampleId] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [asset, setAsset] = useState({ asset_id: "UNIT2-LPG-RACK", asset_type: "pipe", pressurised: true, location: "", service: "lpg" });
   const [live, setLive] = useState(false);
   const [mode, setMode] = useState<api.Mode>("cloud");
   const [sensitivity, setSensitivity] = useState<api.Sensitivity>("high_recall");
-  const [sensitivityOptions, setSensitivityOptions] = useState<Awaited<ReturnType<typeof api.getSensitivity>>["options"] | null>(null);
-  useEffect(() => {
-    api.getSensitivity().then((r) => setSensitivityOptions(r.options)).catch(() => setSensitivityOptions(null));
-  }, []);
+
   const [runId, setRunId] = useState<string | null>(null);
+  const [runLabel, setRunLabel] = useState<string>("");
   const [status, setStatus] = useState<RunStatus | null>(null);
   const [events, setEvents] = useState<TraceEvent[]>([]);
   const [register, setRegister] = useState<Register | null>(null);
@@ -60,11 +87,17 @@ export default function Home() {
   const [plan, setPlan] = useState<PlanResponse | null>(null);
   const planView = useRef<PlanView | undefined>(undefined); // undefined = the plan the agent uses
   const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [stopped, setStopped] = useState(false); // polling gave up: the server is unreachable
   const cursor = useRef(0);
   const [pollKey, setPollKey] = useState(0); // bumped to (re)start polling after a run or a change
 
   const running = status?.status === "running";
+  const busy = running || starting;
+  const demo = !!config?.demo_mode;
+  const sample = samples.find((s) => s.id === sampleId) ?? null;
+  const uploadMode = !sample && files.length > 0;
 
   const refreshResults = useCallback(async (id: string) => {
     try {
@@ -77,10 +110,110 @@ export default function Home() {
     }
   }, []);
 
+  const clearResults = () => {
+    setError(null);
+    setNotice(null);
+    setEvents([]);
+    setRegister(null);
+    setPlan(null);
+    setFrames([]);
+    setStatus(null);
+    setStopped(false);
+    planView.current = undefined;
+    cursor.current = 0;
+  };
+
+  const follow = (id: string, labelText: string) => {
+    setRunId(id);
+    setRunLabel(labelText);
+    setPollKey((k) => k + 1);
+  };
+
+  const openExample = useCallback(async (id: string, fallbackNote?: string) => {
+    clearResults();
+    setStarting(true);
+    try {
+      const r = await api.openExample(id);
+      setSampleId(r.sample);
+      setFiles([]);
+      follow(r.run_id, `Finished example · ${r.title}`);
+      setUrl({ run: r.run_id, example: id });
+      if (fallbackNote) setNotice(fallbackNote);
+    } catch (e) {
+      setError(api.message(e));
+    } finally {
+      setStarting(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // First load: reach the server (waking it if it sleeps), then restore the state in the URL.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const t0 = Date.now();
+      let cfg: api.ServerConfig | null = null;
+      for (let delay = 1000; !cancelled; delay = Math.min(delay * 2, 10000)) {
+        try {
+          cfg = await api.getConfig();
+          break;
+        } catch {
+          if (Date.now() - t0 > WAKE_MAX_MS) break;
+          setServer("waking");
+          await sleep(delay);
+        }
+      }
+      if (cancelled) return;
+      if (!cfg) {
+        setServer("down");
+        return;
+      }
+      setConfig(cfg);
+      setServer("ok");
+      const [s, ex] = await Promise.all([api.getSamples().catch(() => ({ samples: [] })), api.getExamples().catch(() => ({ examples: [] }))]);
+      api.getSensitivity().then((r) => setSensitivityOptions(r.options)).catch(() => setSensitivityOptions(null));
+      if (cancelled) return;
+      setSamples(s.samples);
+      setExamples(ex.examples);
+
+      const q = new URLSearchParams(window.location.search);
+      const run = q.get("run");
+      const example = q.get("example");
+      const smp = q.get("sample");
+      if (smp && s.samples.some((x) => x.id === smp)) setSampleId(smp);
+      else if (!example && !run && s.samples.length) setSampleId(s.samples[0].id);
+      if (run) {
+        try {
+          const st = await api.getStatus(run);
+          if (st.clip_id && s.samples.some((x) => x.id === st.clip_id)) setSampleId(st.clip_id);
+          const ex1 = st.example ? ex.examples.find((e) => e.id === st.example) : null;
+          follow(run, ex1 ? `Finished example · ${ex1.title}` : st.clip_id);
+          return;
+        } catch {
+          if (example) {
+            void openExample(example, "That run is no longer on the server (runs are kept in memory), so a fresh copy of the example was opened.");
+            return;
+          }
+          setNotice("That run is no longer on the server (runs are kept in memory). Run the sample again or open a finished example.");
+          setUrl({ sample: smp ?? undefined });
+          return;
+        }
+      }
+      if (example) void openExample(example);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [openExample]);
+
+  // Poll the run with backoff; stop cleanly when the server stays unreachable.
   useEffect(() => {
     if (!runId) return;
     let stop = false;
+    let failures = 0;
+    let firstFailure = 0;
     const tick = async () => {
+      let delay = POLL_MS;
       try {
         const t = await api.getTrace(runId, cursor.current);
         if (t.events.length) {
@@ -90,15 +223,31 @@ export default function Home() {
             void refreshResults(runId);
         }
         const s = await api.getStatus(runId);
+        failures = 0;
+        setError(null);
         setStatus(s);
         if (s.status !== "running") {
           await refreshResults(runId);
+          if (s.status === "error" && s.error) setError(s.error);
           return;
         }
       } catch (e) {
-        setError(String(e));
+        if (e instanceof api.ApiError && e.status === 404) {
+          setError(e.message);
+          setStatus((s) => (s ? { ...s, status: "error" } : s));
+          return;
+        }
+        failures += 1;
+        if (failures === 1) firstFailure = Date.now();
+        if (Date.now() - firstFailure > GIVE_UP_MS) {
+          setStopped(true);
+          setError(null);
+          return;
+        }
+        setError(api.message(e));
+        delay = Math.min(POLL_MS * 2 ** failures, POLL_MAX_MS);
       }
-      if (!stop) setTimeout(tick, POLL_MS);
+      if (!stop) setTimeout(tick, delay);
     };
     void tick();
     return () => {
@@ -106,33 +255,37 @@ export default function Home() {
     };
   }, [runId, pollKey, refreshResults]);
 
-  async function upload() {
-    setError(null);
-    setUploading(true);
-    try {
-      setClipId((await api.uploadClip(files, asset)).clip_id);
-    } catch (e) {
-      setError(String(e));
-    } finally {
-      setUploading(false);
-    }
+  function pickSample(id: string) {
+    setSampleId(id);
+    setFiles([]);
+    setLive(false);
+    if (!runId) setUrl({ sample: id });
+  }
+
+  function pickFiles(f: File[]) {
+    setFiles(f);
+    if (f.length) setSampleId(null);
   }
 
   async function run() {
-    setError(null);
-    setEvents([]);
-    setRegister(null);
-    setPlan(null);
-    planView.current = undefined;
-    setFrames([]);
-    cursor.current = 0;
+    clearResults();
+    setStarting(true);
     try {
+      let clipId = sample?.id ?? "";
+      let labelText = sample ? sample.title : "";
+      if (uploadMode) {
+        const up = await api.uploadClip(files, asset);
+        clipId = up.clip_id;
+        labelText = `${asset.asset_id} (your upload)`;
+      }
+      if (!clipId) throw new api.ApiError("Pick a sample walkdown or upload a clip first.", 400);
       const r = await api.startRun(clipId, live, mode, sensitivity);
-      setStatus(null);
-      setRunId(r.run_id);
-      setPollKey((k) => k + 1);
+      follow(r.run_id, labelText);
+      setUrl({ run: r.run_id, sample: sample?.id });
     } catch (e) {
-      setError(String(e));
+      setError(api.message(e));
+    } finally {
+      setStarting(false);
     }
   }
 
@@ -142,93 +295,203 @@ export default function Home() {
     try {
       await api.postChange(runId, c, now, epsilon);
       setStatus((s) => (s ? { ...s, status: "running" } : s));
+      setStopped(false);
       setPollKey((k) => k + 1);
     } catch (e) {
-      setError(String(e));
+      setError(api.message(e));
     }
+  }
+
+  function newWalkdown() {
+    clearResults();
+    setRunId(null);
+    setRunLabel("");
+    setUrl({ sample: sampleId ?? undefined });
   }
 
   const answers = status?.answers ?? [];
   const latest = answers[answers.length - 1];
+  const onpremBlocked = demo && mode === "onprem" && !!config && !config.onprem_runs;
+  const budgetGone = demo && config?.budget_available === false;
+  const canRun = server === "ok" && !busy && !onpremBlocked && (!!sample || uploadMode) && !(budgetGone && uploadMode);
+  const exampleForSample = sample ? examples.find((e) => e.id === sample.example) : undefined;
 
   return (
     <main className="shell">
       <header className="top sticky">
-        <div>
-          <h1>Walkdown</h1>
-          <div className="tag">An agent that turns a plant walkdown video into verified defects and a risk-optimal repair plan</div>
+        <div className="brand">
+          <Logo />
+          <div>
+            <h1>Walkdown</h1>
+            <div className="tag">An agent that turns a plant walkdown video into verified defects and a risk-optimal repair plan</div>
+          </div>
         </div>
         <div className="row">
-          {plan ? <StatusBadge plan={plan.plan} /> : <span className="badge">no plan yet</span>}
-          {status && <span className="muted mono">{usd(status.usd)} · {status.elapsed_s.toFixed(0)} s</span>}
+          {plan ? <StatusBadge plan={plan.plan} /> : <span className="badge">{busy ? "Working…" : "Idle: run the agent to build a plan"}</span>}
+          {status && !status.example && (
+            <span className="muted mono">
+              {usd(status.usd)} · {status.elapsed_s.toFixed(0)} s
+            </span>
+          )}
         </div>
       </header>
 
       <SafetyNotice />
+      <HeadlineMetric options={sensitivityOptions} />
 
+      {server === "waking" && (
+        <div className="panel info-box">
+          <span className="spinner" /> Waking up the Walkdown server (about a minute if it was asleep)…
+        </div>
+      )}
+      {server === "down" && (
+        <div className="panel error-box">
+          The Walkdown server is not reachable right now. If you run it yourself, start the API (see the README), then reload this page.
+        </div>
+      )}
+      {notice && <div className="panel info-box">{notice}</div>}
       {error && <div className="panel error-box">{error}</div>}
+      {stopped && (
+        <div className="panel error-box row">
+          <span>Stopped: lost contact with the Walkdown server for two minutes.</span>
+          <button className="ghost" onClick={() => { setStopped(false); setPollKey((k) => k + 1); }}>Retry</button>
+        </div>
+      )}
 
       <div className="hero">
-        <section className="panel">
-          <h2>The agent{running ? " · working" : runId ? " · done" : ""}</h2>
-          {events.length ? (
-            <AgentTrail events={events} running={running} />
-          ) : (
-            <p className="muted">
-              Upload a walkdown clip and run the agent. It decides what to inspect, checks every finding, writes the defect register, plans the
-              repairs and explains each decision. Every step appears here as it happens.
-            </p>
-          )}
-          {latest && (
-            <>
-              <h2 style={{ marginTop: 16 }}>What the agent concluded{answers.length > 1 ? ` · after change ${answers.length - 1}` : ""}</h2>
-              <div className="answer answer-big">{latest}</div>
-            </>
-          )}
-        </section>
+        {runId ? (
+          <section className="panel">
+            <h2>
+              The agent{running ? " · working" : status?.status === "error" ? " · stopped" : status ? " · done" : ""}
+              {runLabel ? <span className="h2-sub"> · {runLabel}</span> : null}
+            </h2>
+            {status?.example && (
+              <p className="muted small">
+                A finished run loaded from disk: the trail below is the agent&apos;s recorded run. Replans and copilot questions run live.
+              </p>
+            )}
+            {events.length ? (
+              <AgentTrail events={events} running={running} />
+            ) : (
+              <p className="muted">{busy ? "Starting…" : "Waiting for the first step…"}</p>
+            )}
+            {latest && (
+              <>
+                <h2 style={{ marginTop: 16 }}>What the agent concluded{answers.length > 1 ? ` · after change ${answers.length - 1}` : ""}</h2>
+                <div className="answer answer-big">{latest}</div>
+              </>
+            )}
+          </section>
+        ) : (
+          <section className="panel">
+            <h2>Try a sample walkdown</h2>
+            {samples.length ? (
+              <SampleGallery samples={samples} examples={examples} selected={sampleId} busy={busy} onSelect={pickSample} onOpenExample={(id) => void openExample(id)} />
+            ) : (
+              <p className="muted">{server === "ok" ? "No sample walkdowns on this server." : "Loading samples…"}</p>
+            )}
+            <DropZone files={files} maxMb={config?.max_upload_mb ?? 500} maxSeconds={config?.max_duration_s ?? null} busy={busy} onFiles={pickFiles} />
+            {uploadMode && (
+              <div className="asset-form">
+                <div className="row">
+                  <div className="grow">
+                    <label>Asset id</label>
+                    <input value={asset.asset_id} onChange={(e) => setAsset({ ...asset, asset_id: e.target.value })} />
+                  </div>
+                  <div className="grow">
+                    <label>Location</label>
+                    <input value={asset.location} onChange={(e) => setAsset({ ...asset, location: e.target.value })} placeholder="e.g. unit 2, east pipe rack" />
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="grow">
+                    <label>Asset</label>
+                    <select value={asset.asset_type} onChange={(e) => setAsset({ ...asset, asset_type: e.target.value })}>
+                      {ASSET_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                  </div>
+                  <div className="grow">
+                    <label>Line service</label>
+                    <select value={asset.service} onChange={(e) => setAsset({ ...asset, service: e.target.value })}>
+                      {SERVICES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <label className="row"><input type="checkbox" checked={asset.pressurised} onChange={(e) => setAsset({ ...asset, pressurised: e.target.checked })} /> pressurised</label>
+              </div>
+            )}
+          </section>
+        )}
 
         <aside>
-          <div className="panel">
-            <h2>Walkdown clip</h2>
-            <label>Video (MP4/MOV) or photos</label>
-            <input type="file" multiple accept="video/mp4,video/quicktime,image/jpeg,image/png" onChange={(e) => setFiles(Array.from(e.target.files ?? []))} />
-            <label>Asset id</label>
-            <input value={asset.asset_id} onChange={(e) => setAsset({ ...asset, asset_id: e.target.value })} />
-            <div className="row">
-              <div style={{ flex: 1 }}>
-                <label>Asset</label>
-                <select value={asset.asset_type} onChange={(e) => setAsset({ ...asset, asset_type: e.target.value })}>
-                  {ASSET_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div style={{ flex: 1 }}>
-                <label>Line service</label>
-                <select value={asset.service} onChange={(e) => setAsset({ ...asset, service: e.target.value })}>
-                  {SERVICES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
+          <div className="panel run-panel">
+            <h2>{runId ? "Walkdown" : "Run"}</h2>
+            <div className="selection">
+              {sample ? (
+                <>
+                  <b>{sample.title}</b>
+                  <div className="muted small">
+                    {sample.asset.asset_id} · {label(ASSET_TYPES, sample.asset.asset_type)}
+                    {sample.asset.service ? ` · ${label(SERVICES, sample.asset.service)} service` : ""}
+                    {sample.asset.pressurised ? " · pressurised" : ""} · stock demonstration footage
+                  </div>
+                </>
+              ) : uploadMode ? (
+                <>
+                  <b>Your upload</b>
+                  <div className="muted small">{files.length === 1 ? files[0].name : `${files.length} photos`} · fresh inference</div>
+                </>
+              ) : (
+                <span className="muted">Pick a sample walkdown or upload a clip.</span>
+              )}
             </div>
-            <label className="row"><input type="checkbox" checked={asset.pressurised} onChange={(e) => setAsset({ ...asset, pressurised: e.target.checked })} /> pressurised</label>
-            <label>Location</label>
-            <input value={asset.location} onChange={(e) => setAsset({ ...asset, location: e.target.value })} placeholder="e.g. unit 2, east pipe rack" />
-            <div className="row" style={{ marginTop: 10 }}>
-              <button onClick={upload} disabled={!files.length || uploading}>{uploading ? "Uploading…" : "Upload"}</button>
-              <input style={{ flex: 1 }} value={clipId} onChange={(e) => setClipId(e.target.value)} placeholder="or paste a clip id" />
-            </div>
-            <label className="row"><input type="checkbox" checked={live} onChange={(e) => setLive(e.target.checked)} /> live (skip cached perception and verification)</label>
-            <div className="mode-switch" role="radiogroup" aria-label="Model mode">
-              <button className={mode === "cloud" ? "" : "ghost"} onClick={() => setMode("cloud")} disabled={running}>Cloud</button>
-              <button className={mode === "onprem" ? "" : "ghost"} onClick={() => setMode("onprem")} disabled={running}>On-prem</button>
+
+            <div className="segmented" role="radiogroup" aria-label="Model mode">
+              <button role="radio" aria-checked={mode === "cloud"} className={mode === "cloud" ? "on" : ""} onClick={() => setMode("cloud")} disabled={busy}>Cloud</button>
+              <button role="radio" aria-checked={mode === "onprem"} className={mode === "onprem" ? "on" : ""} onClick={() => setMode("onprem")} disabled={busy}>On-prem</button>
             </div>
             <div className="muted mode-note">
               {mode === "cloud"
                 ? "Hosted Meta models: SAM 3.1, Muse Spark (agent, verifier), Muse Wonder (second opinion on severe or uncertain grades; disagreements go to a person)."
                 : "Open weights only: SAM 3.1 open weights on a scale-to-zero GPU (Modal), box proposals, agent and verifier on Muse Spark Open (Baseten). Built with Muse Spark Open. No Muse Wonder second opinion."}
+              {onpremBlocked && (
+                <div className="note-strong">
+                  On-prem runs are switched off in the public demo: they need the scale-to-zero GPU and the Baseten deployment. Open a finished
+                  example to see a complete run; On-prem&apos;s measured numbers are in the benchmark results.
+                </div>
+              )}
             </div>
-            <SensitivityPicker options={sensitivityOptions} mode={mode} value={sensitivity} busy={running} onChange={setSensitivity} />
-            <div className="row" style={{ marginTop: 10 }}>
-              <button onClick={run} disabled={!clipId || running}>Run the agent</button>
+            <SensitivityPicker options={sensitivityOptions} mode={mode} value={sensitivity} busy={busy} onChange={setSensitivity} />
+
+            {!uploadMode && (
+              <label className="row small fresh">
+                <input type="checkbox" checked={live && !demo} disabled={demo || busy} onChange={(e) => setLive(e.target.checked)} /> Run fresh inference (slower, uses credits)
+              </label>
+            )}
+            <div className="muted small">
+              {uploadMode
+                ? "Uploads always run fresh inference."
+                : demo
+                  ? "Samples use cached perception and verification results in the public demo."
+                  : "Samples use cached perception and verification results unless you tick fresh inference."}
+              {budgetGone ? " Today's demo budget is used up: finished examples and cached samples still work." : ""}
             </div>
+
+            <div className="run-actions">
+              <button className="primary" onClick={run} disabled={!canRun}>
+                {starting ? "Starting…" : running ? "Agent working…" : "Run the agent"}
+              </button>
+              {exampleForSample && (
+                <button className="linkish" onClick={() => void openExample(exampleForSample.id)} disabled={busy}>
+                  or open the finished example (instant)
+                </button>
+              )}
+            </div>
+            {runId && (
+              <button className="ghost small-btn" onClick={newWalkdown} disabled={busy}>
+                Choose another walkdown
+              </button>
+            )}
           </div>
 
           {plan && (
@@ -244,6 +507,8 @@ export default function Home() {
               <Copilot runId={runId} busy={running} />
             </div>
           )}
+
+          {!runId && <ForJudges demoMode={demo} />}
         </aside>
       </div>
 
@@ -280,7 +545,11 @@ export default function Home() {
               busy={running}
               onSelect={async (v) => {
                 planView.current = v;
-                setPlan(await api.getPlan(runId, v));
+                try {
+                  setPlan(await api.getPlan(runId, v));
+                } catch (e) {
+                  setError(api.message(e));
+                }
               }}
             />
           )}
@@ -293,7 +562,7 @@ export default function Home() {
       <p className="scope">
         For plant and facility walkdowns: refineries, tank farms, terminals, pump and compressor stations, power plants. Long cross-country
         pipelines are inspected with in-line inspection tools; Walkdown complements them on unpiggable plant piping. Footage today is handheld;
-        drone and robot footage is future work.
+        drone and robot footage is future work. Sample walkdowns are stock demonstration footage from Pexels, credited on each card.
       </p>
       <footer className="footer">
         <Attribution /> · Decision support only: every maintenance action needs human approval · Hosted models via the Meta Model API

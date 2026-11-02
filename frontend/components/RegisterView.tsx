@@ -20,6 +20,7 @@ export function RegisterView({ runId, register, frames }: { runId: string; regis
           </figure>
         ))}
       </div>
+      <div className="table-scroll">
       <table style={{ marginTop: 10 }}>
         <thead>
           <tr>
@@ -57,6 +58,7 @@ export function RegisterView({ runId, register, frames }: { runId: string; regis
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

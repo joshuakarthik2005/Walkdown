@@ -21,7 +21,7 @@ export function Copilot({ runId, busy }: { runId: string; busy: boolean }) {
       const reply = await api.ask(runId, q);
       setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, reply } : x)));
     } catch (e) {
-      setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, error: String(e) } : x)));
+      setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, error: api.message(e) } : x)));
     } finally {
       setWaiting(false);
     }

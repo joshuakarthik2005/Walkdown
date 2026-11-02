@@ -136,6 +136,19 @@ cd frontend && npm install && npm run dev                                # UI on
 - **Tests:** `.venv\Scripts\python -m pytest tests`.
 - **Benchmarks:** each script in `benchmark/` documents its command, and the results land in `benchmark/results/`.
 
+### Run it locally (judges)
+
+Walkdown is not hosted publicly: the free hosting options available within the hackathon budget did not fit (Hugging Face Docker Spaces now need a paid plan; see [`docs/DECISIONS.md`](docs/DECISIONS.md)). The demo video was recorded on a local production build. To try it yourself:
+
+1. Follow **Run it** above, with your own `MODEL_API_KEY` in `.env`. The UI opens on **Try a sample walkdown**.
+2. The sample walkdowns and their finished examples need the sample data folder (extracted frames and cached model results of three Pexels stock clips, about 21 MB). The stock videos and the cache are not in this repository (Pexels License: no standalone redistribution). Without them the UI shows the upload drop zone only, and uploads run fresh inference.
+3. Shareable links: `?sample=<id>` selects a sample, `?example=<id>` opens a finished example (`tank-farm`, `valve-tank`, `clean-piping`), and `?run=<id>` reopens a run while the server keeps it.
+4. Rebuild the finished examples (about $0.1 of Meta credit): `python -m backend.api.examples --voice <your voice note>`.
+
+### Public demo mode
+
+`DEMO_MODE=true` makes the API safe to expose (`backend/api/demo.py`). It forces cached results on the samples, turns On-prem runs off, limits uploads (50 MB, 60 s, 20 photos), rate-limits each IP per hour, and applies one global daily spend cap across all providers (`DEMO_DAILY_CAP_USD`, default $5). Agent turns, uploads, voice notes, replans and copilot questions all count toward the cap; past it, those endpoints answer "demo budget reached" and finished examples keep working. The cap is persisted per UTC day in `WALKDOWN_DATA_DIR/demo/`. All settings are in [`.env.example`](.env.example).
+
 ## Built during the hackathon
 
 Everything in this repository was written during the building period. The git history shows it.

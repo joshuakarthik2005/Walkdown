@@ -197,8 +197,8 @@ def start_run(req: RunRequest, request: Request) -> dict:
         raise HTTPException(404, "Unknown clip: pick a sample or upload a clip.") from None
     if DEMO.enabled:
         if req.provider == "baseten":
-            raise HTTPException(403, "On-prem mode runs open weights on a GPU that scales to zero, so the public demo "
-                                     "shows it through finished examples only.")
+            raise HTTPException(403, "On-prem runs are switched off in the public demo (they need the scale-to-zero GPU "
+                                     "and the Baseten deployment). Open a finished example to see a complete run.")
         if is_sample(req.clip_id):
             req.live = False  # samples: cached perception and verification only
     _guard(request, "run")
