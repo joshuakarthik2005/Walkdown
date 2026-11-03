@@ -420,3 +420,6 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - **After:** 326 MB peak in a Docker container limited to 512 MB and 0.1 CPU (docs/DEPLOY.md).
 - **Data:** sample frames, cached results and finished examples go into a tarball in a private Hugging Face dataset. The container downloads it at start with `HF_TOKEN`, because Render's free disk is ephemeral and the public repo must not hold caches. The bundle never holds the stock videos.
 - **Trade-off:** at 0.1 CPU the planner has fewer workers. A cached tank-farm run took 93 s and still solved to OPTIMAL. Under heavier load a 30 s solve can end FEASIBLE, which the UI reports as such.
+- **Outcome (2026-11-03):** live at https://walkdown-zeta.vercel.app/. The API is at https://walkdown-lmnp.onrender.com. No card was asked for on Render, Vercel or Hugging Face.
+  - Vercel refused the first build because Next.js 15.3.3 is a vulnerable version. I moved to 15.5.28, the patched 15.x line, with React 19.2.9.
+  - `npm audit` still lists PostCSS (build-time only; the fix needs Next 16) and sharp (unused image optimiser).

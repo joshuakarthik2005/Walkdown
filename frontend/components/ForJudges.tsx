@@ -1,4 +1,5 @@
 const REPO = "https://github.com/joshuakarthik2005/Walkdown";
+const LIVE = "https://walkdown-zeta.vercel.app/";
 // Set NEXT_PUBLIC_DEMO_VIDEO_URL once the demo video is uploaded.
 const VIDEO = process.env.NEXT_PUBLIC_DEMO_VIDEO_URL;
 
@@ -26,6 +27,7 @@ export function ForJudges({ demoMode }: { demoMode: boolean }) {
         {demoMode ? " Uploads run fresh inference within a daily demo budget." : ""}
       </p>
       <div className="row small">
+        <a href={LIVE} target="_blank" rel="noreferrer">Live demo</a>
         <a href={`${REPO}#readme`} target="_blank" rel="noreferrer">README</a>
         <a href={`${REPO}/blob/main/benchmark/RESULTS.md`} target="_blank" rel="noreferrer">Benchmark results</a>
         {VIDEO ? (

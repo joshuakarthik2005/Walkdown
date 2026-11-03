@@ -56,6 +56,7 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-11-01 | UI check: cached tank-farm run + voice note attached | muse-spark-1.3 + sam-3.1 (Meta) | 1 run | - | - | 0.03 | - |
 | 2026-11-02 | Demo mode + UI v2: finished examples built (tank-farm with replan + cached voice note 0.043, valve-tank 0.027, clean-piping 0.006), one failed build with a broken clip loader (0.032), before-screenshot tank-farm run (≈ 0.04), new-UI valve-tank run (≈ 0.03), replan + copilot on a loaded example (0.019) | muse-spark-1.3 (+ cached SAM/verifier) (Meta) | 7 agent runs | - | - | ≈ 0.20 | - |
 | 2026-11-03 | Deploy memory probes: 5 judge-path passes (cached sample run, replan, copilot question) on Windows and in a 512 MB container, plus one cached tank-farm run at 0.1 CPU | muse-spark-1.3 (+ cached SAM/verifier) (Meta) | 6 agent runs, 5 replans, 5 questions | - | - | ≈ 0.29 (spend-guard files) | - |
+| 2026-11-03 | Public smoke test: replan on the tank-farm example, a copilot question and a cached valve-tank sample run (public server) | muse-spark-1.3 (+ cached SAM/verifier) (Meta) | 1 agent run, 1 replan, 1 question | - | - | ≈ 0.08 | - |
 
 ## Credit pools: final used vs total (2026-11-01)
 

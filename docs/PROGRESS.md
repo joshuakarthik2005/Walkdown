@@ -170,3 +170,28 @@ Task reports, appended after every task.
 - **UI:** shows "Waking up the demo server (~1 min)…" when the first request takes more than 2.5 s.
 - **Tests:** test_bundle.py (5 tests) and a test that oversized uploads are refused before reading.
 - **Tests:** 126 pass. `test_planner_demo` failed twice earlier under CPU load, with and without these changes (FEASIBLE instead of OPTIMAL inside its time limit), then passed.
+
+## 2026-11-03: public demo live
+
+- **URLs:** UI https://walkdown-zeta.vercel.app/ (Vercel Hobby); API https://walkdown-lmnp.onrender.com (Render free, Docker). The data bundle is in the private HF dataset `joshuakarthik2005/walkdown-demo-bundle`. The builder created the accounts and entered the secrets.
+- **Fixes found while deploying:**
+  - Next.js moved to 15.5.28, because Vercel blocks vulnerable versions;
+  - a trailing slash in `NEXT_PUBLIC_API_URL` is now dropped (it turned every path into `//path`);
+  - CORS is now the outermost middleware, so the early 413 reaches the browser;
+  - the UI checks file size before uploading.
+- **Smoke test on the public URL (Chrome):**
+
+  | Check | Result |
+  |---|---|
+  | Sample cards, thumbnails and credits | OK |
+  | Tank-farm example | 24 entries, voice note, OPTIMAL plan, 8 frame overlays |
+  | PDF / CSV | 200 (734 KB) / 200 (25 work orders) |
+  | Replan in the UI | OPTIMAL |
+  | Copilot question | answered |
+  | Cached valve-tank sample run in the UI | 70 s, 21 entries, OPTIMAL |
+  | On-prem run | 403 |
+  | Voice note: wrong extension / 11 MB | 400 / 413 |
+  | 55 MB upload | 413 |
+  | Phone width (390 px iframe) | no sideways scroll |
+
+- **Not tested on the public URL:** the waking notice after 15 minutes idle (it shows locally when the first request takes more than 2.5 s), and the spend-cap message (unit-tested; would need the live cap changed).

@@ -6,6 +6,11 @@ A technician records a handheld video or photos of plant piping, tanks, vessels,
 
 Entry in the Meta Global AI Developer Hackathon (Indie Developer track, theme: Push the Frontier). Built during the building period, Oct 27 – Nov 4, 2026.
 
+**Live demo: https://walkdown-zeta.vercel.app/**
+- Click **Open finished example** for the complete tank-farm run (instant), or **Run the agent** on a sample (about a minute).
+- The free server sleeps after 15 minutes idle. The first visit can show "Waking up the demo server (~1 min)".
+- Public demo mode: cached results on samples, upload limits and a $5 daily budget. Details under [Public demo mode](#public-demo-mode).
+
 **Built with Muse Spark Open.** Walkdown's On-prem mode runs the agent, the box proposals and the verifier on Muse Spark Open, and segmentation on SAM 3.1 open weights. No hosted model is called in that mode. Muse Model License; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 **Decision support only.** Walkdown never operates or controls plant equipment. It proposes a defect register and a repair plan, and every maintenance action needs approval by a qualified person. Read [Limitations and safe use](#limitations-and-safe-use) before relying on it.
@@ -136,9 +141,9 @@ cd frontend && npm install && npm run dev                                # UI on
 - **Tests:** `.venv\Scripts\python -m pytest tests`.
 - **Benchmarks:** each script in `benchmark/` documents its command, and the results land in `benchmark/results/`.
 
-### Run it locally (judges)
+### Run it locally
 
-Walkdown is not hosted publicly: the free hosting options available within the hackathon budget did not fit (Hugging Face Docker Spaces now need a paid plan; see [`docs/DECISIONS.md`](docs/DECISIONS.md)). The demo video was recorded on a local production build. To try it yourself:
+The live demo above runs in public demo mode. The demo video was recorded on a local production build. To run it yourself:
 
 1. Follow **Run it** above, with your own `MODEL_API_KEY` in `.env`. The UI opens on **Try a sample walkdown**.
 2. The sample walkdowns and their finished examples need the sample data folder (extracted frames and cached model results of three Pexels stock clips, about 21 MB). The stock videos and the cache are not in this repository (Pexels License: no standalone redistribution). Without them the UI shows the upload drop zone only, and uploads run fresh inference.
@@ -147,7 +152,7 @@ Walkdown is not hosted publicly: the free hosting options available within the h
 
 ### Public demo mode
 
-`DEMO_MODE=true` makes the API safe to expose (`backend/api/demo.py`). It forces cached results on the samples, turns On-prem runs off, limits uploads (50 MB, 60 s, 20 photos), rate-limits each IP per hour, and applies one global daily spend cap across all providers (`DEMO_DAILY_CAP_USD`, default $5). Agent turns, uploads, voice notes, replans and copilot questions all count toward the cap; past it, those endpoints answer "demo budget reached" and finished examples keep working. The cap is persisted per UTC day in `WALKDOWN_DATA_DIR/demo/`. Voice notes are capped at 10 MB, and oversized uploads are refused before they are read. All settings are in [`.env.example`](.env.example). Deployment (Render free API in Docker, Vercel UI, data bundle in a private Hugging Face dataset) and the measured memory budget are in [`docs/DEPLOY.md`](docs/DEPLOY.md).
+`DEMO_MODE=true` makes the API safe to expose (`backend/api/demo.py`). It forces cached results on the samples, turns On-prem runs off, limits uploads (50 MB, 60 s, 20 photos), rate-limits each IP per hour, and applies one global daily spend cap across all providers (`DEMO_DAILY_CAP_USD`, default $5). Agent turns, uploads, voice notes, replans and copilot questions all count toward the cap; past it, those endpoints answer "demo budget reached" and finished examples keep working. The cap is persisted per UTC day in `WALKDOWN_DATA_DIR/demo/`. Voice notes are capped at 10 MB, and oversized uploads are refused before they are read. All settings are in [`.env.example`](.env.example). The live demo runs on a Render free web service (API, Docker) and Vercel Hobby (UI), with the data bundle in a private Hugging Face dataset. The deployment and the measured memory budget are in [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Built during the hackathon
 
