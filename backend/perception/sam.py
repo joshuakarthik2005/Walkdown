@@ -45,7 +45,29 @@ class Instance:
     @property
     def area(self) -> int:
         """Mask area in pixels."""
-        return int(self.mask.sum())
+        return self._area
+
+    def __setstate__(self, state: dict) -> None:  # pickles written before masks were bit-packed hold "mask"
+        mask = state.pop("mask", None)
+        self.__dict__.update(state)
+        if mask is not None:
+            self.mask = mask
+
+
+# Masks are stored bit-packed (a 1280x720 bool mask is 0.9 MB unpacked, 115 KB packed): a run holds about a hundred
+# candidates, and the 512 MB demo server holds several runs. Reading ``mask`` unpacks a fresh read-only copy.
+def _get_mask(self: Instance) -> np.ndarray:
+    m = np.unpackbits(self._bits, count=self._shape[0] * self._shape[1]).view(bool).reshape(self._shape)
+    m.flags.writeable = False
+    return m
+
+
+def _set_mask(self: Instance, mask: np.ndarray) -> None:
+    mask = np.asarray(mask, dtype=bool)
+    self._shape, self._bits, self._area = mask.shape, np.packbits(mask, axis=None), int(mask.sum())
+
+
+Instance.mask = property(_get_mask, _set_mask)  # after @dataclass, so __init__ assigns through the setter
 
 
 @dataclass

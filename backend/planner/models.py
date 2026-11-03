@@ -194,7 +194,10 @@ class PlannerConfig(BaseModel):
     stage1_time_share: float = Field(default=0.6, gt=0, lt=1, description="Share of the time limit given to stage 1.")
     move_job_weight: int = Field(default=24, ge=0, description="Stage 2: cost of one moved job, in displaced hours.")
     time_limit_s: float = Field(default=10.0, gt=0)
-    num_workers: int = Field(default_factory=lambda: os.cpu_count() or 8, ge=1, description="Default: all cores.")
+    # Each CP-SAT worker holds its own copy of the model: a small host (the 512 MB demo server) sets
+    # WALKDOWN_SOLVER_WORKERS to cap memory.
+    num_workers: int = Field(default_factory=lambda: int(os.environ.get("WALKDOWN_SOLVER_WORKERS") or os.cpu_count() or 8),
+                             ge=1, description="Default: all cores, or WALKDOWN_SOLVER_WORKERS.")
     random_seed: int = 0
     probing_level: int = Field(default=0, ge=0, le=2, description="CP-SAT presolve probing; 0 measured best here.")
 

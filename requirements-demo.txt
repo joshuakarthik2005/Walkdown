@@ -1,0 +1,18 @@
+# Public demo server only (Dockerfile): the API and its runtime deps. No training, benchmark, Modal or test packages;
+# OpenCV headless (no GUI/libGL in the container).
+openai==3.39.0
+python-dotenv==1.2.4
+ortools==9.15.6755
+fastapi==0.162.0
+uvicorn==0.54.0
+pydantic==2.14.1
+numpy==2.5.4
+opencv-python-headless==5.0.0.93
+pillow==13.0.0
+pycocotools==2.0.11
+meta-sam-parser==0.1.0
+python-multipart==0.0.32
+httpx==0.28.1
+reportlab==4.4.4
+av==19.0.2
+huggingface_hub==2.3.0

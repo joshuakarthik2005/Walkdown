@@ -61,7 +61,7 @@ app.add_middleware(CORSMiddleware, allow_origin_regex=r"http://(localhost|127\.0
                    allow_origins=DEMO.cors_origins, allow_methods=["*"], allow_headers=["*"])
 
 MAX_UPLOAD_MB = DEMO.max_upload_mb if DEMO.enabled else 500
-MAX_RUNS = 300  # in-memory runs kept; the oldest finished ones are dropped first
+MAX_RUNS = DEMO.max_runs if DEMO.enabled else 300  # in-memory runs kept; the oldest finished ones are dropped first
 FAILED_MESSAGE = "The agent stopped because a model call failed. Try again, or open a finished example."
 
 

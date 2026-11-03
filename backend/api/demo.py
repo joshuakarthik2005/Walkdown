@@ -40,6 +40,7 @@ class DemoConfig:
     max_upload_mb: int = 50
     max_duration_s: float = 60.0
     max_photos: int = 20
+    max_runs: int = 20  # runs held in memory (about 7 MB each; the free host has 512 MB)
     # requests per IP per hour, by action
     limits: dict[str, int] = field(default_factory=lambda: dict(run=6, upload=4, voice=6, ask=20, change=10, example=60))
     cors_origins: list[str] = field(default_factory=list)
@@ -51,6 +52,7 @@ class DemoConfig:
                 daily_cap_usd=float(os.environ.get("DEMO_DAILY_CAP_USD", "5")),
                 max_upload_mb=int(os.environ.get("DEMO_MAX_UPLOAD_MB", "50")),
                 max_duration_s=float(os.environ.get("DEMO_MAX_DURATION_S", "60")),
+                max_runs=int(os.environ.get("DEMO_MAX_RUNS", "20")),
                 cors_origins=[o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()],
                 public_api_url=os.environ.get("PUBLIC_API_URL", "").rstrip("/"))
         for action in c.limits:

@@ -1,0 +1,30 @@
+# Render Blueprint for the public demo API (free plan). Secrets are entered in the Render dashboard (sync: false),
+# never here.
+services:
+  - type: web
+    name: walkdown-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: DEMO_MODE
+        value: "true"
+      - key: WALKDOWN_DATA_DIR
+        value: /data
+      - key: DEMO_DAILY_CAP_USD
+        value: "5"
+      - key: WALKDOWN_SOLVER_WORKERS
+        value: "2"
+      - key: DEMO_BUNDLE_REPO
+        value: joshuakarthik2005/walkdown-demo-bundle
+      - key: CORS_ORIGINS
+        sync: false
+      - key: HF_TOKEN
+        sync: false
+      - key: MODEL_API_KEY
+        sync: false
+      - key: BASETEN_API_KEY
+        sync: false

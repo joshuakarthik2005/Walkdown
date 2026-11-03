@@ -24,7 +24,8 @@ import { usd } from "@/lib/format";
 const POLL_MS = 1200;
 const POLL_MAX_MS = 15000;
 const GIVE_UP_MS = 120000; // polling stops after this long without reaching the server
-const WAKE_MAX_MS = 90000; // how long the first connection keeps retrying (a sleeping server takes ~1 min)
+const WAKE_MAX_MS = 180000; // how long the first connection keeps retrying (a sleeping free server takes ~1 min, more under load)
+const WAKE_HINT_MS = 2500; // a request still pending after this long is most likely a sleeping server spinning up
 
 const SERVICES: [string, string][] = [
   ["", "unknown"],
@@ -152,6 +153,8 @@ export default function Home() {
     let cancelled = false;
     (async () => {
       const t0 = Date.now();
+      // A sleeping host holds the first request open while it starts, so say so instead of showing nothing.
+      const hint = setTimeout(() => !cancelled && setServer((v) => (v === "connecting" ? "waking" : v)), WAKE_HINT_MS);
       let cfg: api.ServerConfig | null = null;
       for (let delay = 1000; !cancelled; delay = Math.min(delay * 2, 10000)) {
         try {
@@ -163,6 +166,7 @@ export default function Home() {
           await sleep(delay);
         }
       }
+      clearTimeout(hint);
       if (cancelled) return;
       if (!cfg) {
         setServer("down");
@@ -341,7 +345,7 @@ export default function Home() {
 
       {server === "waking" && (
         <div className="panel info-box">
-          <span className="spinner" /> Waking up the Walkdown server (about a minute if it was asleep)…
+          <span className="spinner" /> Waking up the demo server (~1 min)… The free host sleeps after 15 minutes without visitors.
         </div>
       )}
       {server === "down" && (

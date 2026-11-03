@@ -40,3 +40,4 @@ Thumbs.db
 
 # TypeScript incremental build info
 *.tsbuildinfo
+*.tar.gz

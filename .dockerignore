@@ -1,0 +1,20 @@
+# Only backend/ and requirements-demo.txt go into the image (see Dockerfile). Never secrets or data.
+.env
+.env.*
+**/.env
+.git
+.venv
+.claude
+frontend
+benchmark
+data
+docs
+tests
+modal_apps
+**/__pycache__
+*.mp4
+*.mov
+*.m4a
+*.wav
+*.pkl.gz
+*.tar.gz
