@@ -267,6 +267,15 @@ export default function Home() {
   }
 
   function pickFiles(f: File[]) {
+    // Checked here too: the server refuses an oversized body before reading it, which browsers can report as a
+    // network failure rather than the 413.
+    const maxMb = config?.max_upload_mb ?? 500;
+    const tooBig = f.find((x) => x.size > maxMb * 1024 * 1024);
+    if (tooBig) {
+      setError(`${tooBig.name} is ${Math.round(tooBig.size / 1048576)} MB: the limit is ${maxMb} MB.`);
+      return;
+    }
+    setError(null);
     setFiles(f);
     if (f.length) setSampleId(null);
   }

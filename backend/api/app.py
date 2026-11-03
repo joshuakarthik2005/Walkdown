@@ -56,10 +56,6 @@ app = FastAPI(title="Walkdown API", version="0.2.0")
 DEMO = DemoConfig.from_env()
 GUARD = SpendGuard(DEMO.daily_cap_usd, CLIPS_DIR.parent / "demo")
 LIMITER = RateLimiter(DEMO.limits)
-# The local UI (any port on localhost / 127.0.0.1) plus a deployed front end's origins (CORS_ORIGINS).
-app.add_middleware(CORSMiddleware, allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
-                   allow_origins=DEMO.cors_origins, allow_methods=["*"], allow_headers=["*"])
-
 MAX_UPLOAD_MB = DEMO.max_upload_mb if DEMO.enabled else 500
 VOICE_MAX_MB = 10  # demo mode: a voice note is decoded in memory (a minute of m4a is about 1 MB)
 
@@ -76,6 +72,13 @@ async def reject_oversized_uploads(request: Request, call_next):
         if size > (MAX_UPLOAD_MB << 20) + (1 << 20):
             return JSONResponse({"detail": f"File too large: the limit is {MAX_UPLOAD_MB} MB."}, status_code=413)
     return await call_next(request)
+
+
+# The local UI (any port on localhost / 127.0.0.1) plus a deployed front end's origins (CORS_ORIGINS). Added last,
+# so it is the outermost layer and the early 413 above carries CORS headers too.
+app.add_middleware(CORSMiddleware, allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
+                   allow_origins=DEMO.cors_origins, allow_methods=["*"], allow_headers=["*"])
+
 MAX_RUNS = DEMO.max_runs if DEMO.enabled else 300  # in-memory runs kept; the oldest finished ones are dropped first
 FAILED_MESSAGE = "The agent stopped because a model call failed. Try again, or open a finished example."
 
