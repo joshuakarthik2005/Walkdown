@@ -6,7 +6,7 @@ Walkdown is an agent for **plant and facility walkdowns**: refineries, tank farm
 
 **[Live demo](https://walkdown-zeta.vercel.app/) · [How it works](#how-it-works) · [Results](#results) · [Limitations](#limitations-and-safe-use) · [Run locally](#run-it-locally) · [Hackathon work](#built-during-the-hackathon) · [Models & data](#third-party-libraries-models-and-datasets)**
 
-**Contents**
+### Contents
 
 - [Why](#why)
 - [How it works](#how-it-works)
