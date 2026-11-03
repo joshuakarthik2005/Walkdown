@@ -1,6 +1,29 @@
+<a id="readme-top"></a>
+
 # Walkdown
 
 Walkdown is an agent for **plant and facility walkdowns**: refineries, tank farms, terminals, pump and compressor stations, power plants.
+
+**[Live demo](https://walkdown-zeta.vercel.app/) · [How it works](#how-it-works) · [Results](#results) · [Limitations](#limitations-and-safe-use) · [Run locally](#run-it-locally) · [Hackathon work](#built-during-the-hackathon) · [Models & data](#third-party-libraries-models-and-datasets)**
+
+<details>
+<summary>Contents</summary>
+
+- [Why](#why)
+- [How it works](#how-it-works)
+- [Results](#results)
+- [Limitations and safe use](#limitations-and-safe-use)
+- [Run it](#run-it)
+  - [Run it locally](#run-it-locally)
+  - [Public demo mode](#public-demo-mode)
+- [Built during the hackathon](#built-during-the-hackathon)
+- [Third-party libraries, models and datasets](#third-party-libraries-models-and-datasets)
+  - [Models and services](#models-and-services)
+  - [Libraries](#libraries)
+  - [Datasets and footage](#datasets-and-footage)
+- [Licence](#licence)
+
+</details>
 
 A technician records a handheld video or photos of plant piping, tanks, vessels, valves and supports. Walkdown turns that footage into two things: a **verified defect register** and a **risk-optimal repair plan**. It replans when something changes on site.
 
@@ -23,6 +46,8 @@ Entry in the Meta Global AI Developer Hackathon (Indie Developer track, theme: P
 - **Scope today.** Footage is handheld. Drone and robot footage is future work.
 
 All figures and their exact wording are in [`docs/IMPACT_SOURCES.md`](docs/IMPACT_SOURCES.md).
+
+<p align="right"><a href="#readme-top">back to top</a></p>
 
 ## How it works
 
@@ -53,6 +78,8 @@ An agent (Muse Spark with tool calling) runs the whole loop and decides what to 
 - an inspection report (PDF);
 - work orders (CSV and JSON);
 - inspector voice notes (Muse Voice Transcribe, then Muse Spark extracts the asset tag, line service, remarks and follow-ups; tested on the builder's own recording, [RESULTS §19](benchmark/RESULTS.md)).
+
+<p align="right"><a href="#readme-top">back to top</a></p>
 
 ## Results
 
@@ -95,6 +122,8 @@ On-prem finds corrosion on most of the same images but covers less of it: open-w
 - CP-SAT is never worse than a severity-first priority sort on 60 generated scenarios: median 5.8% lower risk in the default regime, up to 24.9%.
 - After a crew outage on tight-capacity scenarios, the two-stage replan moves about half as many jobs as a replan from scratch: median 7 vs 13 ([PLANNER_RESULTS](benchmark/PLANNER_RESULTS.md)).
 
+<p align="right"><a href="#readme-top">back to top</a></p>
+
 ## Limitations and safe use
 
 Walkdown assists inspectors; it does not replace them. These limitations apply in both modes.
@@ -126,6 +155,8 @@ Walkdown assists inspectors; it does not replace them. These limitations apply i
 - **Human approval is required.** The plan is a proposal. Crews, permits, isolations and shutdowns are decided by the site's responsible people. The planner's consequence factors per line service are stated assumptions, not site data.
 - **Scope.** Handheld visible-light footage of external surfaces. Walkdown cannot see under insulation, inside pipes or below paint.
 
+<p align="right"><a href="#readme-top">back to top</a></p>
+
 ## Run it
 
 Requirements: Python 3.12, Node 20+, and API keys in `.env` (copy [`.env.example`](.env.example); never commit `.env`).
@@ -154,6 +185,8 @@ The live demo above runs in public demo mode. The demo video was recorded on a l
 
 `DEMO_MODE=true` makes the API safe to expose (`backend/api/demo.py`). It forces cached results on the samples, turns On-prem runs off, limits uploads (50 MB, 60 s, 20 photos), rate-limits each IP per hour, and applies one global daily spend cap across all providers (`DEMO_DAILY_CAP_USD`, default $5). Agent turns, uploads, voice notes, replans and copilot questions all count toward the cap; past it, those endpoints answer "demo budget reached" and finished examples keep working. The cap is persisted per UTC day in `WALKDOWN_DATA_DIR/demo/`. Voice notes are capped at 10 MB, and oversized uploads are refused before they are read. All settings are in [`.env.example`](.env.example). The live demo runs on a Render free web service (API, Docker) and Vercel Hobby (UI), with the data bundle in a private Hugging Face dataset. The deployment and the measured memory budget are in [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
+<p align="right"><a href="#readme-top">back to top</a></p>
+
 ## Built during the hackathon
 
 Everything in this repository was written during the building period. The git history shows it.
@@ -173,6 +206,8 @@ Everything in this repository was written during the building period. The git hi
   - a SAM 3 full fine-tune harness on Modal (negative result);
   - 50 live end-to-end agent runs.
 - **Web UI** (Next.js) and the **FastAPI** back end.
+
+<p align="right"><a href="#readme-top">back to top</a></p>
 
 ## Third-party libraries, models and datasets
 
@@ -214,6 +249,10 @@ Everything in this repository was written during the building period. The git hi
 
 Public visuals come from the author's own footage, or from stock demonstration footage labelled as such.
 
+<p align="right"><a href="#readme-top">back to top</a></p>
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE). Third-party licences and notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+<p align="right"><a href="#readme-top">back to top</a></p>
