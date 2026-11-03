@@ -2,9 +2,11 @@
 import type { FrameInfo, PlanResponse, PlanView, Register, RunStatus, TraceEvent } from "./types";
 
 // Default: the API on port 8000 of the host serving this page (avoids localhost vs 127.0.0.1 mismatches).
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ??
-  (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:8000` : "http://127.0.0.1:8000");
+// A trailing slash in NEXT_PUBLIC_API_URL is dropped (it would turn every path into "//path").
+export const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:8000` : "http://127.0.0.1:8000")
+).replace(/\/+$/, "");
 
 /** An error whose message is safe to show to a user (never raw server text). */
 export class ApiError extends Error {
