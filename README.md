@@ -6,8 +6,7 @@ Walkdown is an agent for **plant and facility walkdowns**: refineries, tank farm
 
 **[Live demo](https://walkdown-zeta.vercel.app/) · [How it works](#how-it-works) · [Results](#results) · [Limitations](#limitations-and-safe-use) · [Run locally](#run-it-locally) · [Hackathon work](#built-during-the-hackathon) · [Models & data](#third-party-libraries-models-and-datasets)**
 
-<details>
-<summary>Contents</summary>
+**Contents**
 
 - [Why](#why)
 - [How it works](#how-it-works)
@@ -22,8 +21,6 @@ Walkdown is an agent for **plant and facility walkdowns**: refineries, tank farm
   - [Libraries](#libraries)
   - [Datasets and footage](#datasets-and-footage)
 - [Licence](#licence)
-
-</details>
 
 A technician records a handheld video or photos of plant piping, tanks, vessels, valves and supports. Walkdown turns that footage into two things: a **verified defect register** and a **risk-optimal repair plan**. It replans when something changes on site.
 
