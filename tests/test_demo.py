@@ -128,6 +128,9 @@ def test_demo_upload_limits(demo, monkeypatch, tmp_path):
     big = client.post("/clips", data={"asset_id": "PIPE-1"},
                       files=[("files", ("a.jpg", b"x" * ((1 << 20) + 10), "image/jpeg"))])
     assert big.status_code == 413 and "1 MB" in big.json()["detail"]
+    huge = client.post("/clips", data={"asset_id": "PIPE-1"},  # over the limit by Content-Length: rejected unread
+                       files=[("files", ("a.jpg", b"x" * (3 << 20), "image/jpeg"))])
+    assert huge.status_code == 413 and "1 MB" in huge.json()["detail"]
     created = {}
 
     def fake_create(clip_id, video=None, photos=None, asset=None):

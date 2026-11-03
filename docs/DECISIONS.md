@@ -405,3 +405,18 @@ Per https://dev.meta.ai/docs/reasoning, reasoning tokens count toward `max_outpu
   - The Gradio-on-ZeroGPU workaround was rejected as a possible platform-policy issue.
   - Render's free tier (512 MB RAM, sleeps after 15 min idle) was the fallback, time-boxed to the end of Nov 2 IST. That time box ran out before demo mode and the UI were finished, so deployment was skipped as agreed.
 - **Consequence:** the demo video is recorded on a local production build. The README has a "Run it locally" section. Judges see the video and the code; the product runs from the repo with the builder's or their own keys.
+
+## Public deployment on Render free + Vercel Hobby (2026-11-03, builder decision)
+
+- **Host:** the builder chose Render free for the API and Vercel Hobby for the UI, time-boxed to Nov 4, 12:00 IST. Neither needs a card.
+- **Memory first:** Render free allows 512 MB. Measured on the judge path:
+  - **512 MB before the changes.** CP-SAT ran one worker per core, and each loaded run held about 81 MB of full-frame masks.
+  - **Changes:**
+    - masks are bit-packed;
+    - `WALKDOWN_SOLVER_WORKERS=2`;
+    - at most 20 runs in memory;
+    - uploads stream to disk;
+    - a demo-only requirements file with headless OpenCV.
+  - **After:** 326 MB peak in a Docker container limited to 512 MB and 0.1 CPU (docs/DEPLOY.md).
+- **Data:** sample frames, cached results and finished examples go into a tarball in a private Hugging Face dataset. The container downloads it at start with `HF_TOKEN`, because Render's free disk is ephemeral and the public repo must not hold caches. The bundle never holds the stock videos.
+- **Trade-off:** at 0.1 CPU the planner has fewer workers. A cached tank-farm run took 93 s and still solved to OPTIMAL. Under heavier load a 30 s solve can end FEASIBLE, which the UI reports as such.

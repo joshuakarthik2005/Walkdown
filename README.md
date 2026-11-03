@@ -147,7 +147,7 @@ Walkdown is not hosted publicly: the free hosting options available within the h
 
 ### Public demo mode
 
-`DEMO_MODE=true` makes the API safe to expose (`backend/api/demo.py`). It forces cached results on the samples, turns On-prem runs off, limits uploads (50 MB, 60 s, 20 photos), rate-limits each IP per hour, and applies one global daily spend cap across all providers (`DEMO_DAILY_CAP_USD`, default $5). Agent turns, uploads, voice notes, replans and copilot questions all count toward the cap; past it, those endpoints answer "demo budget reached" and finished examples keep working. The cap is persisted per UTC day in `WALKDOWN_DATA_DIR/demo/`. All settings are in [`.env.example`](.env.example).
+`DEMO_MODE=true` makes the API safe to expose (`backend/api/demo.py`). It forces cached results on the samples, turns On-prem runs off, limits uploads (50 MB, 60 s, 20 photos), rate-limits each IP per hour, and applies one global daily spend cap across all providers (`DEMO_DAILY_CAP_USD`, default $5). Agent turns, uploads, voice notes, replans and copilot questions all count toward the cap; past it, those endpoints answer "demo budget reached" and finished examples keep working. The cap is persisted per UTC day in `WALKDOWN_DATA_DIR/demo/`. Voice notes are capped at 10 MB, and oversized uploads are refused before they are read. All settings are in [`.env.example`](.env.example). Deployment (Render free API in Docker, Vercel UI, data bundle in a private Hugging Face dataset) and the measured memory budget are in [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Built during the hackathon
 

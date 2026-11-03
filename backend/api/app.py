@@ -36,7 +36,7 @@ from typing import Literal
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
 from backend.agent.clip import CLIPS_DIR, Clip, create_clip
@@ -61,6 +61,21 @@ app.add_middleware(CORSMiddleware, allow_origin_regex=r"http://(localhost|127\.0
                    allow_origins=DEMO.cors_origins, allow_methods=["*"], allow_headers=["*"])
 
 MAX_UPLOAD_MB = DEMO.max_upload_mb if DEMO.enabled else 500
+VOICE_MAX_MB = 10  # demo mode: a voice note is decoded in memory (a minute of m4a is about 1 MB)
+
+
+@app.middleware("http")
+async def reject_oversized_uploads(request: Request, call_next):
+    """413 before the body is read when Content-Length is already over the limit (uploads are form data, so allow
+    a little for the other fields)."""
+    if request.method == "POST":
+        try:
+            size = int(request.headers.get("content-length", "0"))
+        except ValueError:
+            size = 0
+        if size > (MAX_UPLOAD_MB << 20) + (1 << 20):
+            return JSONResponse({"detail": f"File too large: the limit is {MAX_UPLOAD_MB} MB."}, status_code=413)
+    return await call_next(request)
 MAX_RUNS = DEMO.max_runs if DEMO.enabled else 300  # in-memory runs kept; the oldest finished ones are dropped first
 FAILED_MESSAGE = "The agent stopped because a model call failed. Try again, or open a finished example."
 
@@ -296,9 +311,10 @@ async def voice_note(run_id: str, request: Request, audio: UploadFile = File(...
     _guard(request, "voice")
     if Path(audio.filename or "").suffix.lower() not in AUDIO_EXT:
         raise HTTPException(400, f"voice notes must be one of {', '.join(sorted(AUDIO_EXT))}")
-    data = await audio.read()
-    if len(data) > 50 << 20:
-        raise HTTPException(413, "File too large: the limit is 50 MB.")
+    limit_mb = VOICE_MAX_MB if DEMO.enabled else 50
+    data = await audio.read(limit_mb << 20 | 1)  # one byte over the limit is enough to reject it
+    if len(data) > limit_mb << 20:
+        raise HTTPException(413, f"Voice note too large: the limit is {limit_mb} MB.")
     try:
         result = process(data, ledger=st.agent.s.ledger)
     except BudgetExceeded:

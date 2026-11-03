@@ -153,3 +153,20 @@ Task reports, appended after every task.
 - **Checked in the browser:** the example loads, a refresh restores the run, an expired run falls back to the example, a live valve-tank sample run in the new UI (21 entries, OPTIMAL), a replan and a copilot question on a loaded example, and the production build. Screenshots are in `G:/walkdown-data/demo_checks/ui_v2/`.
 - **Deployment:** skipped (DECISIONS 2026-11-02).
 - **Tests:** test_demo.py, 10 tests.
+
+## 2026-11-03: deployment prep (Render free + Vercel)
+
+- **Memory:** the judge path in DEMO_MODE peaked at 512 MB. After the changes it peaks at 326 MB in a 512 MB / 0.1 CPU container. The changes:
+  - bit-packed masks;
+  - 2 CP-SAT workers;
+  - a cap on runs held in memory;
+  - streamed uploads;
+  - early 413 for oversized bodies;
+  - a 10 MB voice-note cap.
+- **Container and bundle:**
+  - `Dockerfile`, `render.yaml` and `requirements-demo.txt`;
+  - `backend/api/bundle.py`, which packs and fetches the data bundle from a private HF dataset; examples were re-saved with packed masks;
+  - `docs/DEPLOY.md` with the builder's click steps.
+- **UI:** shows "Waking up the demo server (~1 min)…" when the first request takes more than 2.5 s.
+- **Tests:** test_bundle.py (5 tests) and a test that oversized uploads are refused before reading.
+- **Tests:** 126 pass. `test_planner_demo` failed twice earlier under CPU load, with and without these changes (FEASIBLE instead of OPTIMAL inside its time limit), then passed.

@@ -8,6 +8,7 @@ clip with one frame per photo at 1-second spacing.
 from __future__ import annotations
 
 import json
+import shutil
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -104,9 +105,9 @@ def create_clip(clip_id: str, *, video: Path | None = None, photos: list[Path] |
     d = CLIPS_DIR / clip_id
     d.mkdir(parents=True, exist_ok=True)
     if video is not None:
-        (d / f"source{video.suffix.lower()}").write_bytes(video.read_bytes())
+        shutil.copyfile(video, d / f"source{video.suffix.lower()}")  # streamed: uploads can be large
     for i, p in enumerate(photos or []):
         (d / "photos").mkdir(exist_ok=True)
-        (d / "photos" / f"{i:04d}{p.suffix.lower()}").write_bytes(p.read_bytes())
+        shutil.copyfile(p, d / "photos" / f"{i:04d}{p.suffix.lower()}")
     (d / "clip.json").write_text(json.dumps({"asset": asset or {"asset_id": clip_id}}, indent=1), encoding="utf-8")
     return Clip(clip_id)
