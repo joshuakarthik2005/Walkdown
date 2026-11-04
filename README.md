@@ -48,6 +48,8 @@ All figures and their exact wording are in [`docs/IMPACT_SOURCES.md`](docs/IMPAC
 
 ## How it works
 
+![Walkdown architecture](docs/architecture.png)
+
 An agent (Muse Spark with tool calling) runs the whole loop and decides what to do next. Every model turn and tool call is shown live in the web UI, with timing and cost.
 
 1. **Perceive.** SAM 3.1 segments candidate corrosion from the text prompt "rust", either on sampled frames or tracked through the video. Muse Spark proposes boxes around rust that the text prompt misses, and SAM 3.1 segments them. The agent starts coarse and looks again at stretches that need it.
