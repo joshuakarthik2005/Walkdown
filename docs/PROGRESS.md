@@ -195,3 +195,19 @@ Task reports, appended after every task.
   | Phone width (390 px iframe) | no sideways scroll |
 
 - **Not tested on the public URL:** the waking notice after 15 minutes idle (it shows locally when the first request takes more than 2.5 s), and the spend-cap message (unit-tested; would need the live cap changed).
+
+## 2026-11-04 · Final audit before the demo video
+
+=== TASK REPORT ===
+Task: Final audit (security, live product, code and build, numbers, credits, submission readiness)
+Status: DONE (open items below are the builder's)
+What I did: Scanned the repo and its full history for secrets (gitleaks: 159 commits, none). Tested every flow on the public demo at 1440 and 390 px, plus a fresh clone and a clean production build. Traced every headline number to its result file (docs/FINAL_AUDIT.md) and wrote the credit report (docs/CREDIT_USAGE.md).
+Files changed: backend/api/app.py, frontend (DropZone, ForJudges, AgentTrail, PlanViews, page.tsx, lib/api.ts, package.json), tests/test_demo.py, tests/test_planner_*.py, README.md, THIRD_PARTY_NOTICES.md, benchmark/RESULTS.md, docs/DEMO_SCRIPT.md, docs/COST_LOG.md, docs/CREDIT_USAGE.md, docs/FINAL_AUDIT.md, docs/screenshots/, .gitignore, .env.example, ruff.toml, lint fixes in benchmark/ and modal_apps/
+Commands run and results: pytest 128 passed; ruff (correctness rules) clean; tsc clean; next build clean in a fresh clone; pip-audit clean on all three requirement files; npm audit 0 vulnerabilities after a PostCSS override; mypy: 104 typing findings (not fixed, see Issues)
+Tests: 128 passed (2 new tests: unreadable uploads, honest model-failure messages)
+API usage this task: Meta ≈ $0.62 (public demo runs); Baseten, Fireworks and Modal $0
+Running API total: see docs/CREDIT_USAGE.md (Meta $105.54 on the 2026-11-01 dashboard + ≈ $1.2 since)
+Commit: 1e23a96, b04ddd7, a5de2a6, d627369, 3d7c533, 8c4b166, d385d1d and this one
+Issues / risks: mypy is not part of the project; its 104 findings are mostly Optional narrowing and OpenAI SDK typing, left alone to avoid code changes right before filming. Render Auto-Deploy is on, so every push restarts the API. A Docker container on this machine also listens on port 8000, so record on 127.0.0.1:3000.
+Next: the builder films the video and submits
+===================
