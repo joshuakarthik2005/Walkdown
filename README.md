@@ -168,6 +168,7 @@ cd frontend && npm install && npm run dev                                # UI on
 - **On-prem mode** needs `BASETEN_API_KEY`, plus a Modal account with the SAM 3.1 app deployed: `modal deploy modal_apps/sam_open.py`, using `HF_TOKEN` for the gated weights.
 - **Tests:** `.venv\Scripts\python -m pytest tests`.
 - **Benchmarks:** each script in `benchmark/` documents its command, and the results land in `benchmark/results/`.
+- **Experiment and helper code:** benchmark and experiment scripts (including the Glimmer and SAM 3 training runs) are in `benchmark/`; the Modal GPU apps (SAM 3.1 open weights, FLUX negatives, Glimmer, SAM 3 fine-tune) are in `modal_apps/`. Developer helpers: `backend.clients.smoke_test` (one tiny API call), `backend.agent.dryrun` (an internal agent run on dev-split photos, never shown publicly), `backend.agent.warm_cache` and `backend.agent.rehearse` (demo preparation, see `docs/DEMO_SCRIPT.md`). The product itself does not depend on any of these.
 
 ### Run it locally
 
