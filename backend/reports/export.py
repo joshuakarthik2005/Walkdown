@@ -20,7 +20,8 @@ PRIORITY = {5: "P1-emergency", 4: "P2-urgent", 3: "P3-planned", 2: "P4-routine",
 FIELDS = ["work_order_id", "defect_id", "work_package", "priority", "asset_tag", "asset_type", "location", "line_service",
           "defect_type", "severity", "confidence", "recommended_action", "required_skill", "repair_hours",
           "needs_shutdown", "permit", "status", "crew", "planned_start", "planned_end", "plan_status", "plan_gap",
-          "needs_review", "senior_review", "evidence", "approval_required", "source"]
+          "needs_review", "senior_review", "reviewer_decision", "reviewer_decided_at", "plan_approved_at", "evidence",
+          "approval_required", "source"]
 
 
 def _when(plan_start: datetime, hour: int | None) -> str:
@@ -29,13 +30,18 @@ def _when(plan_start: datetime, hour: int | None) -> str:
 
 def work_orders(s, plan_start: datetime) -> list[dict]:
     """One work order per register entry, joined with its plan assignment and planner defect."""
+    from backend.agent import review
     defects = {d.id: d for d in (s.scenario.defects if s.scenario else [])}
     assign = {a.defect_id: a for a in (s.plan.assignments if s.plan else [])}
+    excluded, approval = review.excluded_ids(s), review.review_summary(s)["plan_approval"]
     rows = []
     for i, e in enumerate(s.register):
         job = e.package_id or e.defect_id  # the planner job (work package) that repairs this defect
         g, d, a = e.grade, defects.get(job), assign.get(job)
         senior = next((x.senior for x in e.detections if x.senior), None)
+        decision = review.decision_of(s, e)
+        if e.defect_id in excluded:
+            d = a = None  # rejected by the reviewer and taken out of the plan by a replan
         rows.append(dict(
             work_order_id=f"WD-{e.asset.asset_id}-{i + 1:03d}", defect_id=e.defect_id,
             work_package=job if d is not None and d.members else "", priority=PRIORITY[g.severity],
@@ -44,7 +50,8 @@ def work_orders(s, plan_start: datetime) -> list[dict]:
             confidence=round(g.confidence, 2), recommended_action=g.recommended_action.value,
             required_skill=", ".join(sorted(d.skills)) if d else "", repair_hours=d.repair_hours if d else "",
             needs_shutdown=bool(d and d.needs_shutdown), permit=(d.permit or "") if d else "",
-            status="planned" if a else ("unscheduled" if s.plan else "not planned"),
+            status=("excluded (rejected by reviewer)" if e.defect_id in excluded else
+                    "planned" if a else ("unscheduled" if s.plan else "not planned")),
             crew=a.crew_id if a else "", planned_start=_when(plan_start, a.start if a else None),
             planned_end=_when(plan_start, a.end if a else None),
             plan_status=s.plan.stats.status if s.plan else "", plan_gap=(
@@ -53,6 +60,8 @@ def work_orders(s, plan_start: datetime) -> list[dict]:
             senior_review=("" if not senior else (("disputed, needs human review" if senior["first_is_defect"] else "accepted first-pass rejection")
                            if senior["changed_decision"] else
                            f"severity {senior['first_severity']}->{g.severity}" if senior["changed_severity"] else "confirmed")),
+            reviewer_decision=decision["label"], reviewer_decided_at=decision["at"] or "",
+            plan_approved_at=approval["at"] if approval else "",
             evidence="; ".join(g.evidence.visual_cues[:3]), approval_required=True,
             source="Walkdown (decision support; requires approval by a qualified person)"))
     return rows
@@ -127,14 +136,22 @@ def pdf_report(s, plan_start: datetime, *, max_frames: int = 6) -> bytes:
             + f"; {len(s.plan.assignments)} jobs scheduled, {len(s.plan.unscheduled)} unscheduled.", st["BodyText"]))
     story.append(Paragraph(f"<b>Register</b>: {len(s.register)} defects; "
                            f"{sum(e.needs_review for e in s.register)} need human review.", st["BodyText"]))
+    from backend.agent import review
+    rs = review.review_summary(s)
+    c = rs["counts"]
+    story.append(Paragraph(
+        f"<b>Human review</b>: {c['approved']} approved, {c['rejected']} rejected "
+        f"({len(rs['rejected_excluded'])} excluded from the plan), {c['reinspect']} need re-inspection, "
+        f"{c['pending']} pending. Plan: " + (f"approved by reviewer at {rs['plan_approval']['at']} UTC."
+                                            if rs["plan_approval"] else "not approved yet."), st["BodyText"]))
 
     rows = work_orders(s, plan_start)
-    head = ["WO", "Defect", "Priority", "Type", "Sev", "Action", "Crew", "Start", "End", "Status", "Review"]
+    head = ["WO", "Defect", "Priority", "Type", "Sev", "Action", "Crew", "Start", "End", "Status", "Review", "Decision"]
     data = [head] + [[r["work_order_id"], r["defect_id"], r["priority"], r["defect_type"].replace("_", " "),
                       r["severity"], r["recommended_action"].replace("_", " "), r["crew"], r["planned_start"],
                       r["planned_end"], r["status"],
                       ", ".join(x for x in (("review" if r["needs_review"] else ""), r["senior_review"] and
-                                            f"senior: {r['senior_review']}") if x)] for r in rows]
+                                            f"senior: {r['senior_review']}") if x), r["reviewer_decision"]] for r in rows]
     table = Table([[Paragraph(escape(str(c)), small) for c in row] for row in data], repeatRows=1)
     table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e6e9ec")),
                                ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#b8bec4")),

@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from backend.agent import review
 from backend.agent.clip import Clip
 from backend.agent.register import Detection, RegisterEntry, build_register, to_planner_defect
 from backend.clients.cost import CostLedger
@@ -436,7 +437,8 @@ def plan_maintenance(s: AgentSession) -> dict:
 
 def _walkdown_job_ids(s: AgentSession) -> set[str]:
     """Planner job ids of the walkdown: work packages and ungrouped register defects."""
-    return {e.package_id or e.defect_id for e in s.register}
+    gone = review.excluded_ids(s)
+    return {e.package_id or e.defect_id for e in s.register if e.defect_id not in gone}
 
 
 CHANGE_KINDS = ("crew_unavailable", "shutdown_window_changed", "new_defect")
@@ -466,6 +468,8 @@ def replan_tool(s: AgentSession, change: dict, now_hour: int, epsilon: float | N
     names = list(s.variants) or [s.plan_view]
     if not s.variants:
         s.variants = {s.plan_view: dict(scenario=s.scenario, plan=s.plan, jobs=[])}
+    # Human review: entries a person rejected leave the planner's input (scenario, previous plan, packages).
+    excluded = review.exclude_rejected(s, s.planner_config, s.packages)
     with ThreadPoolExecutor(max_workers=len(names)) as pool:  # keep both plans current for the UI
         results = dict(zip(names, pool.map(
             lambda k: replan(s.variants[k]["scenario"], s.variants[k]["plan"], parsed, now=now_hour,
@@ -476,11 +480,14 @@ def replan_tool(s: AgentSession, change: dict, now_hour: int, epsilon: float | N
     s.now = now_hour
     _use_view(s, s.plan_view)
     s.plan_history.append(dict(kind="replan", now=now_hour, change=change, epsilon=epsilon,
-                               exposure=r.plan.breakdown.exposure, moved=len(r.moved_jobs)))
+                               exposure=r.plan.breakdown.exposure, moved=len(r.moved_jobs), excluded=excluded))
+    review.withdraw_plan_approval(s)  # the approved plan has changed
     out = _plan_summary(s, r.plan, _walkdown_job_ids(s))
     out.update(change_applied=change, epsilon=epsilon if epsilon is not None else s.planner_config.replan_epsilon,
                exposure_before=r.objective_before, newly_unscheduled=r.newly_unscheduled,
                newly_scheduled=r.newly_scheduled)
+    if excluded:
+        out["rejected_by_reviewer_excluded"] = excluded
     return out
 
 

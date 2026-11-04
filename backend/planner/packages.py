@@ -141,6 +141,20 @@ def build_packages(defects: list[Defect], frames: dict[str, list[int]], crews: l
     return out
 
 
+def shrink_package(job: Defect, members: list[Defect], config: PackageConfig | None = None,
+                   planner: PlannerConfig | None = None) -> Defect:
+    """A work package rebuilt from a subset of its members (same id), with the aggregation rules of build_packages:
+    hours with the shared setup saved, the highest severity, the combined failure risk and summed risk weights."""
+    cfg, planner = config or PackageConfig(), planner or PlannerConfig()
+    survive = 1.0
+    for d in members:
+        survive *= 1.0 - d.failure_risk
+    return job.model_copy(update=dict(
+        severity=max(d.severity for d in members), failure_risk=round(min(0.99, 1.0 - survive), 3),
+        repair_hours=_package_hours(members, cfg.setup_saving_hours), members=sorted(d.id for d in members),
+        found_at=min(d.found_at for d in members), weight_override=sum(planner.risk_weight(d) for d in members)))
+
+
 def package_of(jobs: list[Defect]) -> dict[str, str]:
     """Register defect id -> planner job id (its own id when not grouped)."""
     out = {}

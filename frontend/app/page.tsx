@@ -9,6 +9,7 @@ import { ForJudges } from "@/components/ForJudges";
 import { Gantt } from "@/components/Gantt";
 import { HeadlineMetric } from "@/components/HeadlineMetric";
 import { Logo } from "@/components/Logo";
+import { PlanApproval } from "@/components/PlanApproval";
 import { PlanViews } from "@/components/PlanViews";
 import { SampleGallery } from "@/components/SampleGallery";
 import { SensitivityPicker } from "@/components/SensitivityPicker";
@@ -533,7 +534,20 @@ export default function Home() {
             Verified defect register · {register.asset.asset_id}
             {register.asset.service ? ` · ${register.asset.service.replaceAll("_", " ")} service` : ""} · {register.entries.length} defects
           </h2>
-          <RegisterView runId={runId} register={register} frames={frames} />
+          <RegisterView
+            runId={runId}
+            register={register}
+            frames={frames}
+            busy={running}
+            onDecide={async (id, decision) => {
+              try {
+                await api.postReview(runId, id, decision);
+                await refreshResults(runId);
+              } catch (e) {
+                setError(api.message(e));
+              }
+            }}
+          />
           <VoiceNotes runId={runId} notes={register.voice_notes ?? []} onAdded={() => refreshResults(runId)} />
           <div className="row exports">
             <a href={`${api.API_URL}/runs/${runId}/report.pdf`}>Inspection report (PDF)</a>
@@ -553,6 +567,20 @@ export default function Home() {
               {plan.plan.assignments.length} jobs scheduled · {plan.plan.unscheduled.length} unscheduled · {plan.plan.moved_jobs.length} moved by the last replan
             </span>
           </div>
+          {plan.review && runId && (
+            <PlanApproval
+              review={plan.review}
+              busy={running}
+              onApprove={async () => {
+                try {
+                  await api.approvePlan(runId);
+                  await refreshResults(runId);
+                } catch (e) {
+                  setError(api.message(e));
+                }
+              }}
+            />
+          )}
           {plan.comparison && runId && (
             <PlanViews
               comparison={plan.comparison}

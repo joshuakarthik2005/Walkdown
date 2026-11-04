@@ -47,13 +47,32 @@ export interface RegisterEntry {
   frames: number[];
   needs_review: boolean;
   grade: Grade;
+  review: ReviewDecision;
   detections: { candidate_id: string; frame: number; box: number[]; flags: string[]; senior: SeniorReview | null }[];
+}
+
+export type Decision = "pending" | "approved" | "rejected" | "reinspect";
+
+/** A person's decision on one register entry (decision support: the reviewer decides). */
+export interface ReviewDecision {
+  decision: Decision;
+  label: string;
+  at: string | null; // ISO time (UTC) of the decision; null until a person decides
+}
+
+export interface ReviewSummary {
+  counts: Record<Decision, number>;
+  blocking: string[]; // severity 4-5 entries still pending: they block plan approval
+  plan_approval: { at: string } | null;
+  rejected_excluded: string[]; // rejected and already taken out of the plan by a replan
+  rejected_pending_replan: string[]; // rejected, taken out at the next replan
 }
 
 export interface Register {
   asset: { asset_id: string; asset_type: string; pressurised: boolean; location: string; service: string | null };
   entries: RegisterEntry[];
   voice_notes: VoiceNoteResult[];
+  review: ReviewSummary;
 }
 
 export interface VoiceNoteResult {
@@ -134,6 +153,7 @@ export interface PlanResponse {
   chosen_view: PlanView; // the plan the agent uses (adaptive rule)
   views: PlanView[];
   comparison: PlanComparison | null;
+  review: ReviewSummary;
 }
 
 export type PlanView = "grouped" | "individual";

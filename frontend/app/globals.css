@@ -169,3 +169,12 @@ button.primary { font-size: 15px; padding: 11px 16px; }
   .table-scroll table { min-width: 640px; }
 }
 .badge { white-space: nowrap; }
+
+/* human review */
+.review-summary { margin: 8px 0 0; }
+.review-cell { min-width: 150px; }
+.review-btns { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.review-btns button { padding: 3px 7px; font-size: 12px; font-weight: 600; }
+.review-btns button.on { background: var(--panel-2); color: var(--text); border: 1px solid var(--accent); }
+tr.rejected td:not(.review-cell) { opacity: 0.45; text-decoration: line-through; text-decoration-color: var(--muted); }
+.plan-approval { margin: 4px 0 12px; }

@@ -63,6 +63,7 @@ An agent (Muse Spark with tool calling) runs the whole loop and decides what to 
    Nearby defects can be grouped into work packages, one crew in one visit. Grouping is used only when the per-defect plan cannot be proven within 5% of optimal in 30 s. The UI shows both plans with their exposure, makespan, gap and setup hours.
 5. **Replan.** When a crew drops out, a shutdown window moves or a new defect appears, a two-stage replan keeps started work fixed. It finds the lowest-risk plan, then moves as few jobs as possible within a chosen "stability vs risk" tolerance.
 6. **Explain.** The agent explains the plan only through the planner's structured reasons, such as permit lead time, waiting for a window or crew capacity. Solver status and gap are always shown, and a FEASIBLE plan is never called optimal.
+7. **Human review.** A person decides; Walkdown proposes. Each register entry is **Approve**, **Reject** or **Needs re-inspection** (default "Pending review"; entries the second opinion disputed start as "Needs re-inspection" and stay visible). Rejected entries are taken out of the planner's input at the next replan; the solver is unchanged. **Approve plan** is enabled only when no severity 4–5 entry is still pending, and a replan or a later decision withdraws the approval. Decisions are stored with the run and appear in the PDF report and the CSV/JSON work orders.
 
 **Modes:**
 - **Cloud:** hosted SAM 3.1, Muse Spark and Muse Wonder (Meta Model API).

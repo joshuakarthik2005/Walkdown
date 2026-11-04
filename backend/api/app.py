@@ -8,6 +8,8 @@ Endpoints:
   GET  /runs/{id}/register       verified defect register
   GET  /runs/{id}/plan           current maintenance plan (assignments, stats, explanations)
   POST /runs/{id}/changes        constraint change + epsilon; the agent replans and explains
+  POST /runs/{id}/review         a person's decision on a register entry (approved, rejected, needs re-inspection)
+  POST /runs/{id}/approve_plan   a person approves the plan (blocked while a severity 4-5 entry is pending)
   POST /runs/{id}/ask            inspector copilot: question about the register and plan (read-only tools)
   POST /runs/{id}/voice          inspector voice note (WAV, m4a, mp3): transcribed and structured, attached to the run
   GET  /runs/{id}/report.pdf     inspection report; /work_orders.csv and .json: CMMS-style work orders
@@ -40,6 +42,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
+from backend.agent import review
 from backend.agent.clip import CLIPS_DIR, Clip, create_clip
 from backend.api import examples as examples_mod
 from backend.api.demo import BUDGET_MESSAGE, BudgetExceeded, DemoConfig, GuardedLedger, RateLimiter, SpendGuard, client_ip
@@ -272,9 +275,9 @@ def run_trace(run_id: str, since: int = 0) -> dict:
 @app.get("/runs/{run_id}/register")
 def run_register(run_id: str) -> dict:
     s = _run(run_id).agent.s
-    return dict(asset=s.clip.asset.__dict__, voice_notes=s.voice_notes, entries=[dict(
+    return dict(asset=s.clip.asset.__dict__, voice_notes=s.voice_notes, review=review.review_summary(s), entries=[dict(
         defect_id=e.defect_id, package_id=e.package_id, frames=e.frames, needs_review=e.needs_review,
-        grade=e.grade.model_dump(mode="json"),
+        grade=e.grade.model_dump(mode="json"), review=review.decision_of(s, e),
         detections=[dict(candidate_id=d.candidate_id, frame=d.frame, box=list(d.box), flags=d.flags, senior=d.senior)
                     for d in e.detections]) for e in s.register])
 
@@ -296,7 +299,39 @@ def run_plan(run_id: str, view: Literal["grouped", "individual"] | None = None) 
                 history=s.plan_history, view=view, chosen_view=s.plan_view, views=sorted(s.variants),
                 comparison=compare_views(s) if "individual" in s.variants else None,
                 # planner job ids of the walkdown (work packages, or single defects) for the Gantt
-                walkdown_defect_ids=sorted(job_ids))
+                walkdown_defect_ids=sorted(job_ids - review.excluded_ids(s)), review=review.review_summary(s))
+
+
+class ReviewRequest(BaseModel):
+    defect_id: str = Field(max_length=32)
+    decision: Literal["pending", "approved", "rejected", "reinspect"]
+
+
+@app.post("/runs/{run_id}/review")
+def post_review(run_id: str, req: ReviewRequest) -> dict:
+    """A person's decision on one register entry (decision support: the reviewer decides, nothing is automatic)."""
+    st = _run(run_id)
+    if st.status == "running":
+        raise HTTPException(409, "The agent is still working; review when it has finished.")
+    with st.lock:
+        try:
+            entry = review.set_decision(st.agent.s, req.defect_id, req.decision)
+        except KeyError:
+            raise HTTPException(404, f"No register entry {req.defect_id}.") from None
+    return dict(defect_id=req.defect_id, review=entry, summary=review.review_summary(st.agent.s))
+
+
+@app.post("/runs/{run_id}/approve_plan")
+def post_approve_plan(run_id: str) -> dict:
+    """A person approves the current plan; refused while a severity 4-5 entry is still pending review."""
+    st = _run(run_id)
+    if st.status == "running":
+        raise HTTPException(409, "The agent is still working; approve when it has finished.")
+    with st.lock:
+        try:
+            return review.approve_plan(st.agent.s)
+        except ValueError as err:
+            raise HTTPException(409, str(err)) from None
 
 
 class ChangeRequest(BaseModel):
