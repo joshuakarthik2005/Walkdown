@@ -78,7 +78,7 @@ def test_rejected_entries_are_excluded_from_the_next_replan_and_packages_shrink(
     assert "W02" in _jobs(s.variants["individual"])  # nothing changes until the replan
     crew = s.base_scenario.crews[0].id
     out = tools.replan_tool(s, {"type": "crew_unavailable", "crew_id": crew, "start": 0, "end": 24}, now_hour=0)
-    assert out["rejected_by_reviewer_excluded"] == ["W02"]
+    assert out["rejected_by_human_reviewer"] == ["W02"]
     ind = s.variants["individual"]
     assert "W02" not in _jobs(ind) and all(a.defect_id != "W02" for a in ind["plan"].assignments)
     assert "W02" not in ind["plan"].moved_jobs and "W02" not in ind["plan"].unscheduled
@@ -88,7 +88,7 @@ def test_rejected_entries_are_excluded_from_the_next_replan_and_packages_shrink(
     assert "W02" not in tools._walkdown_job_ids(s) or s.plan_view == "grouped"
     # a second replan does not exclude it again
     out2 = tools.replan_tool(s, {"type": "crew_unavailable", "crew_id": crew, "start": 30, "end": 40}, now_hour=0)
-    assert "rejected_by_reviewer_excluded" not in out2
+    assert "rejected_by_human_reviewer" not in out2
 
 
 def test_replan_withdraws_plan_approval():

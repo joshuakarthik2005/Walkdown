@@ -101,12 +101,13 @@ export default function Home() {
   const sample = samples.find((s) => s.id === sampleId) ?? null;
   const uploadMode = !sample && files.length > 0;
 
-  const refreshResults = useCallback(async (id: string) => {
+  // withPlan=false while the agent has only built the register: the plan does not exist yet (the API would answer 409).
+  const refreshResults = useCallback(async (id: string, withPlan = true) => {
     try {
       const [r, f] = await Promise.all([api.getRegister(id), api.getFrames(id)]);
       setRegister(r);
       setFrames(f.frames);
-      setPlan(await api.getPlan(id, planView.current));
+      if (withPlan) setPlan(await api.getPlan(id, planView.current));
     } catch {
       /* no plan until plan_maintenance has run */
     }
@@ -224,8 +225,9 @@ export default function Home() {
         if (t.events.length) {
           cursor.current = t.next;
           setEvents((prev) => [...prev, ...t.events]);
-          if (t.events.some((e) => e.kind === "tool" && ["build_register", "plan_maintenance", "replan"].includes(e.name)))
-            void refreshResults(runId);
+          const tools = t.events.filter((e) => e.kind === "tool").map((e) => e.name);
+          if (tools.some((n) => ["build_register", "plan_maintenance", "replan"].includes(n)))
+            void refreshResults(runId, tools.some((n) => n === "plan_maintenance" || n === "replan"));
         }
         const s = await api.getStatus(runId);
         failures = 0;

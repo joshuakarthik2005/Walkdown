@@ -486,8 +486,8 @@ def replan_tool(s: AgentSession, change: dict, now_hour: int, epsilon: float | N
     out.update(change_applied=change, epsilon=epsilon if epsilon is not None else s.planner_config.replan_epsilon,
                exposure_before=r.objective_before, newly_unscheduled=r.newly_unscheduled,
                newly_scheduled=r.newly_scheduled)
-    if excluded:
-        out["rejected_by_reviewer_excluded"] = excluded
+    if excluded:  # a person rejected these in human review (not the senior-review model)
+        out["rejected_by_human_reviewer"] = excluded
     return out
 
 

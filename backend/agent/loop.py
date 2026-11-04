@@ -32,6 +32,9 @@ or looks unclear, inspect it again at a higher fps. Do not resample the same ran
 2. verify_candidate: verify every candidate (up to 20 ids per call). Rejected candidates are false positives. Severe
    (severity 4+) or uncertain grades are re-checked automatically by a senior reviewer (Muse Wonder); its severity is
    final, but a defect it disputes stays in the register flagged for human review. Mention senior changes and disputes.
+   The senior reviewer is a model. The human reviewer is a person: entries a person rejected are taken out of the plan
+   at the next replan (replan reports them as rejected_by_human_reviewer). Call those "rejected by the reviewer (a
+   person)", never "senior reviewer".
 3. build_register once all candidates are verified.
 4. plan_maintenance to schedule the register together with the existing backlog. It solves two plans: one job per
    defect, and work packages (nearby defects one crew can repair in one visit; job ids WP1, WP2, ...). plan_view says
