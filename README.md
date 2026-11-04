@@ -208,6 +208,8 @@ Everything in this repository was written during the building period. The git hi
 
 Where the free credits went (Meta, Baseten, Fireworks, Modal), by purpose and with failed runs listed: [`docs/CREDIT_USAGE.md`](docs/CREDIT_USAGE.md).
 
+Credit usage report: [PDF](docs/CREDIT_USAGE.pdf) · [Markdown](docs/CREDIT_USAGE.md) — every dollar of the free credits, by purpose.
+
 <p align="right"><a href="#readme-top">back to top</a></p>
 
 ## Third-party libraries, models and datasets

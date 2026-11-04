@@ -30,6 +30,7 @@ export function ForJudges({ demoMode }: { demoMode: boolean }) {
         <a href={LIVE} target="_blank" rel="noreferrer">Live demo</a>
         <a href={`${REPO}#readme`} target="_blank" rel="noreferrer">README</a>
         <a href={`${REPO}/blob/main/benchmark/RESULTS.md`} target="_blank" rel="noreferrer">Benchmark results</a>
+        <a href={`${REPO}/blob/main/docs/CREDIT_USAGE.pdf`} target="_blank" rel="noreferrer">Credit usage (PDF)</a>
         {VIDEO ? (
           <a href={VIDEO} target="_blank" rel="noreferrer">Demo video</a>
         ) : null}
