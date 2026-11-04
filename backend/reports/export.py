@@ -20,7 +20,7 @@ PRIORITY = {5: "P1-emergency", 4: "P2-urgent", 3: "P3-planned", 2: "P4-routine",
 FIELDS = ["work_order_id", "defect_id", "work_package", "priority", "asset_tag", "asset_type", "location", "line_service",
           "defect_type", "severity", "confidence", "recommended_action", "required_skill", "repair_hours",
           "needs_shutdown", "permit", "status", "crew", "planned_start", "planned_end", "plan_status", "plan_gap",
-          "needs_review", "senior_review", "reviewer_decision", "reviewer_decided_at", "plan_approved_at", "evidence",
+          "needs_review", "senior_review", "reviewer_decision", "reviewer_severity", "severity_source", "reviewer_decided_at", "plan_approved_at", "evidence",
           "approval_required", "source"]
 
 
@@ -60,7 +60,8 @@ def work_orders(s, plan_start: datetime) -> list[dict]:
             senior_review=("" if not senior else (("disputed, needs human review" if senior["first_is_defect"] else "accepted first-pass rejection")
                            if senior["changed_decision"] else
                            f"severity {senior['first_severity']}->{g.severity}" if senior["changed_severity"] else "confirmed")),
-            reviewer_decision=decision["label"], reviewer_decided_at=decision["at"] or "",
+            reviewer_decision=decision["label"], reviewer_severity=decision["reviewer_severity"] or "",
+            severity_source=decision["severity_source"] or "", reviewer_decided_at=decision["at"] or "",
             plan_approved_at=approval["at"] if approval else "",
             evidence="; ".join(g.evidence.visual_cues[:3]), approval_required=True,
             source="Walkdown (decision support; requires approval by a qualified person)"))
@@ -151,7 +152,9 @@ def pdf_report(s, plan_start: datetime, *, max_frames: int = 6) -> bytes:
                       r["severity"], r["recommended_action"].replace("_", " "), r["crew"], r["planned_start"],
                       r["planned_end"], r["status"],
                       ", ".join(x for x in (("review" if r["needs_review"] else ""), r["senior_review"] and
-                                            f"senior: {r['senior_review']}") if x), r["reviewer_decision"]] for r in rows]
+                                            f"senior: {r['senior_review']}") if x),
+                      r["reviewer_decision"] + (f" (sev {r['reviewer_severity']}, {r['severity_source']})"
+                                                if r["reviewer_severity"] else "")] for r in rows]
     table = Table([[Paragraph(escape(str(c)), small) for c in row] for row in data], repeatRows=1)
     table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e6e9ec")),
                                ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#b8bec4")),

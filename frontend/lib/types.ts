@@ -48,16 +48,29 @@ export interface RegisterEntry {
   needs_review: boolean;
   grade: Grade;
   review: ReviewDecision;
+  opinions: Opinion[];
   detections: { candidate_id: string; frame: number; box: number[]; flags: string[]; senior: SeniorReview | null }[];
 }
 
 export type Decision = "pending" | "approved" | "rejected" | "reinspect";
+export type SeveritySource = "verifier" | "second opinion" | "own value";
+
+/** One model's opinion on an entry: the verifier's first pass, or the second opinion when it was escalated. */
+export interface Opinion {
+  source: "verifier" | "second opinion";
+  model: string;
+  is_defect: boolean;
+  severity: number | null; // null: the second opinion said "not a defect" and its own grade is not kept
+  evidence: string;
+}
 
 /** A person's decision on one register entry (decision support: the reviewer decides). */
 export interface ReviewDecision {
   decision: Decision;
   label: string;
   at: string | null; // ISO time (UTC) of the decision; null until a person decides
+  reviewer_severity: number | null; // approved entries: the severity the reviewer chose
+  severity_source: SeveritySource | null;
 }
 
 export interface ReviewSummary {

@@ -277,7 +277,7 @@ def run_register(run_id: str) -> dict:
     s = _run(run_id).agent.s
     return dict(asset=s.clip.asset.__dict__, voice_notes=s.voice_notes, review=review.review_summary(s), entries=[dict(
         defect_id=e.defect_id, package_id=e.package_id, frames=e.frames, needs_review=e.needs_review,
-        grade=e.grade.model_dump(mode="json"), review=review.decision_of(s, e),
+        grade=e.grade.model_dump(mode="json"), review=review.decision_of(s, e), opinions=review.opinions(s, e),
         detections=[dict(candidate_id=d.candidate_id, frame=d.frame, box=list(d.box), flags=d.flags, senior=d.senior)
                     for d in e.detections]) for e in s.register])
 
@@ -305,6 +305,8 @@ def run_plan(run_id: str, view: Literal["grouped", "individual"] | None = None) 
 class ReviewRequest(BaseModel):
     defect_id: str = Field(max_length=32)
     decision: Literal["pending", "approved", "rejected", "reinspect"]
+    severity: int | None = Field(None, ge=1, le=5, description="Approve only: the severity the reviewer chose.")
+    severity_source: Literal["verifier", "second opinion", "own value"] | None = None
 
 
 @app.post("/runs/{run_id}/review")
@@ -315,9 +317,11 @@ def post_review(run_id: str, req: ReviewRequest) -> dict:
         raise HTTPException(409, "The agent is still working; review when it has finished.")
     with st.lock:
         try:
-            entry = review.set_decision(st.agent.s, req.defect_id, req.decision)
+            entry = review.set_decision(st.agent.s, req.defect_id, req.decision, req.severity, req.severity_source)
         except KeyError:
             raise HTTPException(404, f"No register entry {req.defect_id}.") from None
+        except ValueError as err:
+            raise HTTPException(400, str(err)) from None
     return dict(defect_id=req.defect_id, review=entry, summary=review.review_summary(st.agent.s))
 
 

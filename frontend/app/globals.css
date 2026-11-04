@@ -190,3 +190,13 @@ tr.rejected td:not(.review-cell) { opacity: 0.45; text-decoration: line-through;
   .register-table td:nth-child(7) { grid-column: 1 / -1; order: 12; } /* action */
   .review-cell { min-width: 0; }
 }
+
+/* reviewer: opinions side by side, severity picker */
+.review-cell { min-width: 300px; }
+.opinions { display: grid; gap: 6px; margin-top: 6px; }
+.opinions.two { grid-template-columns: 1fr 1fr; }
+.opinion { border: 1px solid var(--line); border-radius: 6px; padding: 6px; background: var(--panel-2); }
+.opinion .use-this { margin-top: 4px; padding: 2px 6px; font-size: 12px; }
+.sev-pick select { width: auto; padding: 3px 6px; font-size: 12px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (max-width: 640px) { .review-cell { min-width: 0; } }

@@ -46,7 +46,8 @@ def test_decisions_default_store_and_disputed_start_as_reinspect():
     s = _session(disputed=(2,))
     e1, e2 = s.register[0], s.register[1]
     assert review.decision_of(s, e1)["decision"] == "pending" and review.decision_of(s, e1)["at"] is None
-    assert review.decision_of(s, e2) == dict(decision="reinspect", label="Needs re-inspection", at=None)
+    assert review.decision_of(s, e2) == dict(decision="reinspect", label="Needs re-inspection", at=None,
+                                             reviewer_severity=None, severity_source=None)
     out = review.set_decision(s, "W01", "approved")
     assert out["decision"] == "approved" and out["at"]
     assert review.decision_of(s, e1)["decision"] == "approved"
@@ -143,3 +144,53 @@ def test_review_api_round_trip(monkeypatch):
     assert r.status_code == 200 and r.json()["plan_approval"]["at"]
     reg = client.get("/runs/run-review/register").json()
     assert reg["entries"][1]["review"]["decision"] == "approved" and reg["review"]["plan_approval"]
+
+
+def test_approve_records_the_reviewers_severity_and_its_source():
+    s = _session(severities=(2, 2))
+    out = review.set_decision(s, "W01", "approved", severity=4, source="second opinion")
+    assert out["reviewer_severity"] == 4 and out["severity_source"] == "second opinion"
+    assert review.set_decision(s, "W02", "approved")["severity_source"] == "verifier"  # default: the shown grade
+    assert review.set_decision(s, "W02", "approved", severity=3)["severity_source"] == "own value"
+    assert review.set_decision(s, "W02", "rejected")["reviewer_severity"] is None
+    with pytest.raises(ValueError):
+        review.set_decision(s, "W01", "approved", severity=6)
+
+
+def test_replan_uses_the_reviewers_severity_for_approved_entries():
+    s = _session(severities=(2, 2, 2, 2))
+    before = _jobs(s.variants["individual"])["W01"]
+    review.set_decision(s, "W01", "approved", severity=4, source="own value")
+    crew = s.base_scenario.crews[0].id
+    tools.replan_tool(s, {"type": "crew_unavailable", "crew_id": crew, "start": 0, "end": 24}, now_hour=0)
+    after = _jobs(s.variants["individual"])["W01"]
+    assert before.severity == 2 and after.severity == 4 and after.failure_risk > before.failure_risk
+    pkg = next((j for j in s.variants["grouped"]["jobs"] if "W01" in (j.members or [])), None)
+    assert pkg is None or pkg.severity == 4  # a package holding W01 is rebuilt at the new severity
+
+
+def test_approval_rule_uses_the_reviewers_severity():
+    s = _session(severities=(2, 4))
+    review.set_decision(s, "W02", "approved", severity=3)  # reviewer downgrades the severity-4 entry
+    assert review.blocking_entries(s) == []
+    s2 = _session(severities=(2, 4))
+    assert review.blocking_entries(s2) == ["W02"]
+
+
+def test_exports_carry_reviewer_severity_and_source():
+    s = _session(severities=(2, 2))
+    review.set_decision(s, "W01", "approved", severity=3, source="second opinion")
+    by = {r["defect_id"]: r for r in work_orders(s, datetime(2026, 11, 4))}
+    assert by["W01"]["reviewer_severity"] == 3 and by["W01"]["severity_source"] == "second opinion"
+    assert by["W02"]["reviewer_severity"] == "" and by["W02"]["severity_source"] == ""
+    assert "reviewer_severity" in to_csv(list(by.values())).splitlines()[0]
+
+
+def test_opinions_show_both_sides_for_escalated_entries():
+    s = _session(severities=(2, 3), disputed=(2,))
+    assert [o["source"] for o in review.opinions(s, s.register[0])] == ["verifier"]
+    s.register[1].detections[0].senior = dict(first_is_defect=True, first_severity=3, changed_decision=True,
+                                              changed_severity=False, reason="confidence 0.40")
+    ops = review.opinions(s, s.register[1])
+    assert [o["source"] for o in ops] == ["verifier", "second opinion"]
+    assert ops[0]["is_defect"] and ops[0]["severity"] == 3 and ops[1]["is_defect"] is False

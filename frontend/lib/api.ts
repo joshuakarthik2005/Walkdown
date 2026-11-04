@@ -1,5 +1,5 @@
 // Thin client for the Walkdown FastAPI backend.
-import type { Decision, FrameInfo, PlanResponse, PlanView, Register, ReviewDecision, ReviewSummary, RunStatus, TraceEvent } from "./types";
+import type { Decision, SeveritySource, FrameInfo, PlanResponse, PlanView, Register, ReviewDecision, ReviewSummary, RunStatus, TraceEvent } from "./types";
 
 // Default: the API on port 8000 of the host serving this page (avoids localhost vs 127.0.0.1 mismatches).
 // A trailing slash in NEXT_PUBLIC_API_URL is dropped (it would turn every path into "//path").
@@ -127,12 +127,12 @@ export async function postChange(id: string, change: Record<string, unknown>, no
 }
 
 /** A person's decision on one register entry. */
-export async function postReview(id: string, defect_id: string, decision: Decision) {
+export async function postReview(id: string, defect_id: string, decision: Decision, severity?: number, severity_source?: SeveritySource) {
   return json<{ defect_id: string; review: ReviewDecision; summary: ReviewSummary }>(
     await call(`${API_URL}/runs/${id}/review`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ defect_id, decision }),
+      body: JSON.stringify({ defect_id, decision, severity, severity_source }),
     }),
   );
 }

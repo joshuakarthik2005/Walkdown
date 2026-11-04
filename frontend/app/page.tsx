@@ -537,9 +537,9 @@ export default function Home() {
             register={register}
             frames={frames}
             busy={running}
-            onDecide={async (id, decision) => {
+            onDecide={async (id, decision, severity, source) => {
               try {
-                await api.postReview(runId, id, decision);
+                await api.postReview(runId, id, decision, severity, source);
                 await refreshResults(runId);
               } catch (e) {
                 setError(api.message(e));
