@@ -201,3 +201,27 @@ def test_unreadable_uploads_are_refused(monkeypatch, tmp_path):
 def _write(path, data):
     path.write_bytes(data)
     return path
+
+
+def test_model_failure_messages_are_honest_and_hide_internals(demo, monkeypatch):
+    class Boom(RuntimeError):
+        pass
+
+    st = app_mod.RunState("run-boom", SimpleNamespace(run=lambda m: (_ for _ in ()).throw(Boom("secret path /x"))))
+    st.turn("go")
+    assert st.status == "error" and st.error == app_mod.FAILED_MESSAGE  # no exception text in demo mode
+
+    agent = SimpleNamespace(s=SimpleNamespace(register=[object()], plan=None, ledger=SimpleNamespace(total=lambda: 0.0)))
+    done = app_mod.RunState("run-ask", agent)
+    done.status = "done"
+    monkeypatch.setitem(app_mod.RUNS, "run-ask", done)
+
+    class FailingCopilot:
+        trace: list = []
+
+        def run(self, q):
+            raise Boom("upstream 500")
+
+    monkeypatch.setattr(app_mod, "copilot", lambda s, reasoning_effort="low": FailingCopilot())
+    r = client.post("/runs/run-ask/ask", json={"question": "why?"})
+    assert r.status_code == 502 and "could not answer" in r.json()["detail"] and "upstream" not in r.text

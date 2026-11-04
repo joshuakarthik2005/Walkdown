@@ -33,9 +33,10 @@ async function json<T>(res: Response): Promise<T> {
     } catch {
       /* not JSON */
     }
-    // The API writes user-facing messages for 4xx (budget, limits, bad input); anything else gets a generic line.
+    // The API writes user-facing messages for 4xx (budget, limits, bad input) and for 502 (a model call failed);
+    // anything else gets a generic line.
     const msg =
-      res.status < 500 && typeof detail === "string"
+      (res.status < 500 || res.status === 502) && typeof detail === "string"
         ? detail
         : res.status === 413
           ? "File too large."

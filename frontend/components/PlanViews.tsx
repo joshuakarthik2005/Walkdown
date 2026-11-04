@@ -39,7 +39,7 @@ export function PlanViews({
         ))}
       </div>
       <p className="muted" style={{ margin: "6px 0" }}>
-        The agent uses the {LABEL[comparison.chosen].toLowerCase()} plan: {comparison.reason}. Grouped jobs share setup but every defect in a
+        The agent uses the {LABEL[comparison.chosen].toLowerCase()} plan, chosen when it first planned: {comparison.reason}. The table shows the current plans. Grouped jobs share setup but every defect in a
         group waits for the whole group, so risk exposure can be higher.
       </p>
       <div className="table-scroll">

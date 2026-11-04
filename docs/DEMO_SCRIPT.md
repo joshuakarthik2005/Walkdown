@@ -27,9 +27,9 @@ Do not add other numbers in this section. C1–C5 in IMPACT_SOURCES are not veri
 ### Before recording (about 5 min)
 
 1. Start the API: `.venv\Scripts\python -m uvicorn backend.api.app:app --port 8000` (ready in about 2 s).
-2. Start the UI as a production build (no dev badge): `cd frontend && npm run build && npm run start`, then open http://localhost:3000. Optionally start the API with `DEMO_MODE=true` to show the public-demo behaviour (cached samples, On-prem runs off).
+2. Start the UI as a production build (no dev badge): `cd frontend && npm run build && npm run start` (stop any older `npm run start` first, so the build includes the 2026-11-04 audit fixes), then open **http://127.0.0.1:3000** (not `localhost`: another local service, a Docker container, also listens on port 8000, and `localhost` can reach it instead of the Walkdown API). Optionally start the API with `DEMO_MODE=true` to show the public-demo behaviour (cached samples, On-prem runs off).
    - Record on localhost. The public demo (https://walkdown-zeta.vercel.app/, docs/DEPLOY.md) runs on a free 0.1-CPU server, where a run takes about a minute and the individual-defect plan reaches a larger gap within the time limit.
-3. Do one full rehearsal of the click path below on `stock-tank-farm`, so every cache is warm, then open http://localhost:3000/?sample=stock-tank-farm.
+3. Do one full rehearsal of the click path below on `stock-tank-farm`, so every cache is warm, then open http://127.0.0.1:3000/?sample=stock-tank-farm.
 4. Keep `G:\walkdown-data\footage\voice_note_01.m4a` ready for the file dialog (the upload also takes WAV and mp3). Its transcript and fields are cached, so attaching it costs nothing and takes under a second.
 
 ### Click path with measured timings
