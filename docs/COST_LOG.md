@@ -57,8 +57,11 @@ Budget: target $50–70 Meta spend, hard stop $120.
 | 2026-11-02 | Demo mode + UI v2: finished examples built (tank-farm with replan + cached voice note 0.043, valve-tank 0.027, clean-piping 0.006), one failed build with a broken clip loader (0.032), before-screenshot tank-farm run (≈ 0.04), new-UI valve-tank run (≈ 0.03), replan + copilot on a loaded example (0.019) | muse-spark-1.3 (+ cached SAM/verifier) (Meta) | 7 agent runs | - | - | ≈ 0.20 | - |
 | 2026-11-03 | Deploy memory probes: 5 judge-path passes (cached sample run, replan, copilot question) on Windows and in a 512 MB container, plus one cached tank-farm run at 0.1 CPU | muse-spark-1.3 (+ cached SAM/verifier) (Meta) | 6 agent runs, 5 replans, 5 questions | - | - | ≈ 0.29 (spend-guard files) | - |
 | 2026-11-03 | Public smoke test: replan on the tank-farm example, a copilot question and a cached valve-tank sample run (public server) | muse-spark-1.3 (+ cached SAM/verifier) (Meta) | 1 agent run, 1 replan, 1 question | - | - | ≈ 0.08 | - |
+| 2026-11-04 | Final audit on the public demo: cached samples (tank-farm with a replan, valve-tank, clean-piping), 10 copilot calls (5 questions, sent twice after a browser timeout), a Balanced run on tank-farm (verdicts not cached: $0.146), an upload of 2 stock photos + run ($0.033) + voice note, an upload of a 10 s stock video + live run ($0.309). No On-prem/Baseten/Fireworks/Modal GPU spend (On-prem is off in the demo) | muse-spark-1.3, sam-3.1, muse-wonder-1.0, muse-voice-transcribe-1.0 (Meta) | 6 runs, 1 replan, 10 questions, 1 voice note | - | - | ≈ 0.62 (run traces $0.49 + estimates for runs lost in a redeploy) | - |
 
 ## Credit pools: final used vs total (2026-11-01)
+
+The full breakdown by purpose, with reconciliation and failed runs, is in `docs/CREDIT_USAGE.md` (2026-11-04).
 
 Sources: **dashboard** = the provider's billing page, read by the builder on 2026-11-01; **ledger** = this repo's local cost ledgers (`G:/walkdown-data/runs/cost_ledger.jsonl`, per-clip ledgers and the Modal/Fireworks job logs), priced at list prices. Where both exist, the dashboard is the source of truth.
 

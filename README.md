@@ -204,6 +204,8 @@ Everything in this repository was written during the building period. The git hi
   - 50 live end-to-end agent runs.
 - **Web UI** (Next.js) and the **FastAPI** back end.
 
+Where the free credits went (Meta, Baseten, Fireworks, Modal), by purpose and with failed runs listed: [`docs/CREDIT_USAGE.md`](docs/CREDIT_USAGE.md).
+
 <p align="right"><a href="#readme-top">back to top</a></p>
 
 ## Third-party libraries, models and datasets
