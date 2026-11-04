@@ -95,7 +95,8 @@ You should not use, or allow others to use, Muse Spark Open to:
 
 ## Muse Glimmer 30B (Meta) — Apache License 2.0 and Muse Glimmer Usage Policy
 
-Used only as the base model for the verifier distillation experiment, fine-tuned on Fireworks. Licence: Apache
+Used only as the base model for the verifier distillation experiment, fine-tuned twice: QLoRA on Modal and LoRA on
+Fireworks Serverless Training. Neither tuned model is used in the product. Licence: Apache
 License 2.0 (https://www.apache.org/licenses/LICENSE-2.0). Usage Policy:
 https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/main/USAGE_POLICY.md. Because the fine-tune is trained on
 Muse Spark Open outputs, the Muse Model License above also applies to it. Fine-tuned weights are not published.
@@ -109,7 +110,9 @@ License; its text ships with the package (`licenses/` in the installed distribut
 
 ## Hosted Meta models (Meta Model API)
 
-Muse Spark (`muse-spark-1.3`), SAM 3.1 (`sam-3.1`) and other hosted models are used under the Meta Model API Terms
+Muse Spark (`muse-spark-1.3`), SAM 3.1 (`sam-3.1`), Muse Wonder (`muse-wonder-1.0`, second opinion on severe or
+uncertain grades), Muse Voice Transcribe (`muse-voice-transcribe-1.0`, technician voice notes) and Muse Image (below)
+are used under the Meta Model API Terms
 of Service (https://dev.meta.ai/legal/terms-of-service). Following section 10.1(ix), outputs of the hosted models
 are never used to train or fine-tune any model; they are used only for evaluation and benchmarking.
 
@@ -117,7 +120,7 @@ are never used to train or fine-tune any model; they are used only for evaluatio
 
 `black-forest-labs/FLUX.1-schnell` (https://huggingface.co/black-forest-labs/FLUX.1-schnell) is used under the Apache
 License 2.0 to generate synthetic hard-negative images (intact plant metal with rust look-alikes) on a Modal GPU
-(`modal_apps/flux_negatives.py`). The images are training data only for the Glimmer verifier and the SAM LoRA,
+(`modal_apps/flux_negatives.py`). The images are training data only for the Glimmer verifier and the SAM 3 fine-tune attempt,
 are labelled synthetic in their manifest, are never part of any test set and are not redistributed. The weights
 are kept in a private Modal volume and are not redistributed.
 
@@ -126,3 +129,47 @@ are kept in a private Modal volume and are not redistributed.
 Muse Image generates a separate set of 300 synthetic hard negatives used **only for evaluation** (false-alarm stress
 test), as section 10.1(ix) of the Meta Model API Terms allows for evaluation of one's own systems. These images are
 never used for training and are not published.
+
+## Training data provenance (summary)
+
+- **Hosted Meta outputs were never used for training** (Meta Model API Terms, section 10.1(ix)). Hosted Muse Spark,
+  Muse Wonder, SAM 3.1 and Muse Image outputs were used only for the product itself, evaluation and benchmarking.
+- **Glimmer distillation** (both runs) was trained only on Muse Spark Open verdicts (open weights, Muse Model
+  License) over SAM 3.1 open-weights candidates on the clean train pool, plus FLUX.1-schnell look-alike negatives.
+- **FLUX.1-schnell** images are the only synthetic training negatives. **Muse Image** images are evaluation only.
+- No dev, test, audit, public-negative or Muse Image item was ever used for training (`benchmark/RESULTS.md` §14, §18).
+
+## Datasets
+
+| Data | Source | Licence | Use |
+|---|---|---|---|
+| Corrosion Segmentation v1 (Roboflow Universe, `computervision-adpf6`) | https://universe.roboflow.com/computervision-adpf6/corrosion-segmentation-xybsj | Public Domain, as listed by the uploader | Benchmark scoring (dev 50, test 1,444); the separate 585-image train pool for distillation and the SAM 3 attempt. Images are never shown publicly. |
+| Non-corroded pipe images (Roboflow Universe, `corrosion-detection-sd`) | https://universe.roboflow.com/corrosion-detection-sd/non-corroded-pipe and https://universe.roboflow.com/corrosion-detection-sd/corrosion-detection-1 | CC BY 4.0, as listed | False-alarm scoring only (191 images after deduplication). Never trained on, never shown publicly. |
+
+Details and caveats: `docs/FOOTAGE_SOURCES.md`.
+
+## Stock demonstration footage (Pexels License)
+
+Used under the Pexels License (https://www.pexels.com/license/): no standalone redistribution, so the videos are not in
+this repository or in the public demo bundle (which holds extracted frames only, in a private dataset). Credited
+wherever shown:
+
+| Sample in the UI | Clip | Author |
+|---|---|---|
+| Tank farm pipe rack | https://www.pexels.com/video/industrial-power-plant-pipes-and-chimneys-35596447/ | Mumtaz Niazi |
+| Valve at a tank bottom | https://www.pexels.com/video/close-up-of-an-old-fuel-transfer-valve-11662354/ | Matthias Groeneveld |
+| Clean painted piping | https://www.pexels.com/video/industrial-pipelines-and-valves-system-30243437/ | Salim Da |
+| README limitation image (one overlaid frame) | https://www.pexels.com/video/industrial-facility-with-large-metallic-cylinder-35069362/ | Diego Castro Calderon |
+
+Other Pexels clips used only in benchmarks (`benchmark/stock_clips.py`) are listed in `docs/FOOTAGE_SOURCES.md`.
+
+## Libraries
+
+The Python and JavaScript libraries, their licences and their use are listed in `README.md` ("Third-party libraries,
+models and datasets"); exact versions are pinned in `requirements.txt`, `requirements-demo.txt` and
+`frontend/package-lock.json`. `meta-sam-parser` (SAM License) is covered above.
+
+## Fonts
+
+No font files are bundled. The web UI uses the visitor's system fonts (`system-ui`, Segoe UI, sans-serif). The PDF
+report uses ReportLab's built-in Helvetica, one of the 14 standard PDF fonts, which is referenced and not embedded.

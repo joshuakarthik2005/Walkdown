@@ -235,7 +235,8 @@ Everything in this repository was written during the building period. The git hi
 | transformers, PEFT, bitsandbytes, diffusers (in the Modal images only) | Apache-2.0 / Apache-2.0 / MIT / Apache-2.0 | Glimmer fine-tuning, FLUX generation |
 | Next.js, React, TypeScript | MIT / MIT / Apache-2.0 | Web UI |
 | `fireworks-ai[training]` SDK and the fw-ai cookbook's Muse Glimmer renderer (separate venv on the data drive, not in `requirements.txt`) | Apache-2.0 / Apache-2.0 | Glimmer training on Fireworks Serverless Training (`benchmark/fw_glimmer_train.py`) |
-| PyAV (bundles FFmpeg) | BSD-3-Clause (FFmpeg: LGPL) | One-off local conversion of the builder's voice note to WAV; not a project dependency |
+| PyAV (bundles FFmpeg) | BSD-3-Clause (FFmpeg: LGPL) | Server-side decoding of m4a/mp3/ogg/flac/webm voice notes |
+| `huggingface_hub` | Apache-2.0 | Public demo only: downloads the private demo data bundle at start-up |
 
 ### Datasets and footage
 | Data | Source | Licence | Use |
