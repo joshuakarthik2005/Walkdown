@@ -1,0 +1,8 @@
+# Development and audit tools only (not needed to run Walkdown): lint, type check, dependency CVE audit, PDF checks.
+#   .venv\Scripts\pip install -r requirements-dev.txt
+#   .venv\Scripts\python -m ruff check .          (rules in ruff.toml)
+#   .venv\Scripts\python -m pip_audit -r requirements.txt
+ruff==0.17.3
+mypy==2.4.1
+pip-audit==2.10.1
+pypdf==6.21.4

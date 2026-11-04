@@ -8,6 +8,7 @@ hosted Muse Spark; On-prem: Muse Spark Open), because it follows the session's p
 
 from __future__ import annotations
 
+from backend.agent import review
 from backend.agent.loop import WalkdownAgent
 from backend.agent.tools import AgentSession, _fn, explain_plan, job_ids_for
 
@@ -45,7 +46,8 @@ def get_register(s: AgentSession, defect_ids: list[str] | None = None, min_sever
                         location=g.evidence.location, frames=e.frames, needs_review=e.needs_review,
                         review_flags=sorted({f for d in e.detections for f in d.flags}),
                         senior_review=(dict(reason=senior["reason"], changed_decision=senior["changed_decision"],
-                                            first_severity=senior["first_severity"]) if senior else None)))
+                                            first_severity=senior["first_severity"]) if senior else None),
+                        reviewer_decision=review.decision_of(s, e)["label"]))
     notes = [n["note"] for n in getattr(s, "voice_notes", []) if n.get("note")]
     return dict(entries=out, total_in_register=len(s.register), inspector_voice_notes=notes)
 
@@ -81,14 +83,16 @@ def get_resources(s: AgentSession) -> dict:
     if s.scenario is None:
         return dict(error="no plan yet")
     sc = s.scenario.model_dump(mode="json")
-    return dict(crews=sc.get("crews"), windows=sc.get("windows"), permits=sc.get("permits"),
+    crews = [{k: v for k, v in c.items() if k != "name"} for c in sc.get("crews") or []]  # the UI shows ids only
+    return dict(crews=crews, windows=sc.get("windows"), permits=sc.get("permits"),
                 horizon=sc.get("horizon_days") or sc.get("horizon"), changes_so_far=s.plan_history)
 
 
 COPILOT_TOOLS = {"get_register": get_register, "get_schedule": get_schedule, "explain_plan": explain_plan,
                  "get_resources": get_resources}
 COPILOT_SCHEMAS = [
-    _fn("get_register", "Read the defect register (severity, type, evidence, action, review flags, senior review). "
+    _fn("get_register", "Read the defect register (severity, type, evidence, action, review flags, senior review, "
+        "the reviewer's decision). "
         "Filters are optional.",
         {"defect_ids": {"type": "array", "items": {"type": "string"}}, "min_severity": {"type": "integer"},
          "needs_review_only": {"type": "boolean"}}, []),
@@ -104,7 +108,17 @@ COPILOT_SCHEMAS = [
 ]
 
 
+def crew_context(session: AgentSession) -> str:
+    """The crews as the UI lists them (id and skills), so answers use the same ids."""
+    crews = getattr(session.scenario or getattr(session, "base_scenario", None), "crews", None) or []
+    if not crews:
+        return ""
+    return "Crews in this plan (refer to them by these ids): " + "; ".join(
+        f"{c.id} ({', '.join(sorted(c.skills))})" for c in crews) + "."
+
+
 def copilot(session: AgentSession, **kwargs) -> WalkdownAgent:
     """A copilot agent over a finished session (keeps its own conversation for follow-ups)."""
-    return WalkdownAgent(session, tools=COPILOT_TOOLS, tool_schemas=COPILOT_SCHEMAS, system_prompt=COPILOT_PROMPT,
-                         cache_key="walkdown-copilot-v1", max_steps=8, **kwargs)
+    return WalkdownAgent(session, tools=COPILOT_TOOLS, tool_schemas=COPILOT_SCHEMAS,
+                         system_prompt=f"{COPILOT_PROMPT}\n{crew_context(session)}",
+                         cache_key="walkdown-copilot-v2", max_steps=8, **kwargs)

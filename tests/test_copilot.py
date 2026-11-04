@@ -76,3 +76,14 @@ def test_copilot_uses_only_read_only_tools(monkeypatch):
     assert "C1" in answer
     tool = [e for e in agent.trace if e.kind == "tool"][0]
     assert tool.name == "get_schedule" and tool.error is None and tool.result["assignments"][0]["crew"] == "C1"
+
+
+def test_copilot_names_crews_by_the_ids_the_ui_shows():
+    from backend.agent import tools
+    from backend.agent.copilot import copilot, get_resources
+    s = tools.AgentSession(clip=SimpleNamespace(), ledger=SimpleNamespace(total=lambda: 0.0, add=lambda e: e))
+    s.scenario = s.base_scenario
+    agent = copilot(s)
+    prompt = agent.messages[0]["content"]
+    assert "C1 (coating, insulation)" in prompt and "Crew A" not in prompt
+    assert all("name" not in c for c in get_resources(s)["crews"])
