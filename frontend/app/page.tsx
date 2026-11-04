@@ -486,9 +486,7 @@ export default function Home() {
               {uploadMode
                 ? "Uploads always run fresh inference."
                 : demo
-                  ? sensitivity === "balanced" && mode === "cloud"
-                    ? "Samples use cached perception results; Balanced verdicts are computed live the first time (a few cents of the demo budget)."
-                    : "Samples use cached perception and verification results in the public demo."
+                  ? "Samples use cached perception and verification results in the public demo (both sensitivity settings)."
                   : "Samples use cached perception and verification results unless you tick fresh inference."}
               {budgetGone ? " Today's demo budget is used up: finished examples and cached samples still work." : ""}
             </div>

@@ -2,30 +2,32 @@
 
 Every free credit pool Walkdown used, what it was spent on and what it produced. Each figure names its source:
 
-- **dashboard (2026-11-01)**: the provider's billing page, read by the builder on 2026-11-01 (also in `docs/COST_LOG.md`).
+- **dashboard (2026-11-04)** / **dashboard (2026-11-01)**: the provider's billing page, read by the builder on that date
+  (the 2026-11-01 readings are also in `docs/COST_LOG.md`).
 - **CLI (2026-11-04)**: `modal billing summary` / `modal billing report`, run during the final audit.
 - **ledger**: Walkdown's own cost ledgers, written from each call's `usage` at official list prices
   (`G:/walkdown-data/runs/cost_ledger.jsonl`, one ledger per clip, the F7 journal, the demo spend-guard files).
   A ledger figure is an estimate. Where a dashboard figure exists, the dashboard wins.
-- **UNVERIFIED**: no dashboard reading for today. The builder chose to use the 2026-11-01 snapshot instead of new
-  dashboard readings.
+- **ledger (dashboard shows no explicit credit balance)**: Baseten's and Fireworks' billing pages do not show a credit
+  balance for these grants (builder, 2026-11-04), and their APIs give no billing access to these keys (Baseten 403,
+  Fireworks 404), so the ledger is the best available figure.
 
 ## Summary
 
 | Pool | Granted | Used | Remaining | % used (target 80%) | Source of "used" |
 |---|---|---|---|---|---|
-| Meta Model API | $150.00 | $105.54 on 2026-11-01; ≈ $106.7 today | $44.46 on 2026-11-01; ≈ $43.3 today | 70.4% (≈ 71% today) | dashboard (2026-11-01); today = dashboard + ledger, UNVERIFIED |
-| Baseten (Muse Spark Open) | $100.00 | ≈ $73.64 | ≈ $26.36 | ≈ 74% | ledger (no billing access for the hackathon key; API answers 403) |
-| Fireworks | $100.00 | ≈ $83.16 | ≈ $16.84 | ≈ 83% | ledger + Glimmer job logs (no billing API: 404) |
-| Modal | $100 hackathon credit + $30/month free credit | $32.14 metered in October (covered: credits $32.06 + egress allowance $0.08); $0.28 in November (storage, covered by free storage) | $127.94 balance on 2026-11-01 | 24.7% of the $130 available in October | CLI (2026-11-04); balance from dashboard (2026-11-01) |
+| Meta Model API | $150.00 | **$107.89** | **$42.11** | 71.9% | dashboard (2026-11-04) |
+| Baseten (Muse Spark Open) | $100.00 | ≈ $73.64 | ≈ $26.36 | ≈ 74% | ledger (dashboard shows no explicit credit balance) |
+| Fireworks | $100.00 | ≈ $83.16 | ≈ $16.84 | ≈ 83% | ledger + Glimmer job logs (dashboard shows no explicit credit balance) |
+| Modal | $100 hackathon credit (grant, `CLAUDE.md` brief) + $30/month free credit (Modal Starter plan, https://modal.com/pricing); $130 in October, $30 more on 2026-11-01 | $32.14 metered in October (covered: credits $32.06 + egress allowance $0.08); $0.28 in November (storage, covered by free storage) | $127.94 balance on 2026-11-01 | 24.7% of the $130 available in October | CLI (2026-11-04); balance from dashboard (2026-11-01) |
 | Hugging Face | free account | $0 | – | – | free plan (private dataset for the demo bundle) |
 | Render | free web service | $0 | – | – | free plan, no card on file |
 | Vercel | Hobby | $0 | – | – | Hobby plan, no card on file |
 
-**Total free credit used across the four paid pools: ≈ $294.5** (Meta $105.54 dashboard + Baseten ≈ $73.64 +
+**Total free credit used across the four paid pools: ≈ $296.8** (Meta $107.89 dashboard + Baseten ≈ $73.64 +
 Fireworks ≈ $83.16 + Modal $32.14).
 
-- **Meta ($105.54):** every Cloud number in the README. That covers the 1,444-image test split end to end, the human
+- **Meta ($107.89):** every Cloud number in the README. That covers the 1,444-image test split end to end, the human
   audits, the public-negatives and Muse Image stress tests, the Muse Wonder study, 50 live agent runs, and every demo
   and example run.
 - **Baseten (≈ $73.64):** the open-weights verifier on all 5,066 test candidates (93.4% agreement with hosted). It
@@ -36,7 +38,7 @@ Fireworks ≈ $83.16 + Modal $32.14).
 - **Modal ($32.14):** SAM 3.1 open weights for On-prem mode, the FLUX look-alike negatives, both Glimmer QLoRA runs,
   and the SAM 3 fine-tune attempt (a negative result).
 
-Below 80%: Meta (70%), Baseten (74%) and Modal (25%). The budget rule was "target $50–70 of Meta, hard stop $120", so
+Below 80%: Meta (72%), Baseten (74%) and Modal (25%). The budget rule was "target $50–70 of Meta, hard stop $120", so
 the remaining Meta credit was kept as a buffer for the public demo (daily cap $5) rather than spent to reach a quota.
 
 ## Meta Model API, by purpose (ledger, list prices)
@@ -58,9 +60,15 @@ the remaining Meta credit was kept as a buffer for the public demo (daily cap $5
 | **10-27 – 11-02** | **Ledger total** | | **$105.91** | |
 | 11-03 | Deploy memory probes and public smoke test | muse-spark-1.3 (cached perception) | ≈ $0.37 | docs/DEPLOY.md |
 | 11-04 | Final audit: 6 live demo runs (samples, own photos, own video, Balanced), a replan, copilot questions, a voice note | Meta | ≈ $0.62 | This audit |
+| 11-04 | Final fix round: Balanced verdict caches for 2 samples (3 local runs), human-review tests, live review-flow checks, 7 copilot questions, one photo upload | Meta | ≈ $0.42 | Balanced caches in the demo bundle (HF commit b24b31e); P1/P2 checks |
 | | Public demo traffic from visitors | Meta | not separable | The demo spend-guard caps it at $5 per day |
 
-**Reconciliation.** The ledger through 11-02 is $105.91; the dashboard read $105.54 on 2026-11-01. About $0.2 of the
+**Reconciliation, 2026-11-01 to 2026-11-04.** The dashboard moved from $105.54 to $107.89 (+$2.35). The logged
+lines since then add up to ≈ $1.64 (11-01/11-02 ≈ $0.23, 11-03 ≈ $0.37, 11-04 audit ≈ $0.62, 11-04 fix round ≈ $0.42).
+**≈ $0.71 is unattributed**: public demo traffic from visitors (not separable from the spend-guard files, which reset on
+every restart) plus the estimation error of UI-header and trace figures.
+
+**Reconciliation up to 2026-11-01.** The ledger through 11-02 is $105.91; the dashboard read $105.54 on 2026-11-01. About $0.2 of the
 ledger's 11-01/11-02 lines came after the dashboard reading. That leaves **≈ $0.2 unattributed**, ledger above
 dashboard. It is most likely list-price rounding and cached-token pricing in the ledger estimate. An earlier
 COST_LOG note put the ledger ≈ $4.5 above the dashboard, but that figure included hand-added COST_LOG lines

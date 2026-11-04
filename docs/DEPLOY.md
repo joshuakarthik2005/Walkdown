@@ -41,7 +41,9 @@ sample run took 93 s (24 entries, plan OPTIMAL).
 1. On huggingface.co (signed in as `joshuakarthik2005`), open **New → Dataset**.
 2. Name: `walkdown-demo-bundle`. Visibility: **Private**. Click **Create dataset**.
 3. Open **Files and versions → Add file → Upload files**. Drop `G:\walkdown-data\deploy\walkdown-demo-bundle.tar.gz`
-   (18 MB) and click **Commit changes to main**.
+   (18 MB) and click **Commit changes to main**. The current bundle (HF commit b24b31e, 2026-11-04, 1,714 files) also
+   holds the Balanced (v2) verdicts for the tank-farm and valve-tank samples, so neither sensitivity setting calls the
+   verifier in the demo.
 4. Create a read token for Render: open **Settings → Access Tokens → Create new token → Fine-grained**.
    - Name it `render-walkdown`.
    - Under **Repositories permissions**, select `datasets/joshuakarthik2005/walkdown-demo-bundle` and tick
