@@ -33,7 +33,7 @@ def session():
 def test_register_filters_and_senior_review():
     s = session()
     assert [e["defect_id"] for e in cp.get_register(s, min_severity=3)["entries"]] == ["W01"]
-    assert [e["defect_id"] for e in cp.get_register(s, needs_review_only=True)["entries"]] == ["W02"]
+    assert cp.get_register(s)["human_review"]["Pending review"]["count"] == len(s.register)  # no decisions yet
     w01 = cp.get_register(s, defect_ids=["W01"])["entries"][0]
     assert w01["senior_review"]["first_severity"] == 5 and w01["service"] == "lpg"
 
@@ -87,3 +87,15 @@ def test_copilot_names_crews_by_the_ids_the_ui_shows():
     prompt = agent.messages[0]["content"]
     assert "C1 (coating, insulation)" in prompt and "Crew A" not in prompt
     assert all("name" not in c for c in get_resources(s)["crews"])
+
+
+def test_copilot_review_counts_match_the_register_categories():
+    from backend.agent import review
+    from backend.agent.copilot import get_register
+    from tests.test_review import _session
+    s = _session(severities=(2, 2, 2), disputed=(2,))
+    review.set_decision(s, "W01", "approved")
+    hr = get_register(s)["human_review"]
+    assert hr["Approved"]["defect_ids"] == ["W01"] and hr["Needs re-inspection"]["count"] == 1
+    assert hr["Pending review"]["count"] == 1
+    assert [e["defect_id"] for e in get_register(s, decision="reinspect")["entries"]] == ["W02"]

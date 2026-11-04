@@ -23,12 +23,14 @@ waiting_for_shutdown_window, crew_capacity, crowded_out). Never invent a reason.
 - Always state the solver status and gap if you discuss how good the plan is; never call a FEASIBLE plan optimal.
 - You cannot change the plan. If asked to, say that a constraint change in the UI triggers a replan.
 - Hours count from the start of the plan (hour 0 = day 0, 00:00). Answer in plain language, at most about 120 \
-words, no internal field names."""
+words, no internal field names.
+- Name crews by their id (C1, C2, ...), exactly as the inspector sees them in the UI.
+- Review questions: answer with get_register's human_review categories and counts (Needs re-inspection, Pending review, Approved, Rejected), exactly as the register shows them. verifier_flagged is not a review category."""
 
 
 def get_register(s: AgentSession, defect_ids: list[str] | None = None, min_severity: int | None = None,
-                 needs_review_only: bool = False) -> dict:
-    """Register entries, optionally filtered."""
+                 decision: str | None = None) -> dict:
+    """Register entries, optionally filtered, plus the register's Human review categories and counts (as in the UI)."""
     out = []
     for e in s.register:
         g = e.grade
@@ -36,20 +38,23 @@ def get_register(s: AgentSession, defect_ids: list[str] | None = None, min_sever
             continue
         if min_severity and g.severity < min_severity:
             continue
-        if needs_review_only and not e.needs_review:
+        if decision and review.decision_of(s, e)["decision"] != decision:
             continue
         senior = next((d.senior for d in e.detections if d.senior), None)
         out.append(dict(defect_id=e.defect_id, work_package=e.package_id if e.package_id != e.defect_id else None,
                         asset=e.asset.asset_id, service=e.asset.service,
                         defect_type=g.defect_type.value, severity=g.severity, confidence=round(g.confidence, 2),
                         recommended_action=g.recommended_action.value, evidence=g.evidence.visual_cues[:3],
-                        location=g.evidence.location, frames=e.frames, needs_review=e.needs_review,
+                        location=g.evidence.location, frames=e.frames, verifier_flagged=e.needs_review,
                         review_flags=sorted({f for d in e.detections for f in d.flags}),
                         senior_review=(dict(reason=senior["reason"], changed_decision=senior["changed_decision"],
                                             first_severity=senior["first_severity"]) if senior else None),
                         reviewer_decision=review.decision_of(s, e)["label"]))
     notes = [n["note"] for n in getattr(s, "voice_notes", []) if n.get("note")]
-    return dict(entries=out, total_in_register=len(s.register), inspector_voice_notes=notes)
+    by = {k: [e.defect_id for e in s.register if review.decision_of(s, e)["decision"] == k] for k in review.DECISIONS}
+    human_review = {review.LABEL[k]: dict(count=len(ids), defect_ids=ids) for k, ids in by.items()}
+    return dict(entries=out, total_in_register=len(s.register), human_review=human_review,
+                inspector_voice_notes=notes)
 
 
 def get_schedule(s: AgentSession, defect_ids: list[str] | None = None, crew_id: str | None = None,
@@ -95,7 +100,7 @@ COPILOT_SCHEMAS = [
         "the reviewer's decision). "
         "Filters are optional.",
         {"defect_ids": {"type": "array", "items": {"type": "string"}}, "min_severity": {"type": "integer"},
-         "needs_review_only": {"type": "boolean"}}, []),
+         "decision": {"type": "string", "enum": ["pending", "approved", "rejected", "reinspect"]}}, []),
     _fn("get_schedule", "Read the plan: solver status and gap, assignments (job, crew, start/end hour), "
         "unscheduled and moved jobs. A defect grouped into a work package (WP...) is scheduled as that package; "
         "filtering by its defect id returns the package's assignment. Filters are optional.",
@@ -121,4 +126,4 @@ def copilot(session: AgentSession, **kwargs) -> WalkdownAgent:
     """A copilot agent over a finished session (keeps its own conversation for follow-ups)."""
     return WalkdownAgent(session, tools=COPILOT_TOOLS, tool_schemas=COPILOT_SCHEMAS,
                          system_prompt=f"{COPILOT_PROMPT}\n{crew_context(session)}",
-                         cache_key="walkdown-copilot-v2", max_steps=8, **kwargs)
+                         cache_key="walkdown-copilot-v3", max_steps=8, **kwargs)
