@@ -142,7 +142,7 @@ def pdf_report(s, plan_start: datetime, *, max_frames: int = 6) -> bytes:
     story.append(Paragraph(
         f"<b>Human review</b>: {c['approved']} approved, {c['rejected']} rejected "
         f"({len(rs['rejected_excluded'])} excluded from the plan), {c['reinspect']} need re-inspection, "
-        f"{c['pending']} pending. Plan: " + (f"approved by reviewer at {rs['plan_approval']['at']} UTC."
+        f"{c['pending']} pending. Plan: " + (f"approved by reviewer at {rs['plan_approval']['at'][:16].replace('T', ' ')} UTC."
                                             if rs["plan_approval"] else "not approved yet."), st["BodyText"]))
 
     rows = work_orders(s, plan_start)

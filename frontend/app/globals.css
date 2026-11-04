@@ -178,3 +178,15 @@ button.primary { font-size: 15px; padding: 11px 16px; }
 .review-btns button.on { background: var(--panel-2); color: var(--text); border: 1px solid var(--accent); }
 tr.rejected td:not(.review-cell) { opacity: 0.45; text-decoration: line-through; text-decoration-color: var(--muted); }
 .plan-approval { margin: 4px 0 12px; }
+/* phone: each register entry becomes a card, so the review buttons are never off-screen */
+@media (max-width: 640px) {
+  .register-table thead { display: none; }
+  .table-scroll .register-table, .register-table tbody { display: block; width: 100%; min-width: 0; }
+  .register-table td { min-width: 0; overflow-wrap: anywhere; }
+  .register-table tr { display: grid; grid-template-columns: auto auto auto auto 1fr; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .register-table td { display: block; border: 0; padding: 0; }
+  .register-table td:nth-child(2) { grid-column: 1 / -1; order: 10; } /* review */
+  .register-table td:nth-child(6) { grid-column: 1 / -1; order: 11; } /* evidence */
+  .register-table td:nth-child(7) { grid-column: 1 / -1; order: 12; } /* action */
+  .review-cell { min-width: 0; }
+}

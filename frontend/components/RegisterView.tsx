@@ -50,7 +50,7 @@ export function RegisterView({
         ))}
       </div>
       <div className="table-scroll">
-      <table style={{ marginTop: 10 }}>
+      <table className="register-table" style={{ marginTop: 10 }}>
         <thead>
           <tr>
             <th>ID</th>
