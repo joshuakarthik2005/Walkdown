@@ -470,7 +470,7 @@ export default function Home() {
               {onpremBlocked && (
                 <div className="note-strong">
                   On-prem runs are switched off in the public demo: they need the scale-to-zero GPU and the Baseten deployment. Open a finished
-                  example to see a complete run; On-prem&apos;s measured numbers are in the benchmark results.
+                  example to see a complete Cloud run; On-prem&apos;s measured numbers are in the benchmark results.
                 </div>
               )}
             </div>

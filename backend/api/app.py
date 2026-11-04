@@ -231,7 +231,7 @@ def start_run(req: RunRequest, request: Request) -> dict:
     if DEMO.enabled:
         if req.provider == "baseten":
             raise HTTPException(403, "On-prem runs are switched off in the public demo (they need the scale-to-zero GPU "
-                                     "and the Baseten deployment). Open a finished example to see a complete run.")
+                                     "and the Baseten deployment). Open a finished example to see a complete Cloud run.")
         if is_sample(req.clip_id):
             req.live = False  # samples: cached perception and verification only
     _guard(request, "run")

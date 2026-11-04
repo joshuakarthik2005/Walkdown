@@ -2,6 +2,7 @@ import type { TraceEvent } from "@/lib/types";
 import { usd } from "@/lib/format";
 
 const STEP: Record<string, { title: string; what: string }> = {
+  track_video: { title: "Tracks the clip", what: "SAM 3.1 video tracking follows rust through the whole clip" },
   segment_frames: { title: "Looks at the clip", what: "SAM 3.1 segments rust on sampled frames" },
   verify_candidate: { title: "Checks each finding", what: "Muse Spark accepts or rejects and grades severity" },
   build_register: { title: "Writes the defect register", what: "merges repeat sightings into one entry per defect" },
@@ -11,7 +12,7 @@ const STEP: Record<string, { title: string; what: string }> = {
 };
 
 // Tools that call a Meta model; the others (register, CP-SAT, explanations) run locally.
-const API_TOOLS = new Set(["segment_frames", "verify_candidate"]);
+const API_TOOLS = new Set(["track_video", "segment_frames", "verify_candidate"]);
 
 /** The agent's decision flow: each tool call as a step, with what it decided. Model turns are folded in. */
 export function AgentTrail({ events, running }: { events: TraceEvent[]; running: boolean }) {
