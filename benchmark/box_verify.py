@@ -10,7 +10,8 @@ Invalid replies fail open (kept), as everywhere else.
 
 Variants scored with sam_eval levels: text only, text only + verifier,
 text + boxes, text + boxes + verifier. Resumable through a journal; stops at
-``--max-usd`` of new spend. ``--count-only`` makes no API calls and reports how
+``--max-usd`` of new spend. ``--effort minimal`` (the product default) writes its own journal and
+``results/box_verify_test_minimal.json``; ``--limit N`` stops after N new images (dry run). ``--count-only`` makes no API calls and reports how
 many new candidates there are (for the cost estimate).
 
     .venv\\Scripts\\python.exe -m benchmark.box_verify test --count-only
@@ -44,8 +45,13 @@ CALLS_PER_PROCESS = 2
 VARIANTS = ("text_only", "text_only_verified", "text_plus_boxes", "text_plus_boxes_verified")
 
 
-def journal_path(split: str) -> Path:
-    return DATA_DIR / "runs" / f"box_verify_{split}_journal.jsonl"
+def _tag(split: str, effort: str) -> str:
+    """File tag: low effort (the original run) keeps its names; other efforts get their own journal and result."""
+    return split if effort == "low" else f"{split}_{effort}"
+
+
+def journal_path(split: str, effort: str = "low") -> Path:
+    return DATA_DIR / "runs" / f"box_verify_{_tag(split, effort)}_journal.jsonl"
 
 
 def _iou(a: np.ndarray, b: np.ndarray) -> float:
@@ -123,6 +129,7 @@ def main() -> int:
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--max-usd", type=float, default=0.0)
     ap.add_argument("--count-only", action="store_true")
+    ap.add_argument("--limit", type=int, default=0, help="stop after this many new images (dry run)")
     args = ap.parse_args()
     images = load_split(args.split)
 
@@ -134,13 +141,15 @@ def main() -> int:
               f"a text-only verdict")
         return 0
 
-    journal = journal_path(args.split)
+    journal = journal_path(args.split, args.effort)
     done = {}
     if journal.exists():
         for line in journal.read_text(encoding="utf-8").splitlines():
             r = json.loads(line)
             done[r["image"]] = r
     todo = [rel for rel in images if rel not in done]
+    if args.limit:
+        todo = todo[:args.limit]
     print(f"{len(done)} images already done, {len(todo)} to go", flush=True)
     t0, spent, finished = time.perf_counter(), 0.0, 0
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
@@ -190,7 +199,7 @@ def main() -> int:
                last_chunk=dict(wall_s=time.perf_counter() - t0, images=finished, usd=spent),
                variants={k: aggregate([_restore(rec["stats"][k]) for rec in recs]) for k in VARIANTS})
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    (RESULTS_DIR / f"box_verify_{args.split}.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
+    (RESULTS_DIR / f"box_verify_{_tag(args.split, args.effort)}.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
     print(json.dumps({k: v for k, v in out.items() if k != "variants"}, indent=1))
     for k, s in out["variants"].items():
         i5, i3 = s["instance"]["iou>=0.5"], s["instance"]["iou>=0.3"]

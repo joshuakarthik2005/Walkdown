@@ -61,6 +61,7 @@ the remaining Meta credit was kept as a buffer for the public demo (daily cap $5
 | 11-03 | Deploy memory probes and public smoke test | muse-spark-1.3 (cached perception) | ≈ $0.37 | docs/DEPLOY.md |
 | 11-04 | Final audit: 6 live demo runs (samples, own photos, own video, Balanced), a replan, copilot questions, a voice note | Meta | ≈ $0.62 | This audit |
 | 11-04 | Final fix round: Balanced verdict caches for 2 samples (3 local runs), human-review tests, live review-flow checks, 7 copilot questions, one photo upload | Meta | ≈ $0.42 | Balanced caches in the demo bundle (HF commit b24b31e); P1/P2 checks |
+| 11-04 | P3c partial run, stopped, not published (minimal effort on the test split; 22 of 1,444 images, journal kept on G:) | Meta | $0.16 | Nothing published |
 | | Public demo traffic from visitors | Meta | not separable | The demo spend-guard caps it at $5 per day |
 
 **Reconciliation, 2026-11-01 to 2026-11-04.** The dashboard moved from $105.54 to $107.89 (+$2.35). The logged
