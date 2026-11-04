@@ -106,7 +106,6 @@ def test_symmetry_breaking_on_identical_crews_keeps_optimum():
     )
     assert identical_crew_groups(sc) == [["c1", "c2"]]
     plan = solve(sc, FAST)
-    load = {c: sum(a.end - a.start for a in plan.assignments if a.crew_id == c) for c in ("c1", "c2")}
     assert plan.stats.is_optimal and validate(sc, plan.assignments) == []
     hours = {d.id: d.repair_hours for d in sc.defects}
     booked = {c: sum(hours[a.defect_id] for a in plan.assignments if a.crew_id == c) for c in ("c1", "c2")}

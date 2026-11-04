@@ -87,7 +87,7 @@ Full details, including the negative results, are in [`benchmark/RESULTS.md`](be
 | Pipeline | Images with corrosion found | Pixel precision | Annotated corrosion area covered (pixel recall) |
 |---|---|---|---|
 | SAM 3.1 text prompt only | 66% | 0.92 | 36% |
-| **Cloud** default (text + Muse Spark boxes + verifier) | 97.9% | 0.77 | 84% |
+| **Cloud** (text + Muse Spark boxes + verifier at low effort; the product default is minimal effort, [§16](benchmark/RESULTS.md)) | 97.9% | 0.77 | 84% |
 | **On-prem**, open weights only (same pipeline on SAM 3.1 open weights + Muse Spark Open) | 92.4% | 0.78 | 62% |
 
 On-prem finds corrosion on most of the same images but covers less of it: open-weights SAM 3.1 has no per-box prompt, so its masks from box proposals are looser ([RESULTS §7](benchmark/RESULTS.md)).
@@ -113,7 +113,7 @@ On-prem finds corrosion on most of the same images but covers less of it: open-w
 
 **Reliability:** 50 of 50 live end-to-end agent runs succeeded, 16 of them with a replan after a crew outage; median 143 s and $0.19 per run ([RESULTS §15](benchmark/RESULTS.md)). These runs found one real bug (video tracking), now fixed.
 
-**Negative results we kept:** SAM 3 full fine-tuning never completed (NaN after about 300 steps at any learning rate or precision, after patching three upstream training issues), so SAM 3.1 stays the perception model ([RESULTS §18](benchmark/RESULTS.md)). Muse Wonder's second opinion does not improve grade agreement (§5). More reasoning effort and a hardened prompt did not pay off (§11, §12).
+**Negative results we kept:** SAM 3 full fine-tuning never completed (non-finite values after 15 to about 385 steps at every learning rate and precision tried, after patching three upstream training issues), so SAM 3.1 stays the perception model ([RESULTS §18](benchmark/RESULTS.md)). Muse Wonder's second opinion does not improve grade agreement (§5). More reasoning effort and a hardened prompt did not pay off (§11, §12).
 
 **Planning:**
 - CP-SAT is never worse than a severity-first priority sort on 60 generated scenarios: median 5.8% lower risk in the default regime, up to 24.9%.

@@ -39,7 +39,6 @@ def main() -> int:
     cache.mkdir(parents=True, exist_ok=True)
     aud = audited()
     test = test_candidates()[:args.test_n]
-    stats: list[dict] = []
 
     def one(c) -> None:
         path = cache / (c.candidate_id.replace("#", "__") + ".json")

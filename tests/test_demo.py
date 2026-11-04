@@ -140,6 +140,7 @@ def test_demo_upload_limits(demo, monkeypatch, tmp_path):
         return SimpleNamespace(dir=d, duration_s=9.0)
 
     monkeypatch.setattr(app_mod, "create_clip", fake_create)
+    monkeypatch.setattr(app_mod, "_readable", lambda path: True)  # the fake bytes stand in for a real video
     long = client.post("/clips", data={"asset_id": "PIPE-1"}, files=[("files", ("a.mp4", b"x", "video/mp4"))])
     assert long.status_code == 400 and "too long" in long.json()["detail"]
     assert not created["dir"].exists()  # the rejected clip is removed
@@ -184,3 +185,19 @@ def test_example_round_trip_rebases_paths(monkeypatch, tmp_path):
     assert answers == ["answer"] and meta["id"] == "ex" and loaded.trace[0].summary == "done"
     assert loaded.s.frame_paths[5] == tmp_path / "b" / "bundle" / "frames" / "t00005.jpg"
     assert loaded.s.voice_notes == [dict(transcript="hello")] and loaded.s.clip.dir == tmp_path / "b" / "bundle"
+
+
+def test_unreadable_uploads_are_refused(monkeypatch, tmp_path):
+    created = []
+    monkeypatch.setattr(app_mod, "create_clip", lambda *a, **k: created.append(a))
+    for name, kind in [("a.jpg", "image/jpeg"), ("b.png", "image/png"), ("c.mp4", "video/mp4")]:
+        r = client.post("/clips", data={"asset_id": "PIPE-1"}, files=[("files", (name, b"not media", kind))])
+        assert r.status_code == 400 and "Could not read" in r.json()["detail"], name
+    ok, png = cv2.imencode(".png", np.full((20, 30, 3), 128, np.uint8))
+    assert app_mod._readable(_write(tmp_path / "ok.png", png.tobytes()))
+    assert not created  # nothing stored for a refused upload
+
+
+def _write(path, data):
+    path.write_bytes(data)
+    return path

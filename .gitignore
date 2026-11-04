@@ -41,3 +41,17 @@ Thumbs.db
 # TypeScript incremental build info
 *.tsbuildinfo
 *.tar.gz
+
+# Model weights, caches and local data (kept outside the repo, on G:)
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.gguf
+*.pkl.gz
+.cache/
+.ruff_cache/
+.mypy_cache/
+/data/
+.claude/

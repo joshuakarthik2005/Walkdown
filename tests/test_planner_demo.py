@@ -11,7 +11,7 @@ def test_demo_scenario_json_is_fixed_and_reproducible():
 
 def test_demo_solves_to_optimal_and_beats_baseline():
     demo = load_scenario()
-    result = compare(demo, PlannerConfig(time_limit_s=10))
+    result = compare(demo, PlannerConfig(time_limit_s=30))  # solves in ~2 s; headroom for a loaded CI machine
     assert result.cpsat.status == "OPTIMAL"
     assert result.cpsat.objective < result.baseline.objective
     assert result.cpsat.critical_unscheduled == 0

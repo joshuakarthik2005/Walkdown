@@ -19,13 +19,12 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import cv2
-import numpy as np
 
 from backend.clients.cost import CostLedger, sam_image_cost
 from backend.perception.sam import parse_output, segment_image
 from backend.perception.tiling import segment_tiled, tile_boxes
 from benchmark.download_dataset import DATA_DIR, RAW_DIR
-from benchmark.sam_dryrun import RUN_DIR as SAM_DIR, _slug, ground_truth
+from benchmark.sam_dryrun import RUN_DIR as SAM_DIR, _slug
 from benchmark.sam_eval import score_instances
 from benchmark.splits import load_split
 

@@ -1,7 +1,6 @@
 import json
 from types import SimpleNamespace
 
-import numpy as np
 
 from backend.agent import loop as loop_mod
 from backend.agent.register import AssetInfo, Detection, build_register, to_planner_defect

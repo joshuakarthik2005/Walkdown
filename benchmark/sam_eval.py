@@ -29,7 +29,7 @@ from backend.clients.cost import CostLedger, sam_image_cost
 from backend.perception.sam import parse_output
 from benchmark.download_dataset import DATA_DIR
 from benchmark.sam_dryrun import RUN_DIR, _slug, ground_truth, run_prompt
-from benchmark.seg_metrics import ImageResult, Prediction, evaluate
+from benchmark.seg_metrics import ImageResult, Prediction
 from benchmark.splits import load_split
 
 RESULTS_DIR = Path(__file__).parent / "results"

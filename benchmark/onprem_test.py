@@ -29,7 +29,6 @@ from dataclasses import asdict
 from pathlib import Path
 
 import cv2
-import numpy as np
 
 from backend.clients.cost import CostLedger
 from backend.perception.boxes import FIREWORKS_SPARK_OPEN, merge_with_text, propose_boxes

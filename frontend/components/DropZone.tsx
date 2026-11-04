@@ -10,13 +10,13 @@ export function DropZone({
   onFiles,
 }: {
   files: File[];
-  maxMb: number;
+  maxMb: number | null;
   maxSeconds: number | null;
   busy: boolean;
   onFiles: (f: File[]) => void;
 }) {
   const [over, setOver] = useState(false);
-  const limits = `MP4/MOV up to ${maxMb} MB${maxSeconds ? ` and ${maxSeconds} s` : ""}, or JPG/PNG photos`;
+  const limits = maxMb ? `MP4/MOV up to ${maxMb} MB${maxSeconds ? ` and ${maxSeconds} s` : ""}, or JPG/PNG photos` : "MP4/MOV video, or JPG/PNG photos";
   return (
     <label
       className={`dropzone${over ? " over" : ""}${files.length ? " has-files" : ""}`}

@@ -6,7 +6,7 @@ All numbers come from runs in this repository; the raw result files are in `benc
 
 | Area | Result | Section |
 |---|---|---|
-| Perception, Cloud default (test split, 1,444 images) | 97.9% of images with corrosion found; pixel P / R 0.77 / 0.84; instance recall 0.30 | §4, §7 |
+| Perception, Cloud, verifier at low effort (test split, 1,444 images) | 97.9% of images with corrosion found; pixel P / R 0.77 / 0.84; instance recall 0.30 | §4, §7 |
 | Perception, On-prem (open weights only, same images) | 92.4% of images found; pixel P / R 0.78 / 0.62 | §7 |
 | Verifier vs blind human labels (133 candidates) | 91–93% of accepted candidates are real rust | §8 |
 | False alarms on 191 real clean-pipe images | Cloud High recall 12.0%, Balanced 6.8%, On-prem 2.1% of images | §9, §16 |

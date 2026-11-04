@@ -1,0 +1,7 @@
+# Lint: `python -m ruff check .` (correctness rules: syntax errors, pyflakes, invalid escapes)
+line-length = 120
+extend-exclude = ["frontend"]
+
+[lint]
+select = ["E4", "E7", "E9", "F", "W6"]
+ignore = ["E741"]

@@ -34,6 +34,7 @@ import uuid
 from pathlib import Path
 from typing import Literal
 
+import cv2
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
@@ -147,6 +148,17 @@ def _run(run_id: str) -> RunState:
     return RUNS[run_id]
 
 
+def _readable(path: Path) -> bool:
+    """True if OpenCV can decode the upload: one frame of a video, or the photo at 1/8 scale (cheap on memory)."""
+    if path.suffix.lower() in {".mp4", ".mov"}:
+        cap = cv2.VideoCapture(str(path))
+        try:
+            return bool(cap.read()[0])
+        finally:
+            cap.release()
+    return cv2.imread(str(path), cv2.IMREAD_REDUCED_GRAYSCALE_8) is not None
+
+
 @app.post("/clips")
 async def upload_clip(request: Request, files: list[UploadFile] = File(...), asset_id: str = Form(...),
                       asset_type: str = Form("pipe"), pressurised: bool = Form(True), location: str = Form(""),
@@ -169,6 +181,9 @@ async def upload_clip(request: Request, files: list[UploadFile] = File(...), ass
                 shutil.copyfileobj(f.file, out, length=1 << 20)
             if path.stat().st_size > MAX_UPLOAD_MB << 20:
                 raise HTTPException(413, f"File too large: the limit is {MAX_UPLOAD_MB} MB.")
+            if not _readable(path):
+                raise HTTPException(400, f"Could not read {f.filename or 'the file'}: it is damaged or not a real "
+                                         f"{'video' if suffix in {'.mp4', '.mov'} else 'photo'}.")
             saved.append(path)
         videos = [p for p in saved if p.suffix in {".mp4", ".mov"}]
         if len(videos) > 1 or (videos and len(saved) > 1):

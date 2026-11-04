@@ -32,9 +32,7 @@ export function ForJudges({ demoMode }: { demoMode: boolean }) {
         <a href={`${REPO}/blob/main/benchmark/RESULTS.md`} target="_blank" rel="noreferrer">Benchmark results</a>
         {VIDEO ? (
           <a href={VIDEO} target="_blank" rel="noreferrer">Demo video</a>
-        ) : (
-          <span className="muted">Demo video: coming soon</span>
-        )}
+        ) : null}
       </div>
     </details>
   );

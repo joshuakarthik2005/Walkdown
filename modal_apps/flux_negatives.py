@@ -1,4 +1,4 @@
-"""FLUX.1-schnell (Apache 2.0, black-forest-labs) on Modal: synthetic hard negatives for TRAINING only (F6).
+r"""FLUX.1-schnell (Apache 2.0, black-forest-labs) on Modal: synthetic hard negatives for TRAINING only (F6).
 
 Generates plant surfaces with rust look-alikes and no corrosion from ``benchmark.synthetic_prompts`` (train split).
 The weights are downloaded once into a private Modal volume with the builder's HF token (gated repo, auto-approved

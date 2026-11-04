@@ -403,7 +403,7 @@ export default function Home() {
             ) : (
               <p className="muted">{server === "ok" ? "No sample walkdowns on this server." : "Loading samples…"}</p>
             )}
-            <DropZone files={files} maxMb={config?.max_upload_mb ?? 500} maxSeconds={config?.max_duration_s ?? null} busy={busy} onFiles={pickFiles} />
+            <DropZone files={files} maxMb={config?.max_upload_mb ?? null} maxSeconds={config?.max_duration_s ?? null} busy={busy} onFiles={pickFiles} />
             {uploadMode && (
               <div className="asset-form">
                 <div className="row">

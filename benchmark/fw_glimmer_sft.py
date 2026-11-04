@@ -9,7 +9,7 @@ injects ``MuseGlimmerImageTokenCounter`` (the cookbook's own processor-config-ba
 Runs in the Fireworks training venv (requirements-fireworks-training.txt) from the cookbook's ``training/`` folder:
 
     cd <cookbook>/training
-    PYTHONPATH=<cookbook> G:\walkdown-data\venv-fwtrain\Scripts\python.exe <repo>/benchmark/fw_glimmer_sft.py prepare --file data.jsonl
+    PYTHONPATH=<cookbook> G:\\walkdown-data\venv-fwtrain\\Scripts\\python.exe <repo>/benchmark/fw_glimmer_sft.py prepare --file data.jsonl
 """
 
 from __future__ import annotations

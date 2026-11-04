@@ -131,7 +131,6 @@ class Sam31:
     @modal.method()
     def describe(self, jpg: bytes, prompt: str = "rust") -> dict:
         """Keys, types and shapes of the raw outputs (to write the parser against the real format)."""
-        import numpy as np
         raw = self._track([jpg], prompt, propagate=False)[0]
 
         def info(v):

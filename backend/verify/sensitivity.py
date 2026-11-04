@@ -4,7 +4,8 @@ In inspection a missed defect is the dangerous error and every flag is reviewed 
 favours recall. "Balanced" trades a few points of recall for about half the false alarms. Every figure is
 measured (benchmark/RESULTS.md sections 8, 9 and 11) and shown in the UI with its sample size and 95% CI.
 
-- recall: the builder's blind audits (113 real-rust candidates: 100 text-prompt + 50 box-only, unsure excluded).
+- recall: the builder's blind audits of 150 candidates (100 text-prompt + 50 box-only): 133 sure labels, of which
+  113 are real rust (unsure excluded).
 - false alarms: share of the 191 real clean-pipe images (public negatives) with at least one accepted candidate,
   end to end (text + boxes + verifier).
 """

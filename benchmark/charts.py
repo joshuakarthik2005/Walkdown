@@ -78,8 +78,8 @@ def planner_improvement() -> str:
     w, left, top, row_h = 720, 150, 70, 38
     scale = (w - left - 60) / 30.0  # 0-30 %
     h = top + row_h * len(rows) + 50
-    body = [f'<text class="m" x="20" y="48">Risk reduction vs severity-sort baseline, % · dot = median, line = min-max '
-            f'across seeds · higher is better</text>']
+    body = ['<text class="m" x="20" y="48">Risk reduction vs severity-sort baseline, % · dot = median, line = min-max '
+            'across seeds · higher is better</text>']
     for v in range(0, 31, 5):
         x = left + v * scale
         body.append(f'<line class="g" x1="{x}" x2="{x}" y1="{top - 10}" y2="{top + row_h * len(rows)}"/>'
@@ -109,8 +109,8 @@ def replan_moves() -> str:
     vmax = max(max(v) for _, v in rows)
     scale = (w - left - 70) / vmax
     h = top + group * len(rows) + 6
-    body = [f'<text class="m" x="20" y="48">Median jobs moved when the busiest crew is out for 72 h · fewer = more '
-            f'stable · 5 seeds per regime</text>'] + legend(20, 66, [(c, l) for _, c, l in methods])
+    body = ['<text class="m" x="20" y="48">Median jobs moved when the busiest crew is out for 72 h · fewer = more '
+            'stable · 5 seeds per regime</text>'] + legend(20, 66, [(c, l) for _, c, l in methods])
     for i, (name, vals) in enumerate(rows):
         y0 = top + i * group
         body.append(f'<text class="t" x="{left - 12}" y="{y0 + 1.5 * (bar_h + gap) + 4}" text-anchor="end">'
@@ -140,8 +140,8 @@ def pareto() -> str:
     ymax = max(6.0, max(p[1] for v in pts.values() for p in v) + 1)
     sx = lambda v: left + v / xmax * (w - left - right)  # noqa: E731
     sy = lambda v: bottom - v / ymax * (bottom - top)  # noqa: E731
-    body = [f'<text class="m" x="20" y="48">Demo scenario, change at hour 48 · each point is one ε (0, 0.02, 0.05, '
-            f'0.10) · lower-left is better</text>'] + legend(w - 380, 66, [(c, l) for _, c, _, l in series])
+    body = ['<text class="m" x="20" y="48">Demo scenario, change at hour 48 · each point is one ε (0, 0.02, 0.05, '
+            '0.10) · lower-left is better</text>'] + legend(w - 380, 66, [(c, l) for _, c, _, l in series])
     for v in range(0, int(ymax) + 1, 2):
         body.append(f'<line class="g" x1="{left}" x2="{w - right}" y1="{sy(v)}" y2="{sy(v)}"/>'
                     f'<text class="m" x="{left - 8}" y="{sy(v) + 4}" text-anchor="end">+{v}%</text>')
@@ -196,8 +196,8 @@ def perception() -> str:
     group = 2 * (bar_h + gap) + 14
     scale = (w - left - 120)
     h = top + group * len(variants) + 40
-    body = [f'<text class="m" x="20" y="48">Pixel-level precision and recall against annotated rust · image '
-            f'detection rate in brackets</text>'] + legend(20, 66, [("s1", "precision"), ("s2", "recall")])
+    body = ['<text class="m" x="20" y="48">Pixel-level precision and recall against annotated rust · image '
+            'detection rate in brackets</text>'] + legend(20, 66, [("s1", "precision"), ("s2", "recall")])
     for v in (0, 0.25, 0.5, 0.75, 1.0):
         x = left + v * scale
         body.append(f'<line class="g" x1="{x}" x2="{x}" y1="{top - 6}" y2="{top + group * len(variants) - 10}"/>'
